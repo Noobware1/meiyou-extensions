@@ -1,0 +1,11 @@
+{
+    "id": 1644936336,
+    "name": "GogoAnime",
+    "type": "Video",
+    "downloadUrl": "",
+    "author": "Noobware1",
+    "description": "watch anime from gogoanime",
+    "lang": "multi",
+    "baseUrl": "https://anitaku.to",
+    "version": "0.0.1"
+}

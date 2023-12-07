@@ -1,0 +1,11 @@
+{
+    "id": 971428102,
+    "name": "Aniwatch",
+    "type": "Video",
+    "downloadUrl": "",
+    "author": "Noobware1",
+    "description": "watch anime from aniwatch.to",
+    "lang": "multi",
+    "baseUrl": "https://aniwatch.to",
+    "version": "0.0.1"
+}
