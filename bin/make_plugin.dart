@@ -57,7 +57,8 @@ void main(List<String> args) {
         lang: lang,
         baseUrl: baseUrl,
         version: '0.0.1',
-        downloadUrl: '');
+        downloadUrl:
+            "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/$folderName.plugin");
 
     File('${folder.path}/build.info.json')
       ..createSync()

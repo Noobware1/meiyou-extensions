@@ -1,10 +1,10 @@
 {
-    "id": 1644936336,
+    "id": 1678981770,
     "name": "GogoAnime",
-    "type": "Video",
-    "downloadUrl": "",
+    "type": "Anime",
+    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/gogo_anime.plugin",
     "author": "Noobware1",
-    "description": "watch anime from gogoanime",
+    "description": "watch free anime form gogoanime",
     "lang": "multi",
     "baseUrl": "https://anitaku.to",
     "version": "0.0.1"

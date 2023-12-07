@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.3.0"
+  archive:
+    dependency: "direct main"
+    description:
+      name: archive
+      sha256: "7b875fd4a20b165a3084bd2d210439b22ebc653f21cea4842729c0c30c82596b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.9"
   args:
     dependency: transitive
     description:
@@ -248,7 +256,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "96a10682c60e92ed4073478eea994ac5102cc1b1"
+      resolved-ref: "66115408c2f7d65557e180ea7092db12f20f88eb"
       url: "https://github.com/Noobware1/meiyou_extenstions.git"
     source: git
     version: "1.0.0"
