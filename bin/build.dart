@@ -15,7 +15,7 @@ extension on Directory {
 void main(List<String> args) {
   print(Directory.current);
   final sourceFolder =
-      '${Directory.current.fixedPath.substringBefore('bin')}/src';
+      '${Directory.current.fixedPath.substringBefore('bin')}src';
   print(Directory(sourceFolder).existsSync());
   final directories = [
     Directory('$sourceFolder/video'),
@@ -26,8 +26,10 @@ void main(List<String> args) {
   final buildDir = getBuildsDirectory()..createSync();
 
   for (var folders in directories) {
-    for (var subfolders in folders.listSync().whereType<Directory>()) {
-      build(buildDir, subfolders);
+    if (folders.existsSync()) {
+      for (var subfolder in folders.listSync().whereType<Directory>()) {
+        build(buildDir, subfolder);
+      }
     }
   }
 }
