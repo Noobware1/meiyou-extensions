@@ -30,8 +30,8 @@ jobs:
           git config --local user.name "GitHub Actions"
 
           git checkout -b builds
+          git pull
           mv builds/* .
           git add .
           git commit -m "Auto-generated builds"
-          git remote add origin_with_token "https://${{ secrets.GH_TOKEN }}@github.com/Noobware1/meiyou_extensions_repo.git"
-          git push origin_with_token builds
+          git push origin builds
