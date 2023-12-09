@@ -30,8 +30,12 @@ jobs:
           git config --local user.name "GitHub Actions"
 
           git checkout -b builds
-          git pull
           mv builds/* .
           git add .
           git commit -m "Auto-generated builds"
+          # Fetch remote changes
+          git fetch origin builds
+
+          # Rebase local changes on top of remote changes
+          git rebase origin/builds
           git push origin builds
