@@ -1,0 +1,36 @@
+name: Dart Build and Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Dart
+      uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+
+    - name: Install dependencies
+      run: dart pub get
+
+    - name: Build and Generate Files
+      run: |
+        cd bin
+        dart run build.dart
+
+    - name: Commit and Push Changes
+      run: |
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions"
+
+        git checkout builds
+        mv builds/* .
+        git add .
+        git commit -m "Auto-generated builds"
+        git push origin builds
