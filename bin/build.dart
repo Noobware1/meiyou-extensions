@@ -35,14 +35,14 @@ build(Directory builds, Directory folder) {
 
   print('Creating plugin.json.... ');
   final plugin =
-      Plugin.decode(File('${folder.path}/info.json').readAsStringSync());
+      Plugin.decode(File('${folder.path}\\info.json').readAsStringSync());
 
   File(filePaths[0]).writeAsStringSync(plugin.encode);
 
   print('Compiling code.... ');
 
   final mainCode =
-      File('${folder.path}/${folder.path.substringAfterLast('\\')}.dart')
+      File('${folder.path}\\${folder.path.substringAfterLast('\\')}.dart')
           .readAsStringSync();
   final packages = {
     'meiyou': {'main.dart': fixImports(mainCode), ...getAllExtractors(mainCode)}
@@ -58,7 +58,7 @@ build(Directory builds, Directory folder) {
   List<ArchiveFile> archiveFiles = [];
 
   File(filePaths[2])
-      .writeAsBytesSync(File('${folder.path}/icon.png').readAsBytesSync());
+      .writeAsBytesSync(File('${folder.path}\\icon.png').readAsBytesSync());
 
   print('Building...');
   for (String filePath in filePaths) {
