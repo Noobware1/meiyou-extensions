@@ -33,4 +33,4 @@ jobs:
           mv builds/* .
           git add .
           git commit -m "Auto-generated builds"
-          git push origin builds
+          git push origin builds --force
