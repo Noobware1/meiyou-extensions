@@ -1,10 +1,10 @@
 // ignore_for_file: unnecessary_cast
 
+import 'package:meiyou_extensions_repo/extractors/gogo_cdn.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 // import 'gogo_cdn.dart'
 
 const hostUrl = 'https://anitaku.to';
-
 
 class GogoAnime extends BasePluginApi {
   GogoAnime();

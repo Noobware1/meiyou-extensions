@@ -7,7 +7,8 @@ import 'update_index.json.dart';
 
 void main(List<String> args) {
   final sourceFolder =
-      '${Directory.current.path.substringBefore('\\bin')}\\lib\\src';
+      '${Directory.current.path.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo\\src';
+
   final directories = [
     Directory('$sourceFolder\\video'),
     Directory('$sourceFolder\\image'),

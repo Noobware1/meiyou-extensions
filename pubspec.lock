@@ -94,10 +94,10 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "79e8412f55d2790c852f10202a0aad6fab3d9757"
+      resolved-ref: b5fad7dd34c446bb9790a43c3a16a97c74c3c9f8
       url: "https://github.com/Noobware1/crypto_dart.git"
     source: git
-    version: "1.0.0"
+    version: "1.0.2"
   csslib:
     dependency: transitive
     description:
@@ -256,7 +256,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "66115408c2f7d65557e180ea7092db12f20f88eb"
+      resolved-ref: b2a97554354f21c07f96ce18a223a54b677f9b6e
       url: "https://github.com/Noobware1/meiyou_extenstions.git"
     source: git
     version: "1.0.0"
