@@ -13,22 +13,23 @@ extension on Directory {
 }
 
 void main(List<String> args) {
+  print(Directory.current);
   final sourceFolder =
       '${Directory.current.fixedPath.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo/src';
+  print(Directory(sourceFolder).existsSync());
+  // final directories = [
+  //   Directory('$sourceFolder/video'),
+  //   Directory('$sourceFolder/image'),
+  //   Directory('$sourceFolder/text'),
+  // ];
 
-  final directories = [
-    Directory('$sourceFolder/video'),
-    Directory('$sourceFolder/image'),
-    Directory('$sourceFolder/text'),
-  ];
+  // final buildDir = getBuildsDirectory()..createSync();
 
-  final buildDir = getBuildsDirectory()..createSync();
-
-  for (var folders in directories) {
-    for (var subfolders in folders.listSync().whereType<Directory>()) {
-      build(buildDir, subfolders);
-    }
-  }
+  // for (var folders in directories) {
+  //   for (var subfolders in folders.listSync().whereType<Directory>()) {
+  //     build(buildDir, subfolders);
+  //   }
+  // }
 }
 
 build(Directory builds, Directory folder) {
