@@ -33,17 +33,4 @@ jobs:
           mv builds/* .
           git add .
           git commit -m "Auto-generated builds"
-          # Fetch remote changes
-          git fetch origin builds
-
-          # Rebase local changes on top of remote changes
-          git rebase origin/builds
-          # Automatically resolve conflicts using the recursive strategy
-          git -c 'merge.ours.driver=git checkout --ours %A' \
-              -c 'merge.ours.driver=git checkout --theirs %A' \
-              -c 'merge.ours.driver=git checkout --ours %A' \
-              rebase --skip || true
-
-          # Continue with the rebase
-          git rebase --continue
           git push origin builds
