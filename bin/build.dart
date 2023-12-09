@@ -15,14 +15,16 @@ void main(List<String> args) {
     Directory('$sourceFolder\\text'),
   ];
 
+  final buildDir = getBuildsDirectory()..createSync();
+
   for (var folders in directories) {
     for (var subfolders in folders.listSync().whereType<Directory>()) {
-      build(subfolders);
+      build(buildDir, subfolders);
     }
   }
 }
 
-build(Directory folder) {
+build(Directory builds, Directory folder) {
   final filePaths = [
     'plugin.json',
     'code.evc',
@@ -68,7 +70,7 @@ build(Directory folder) {
   final outputFile = "${folder.path.substringAfterLast('\\')}.plugin";
   // Create the archive and write it to a file
   Archive archive = Archive()..files.addAll(archiveFiles);
-  File outputZipFile = File(outputFile);
+  File outputZipFile = File('${builds.path}\\$outputFile');
   outputZipFile.writeAsBytesSync(ZipEncoder().encode(archive)!);
 
   print('Successfully built $outputFile');

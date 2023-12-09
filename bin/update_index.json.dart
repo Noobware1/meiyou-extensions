@@ -24,7 +24,8 @@ Future<File> updateIndexJson(Plugin plugin) async {
       index.text.add(plugin);
       break;
   }
-  final file = File('index.json');
+  final file = File(
+      "${Directory.current.path.substringBefore("meiyou_extensions_repo")}meiyou_extensions_repo\\builds\\index.json");
   await file.writeAsString(index.encode);
   return file;
 }
