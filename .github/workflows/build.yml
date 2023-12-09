@@ -1,4 +1,4 @@
-name: Dart Build and Deploy
+name: Build Plugins
 
 on:
   push:
@@ -32,5 +32,5 @@ jobs:
           git checkout -b builds
           mv builds/* .
           git add .
-          git commit -m "Auto-generated builds"
+          git commit -m "Adding build plugins"
           git push origin builds --force
