@@ -1,13 +1,27 @@
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
+import 'package:meiyou_extensions_repo/utils/directory.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
-
 import 'update_index.json.dart';
 
 void main(List<String> args) {
-  final folder = Directory(args[0]);
+  final sourceFolder =
+      '${Directory.current.path.substringBefore('\\bin')}\\lib\\src';
+  final directories = [
+    Directory('$sourceFolder\\video'),
+    Directory('$sourceFolder\\image'),
+    Directory('$sourceFolder\\text'),
+  ];
 
+  for (var folders in directories) {
+    for (var subfolders in folders.listSync().whereType<Directory>()) {
+      build(subfolders);
+    }
+  }
+}
+
+build(Directory folder) {
   final filePaths = [
     'plugin.json',
     'code.evc',
@@ -16,19 +30,20 @@ void main(List<String> args) {
 
   print('Creating plugin.json.... ');
   final plugin =
-      Plugin.decode(File('${folder.path}/build.info.json').readAsStringSync());
+      Plugin.decode(File('${folder.path}/info.json').readAsStringSync());
 
   File(filePaths[0]).writeAsStringSync(plugin.encode);
 
   print('Compiling code.... ');
 
-  final code = ExtenstionComplier().compilePackages({
-    'meiyou': {
-      'main.dart':
-          File('${folder.path}/${folder.path.substringAfterLast('\\')}.dart')
-              .readAsStringSync(),
-    }
-  });
+  final mainCode =
+      File('${folder.path}/${folder.path.substringAfterLast('\\')}.dart')
+          .readAsStringSync();
+  final packages = {
+    'meiyou': {'main.dart': fixImports(mainCode), ...getAllExtractors(mainCode)}
+  };
+
+  final code = ExtenstionComplier().compilePackages(packages);
 
   print('Creating code.evc.... ');
   File(filePaths[1]).writeAsBytesSync(code);
@@ -61,4 +76,30 @@ void main(List<String> args) {
   updateIndexJson(plugin).then((value) {
     print('Successfully updated index.json');
   });
+}
+
+String fixImports(String code) {
+  final importRegex = RegExp(
+      r"""import\s+['"]([^'"]*extractors[^'"]*)['"](?:\s+as\s+([a-zA-Z_]\w*))?\s*;""");
+
+  importRegex.allMatches(code).nonNulls.forEach((e) {
+    final i = e.group(1)!;
+    code = code.replaceFirst(i, i.substringAfterLast('/'));
+  });
+  return code;
+}
+
+Map<String, String> getAllExtractors(String code) {
+  final extractors = RegExp(r"..extractors\/(.*)';")
+      .allMatches(code)
+      .map((it) => it.group(1))
+      .nonNulls;
+
+  final extractorsDir = getExtractorsDirectory();
+
+  final allImports = <String, String>{};
+  for (var e in extractors) {
+    allImports[e] = File('${extractorsDir.path}\\$e').readAsStringSync();
+  }
+  return allImports;
 }

@@ -60,7 +60,7 @@ void main(List<String> args) {
         downloadUrl:
             "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/$folderName.plugin");
 
-    File('${folder.path}/build.info.json')
+    File('${folder.path}/info.json')
       ..createSync()
       ..writeAsStringSync(
           JsonEncoder.withIndent('    ').convert(plugin.toJson()));

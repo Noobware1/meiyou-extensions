@@ -3,15 +3,18 @@ import 'dart:io';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
 void main(List<String> args) {
-  final filePath = args[0];
-
   final compiled = ExtenstionComplier().compilePackages({
-    'meiyou': {'main.dart': File(filePath).readAsStringSync()}
+    'meiyou': {
+      'main.dart': File(
+              'C:/Users/freem/OneDrive/Desktop/Projects/meiyou_extensions_repo/lib/extractors/gogo_cdn.dart')
+          .readAsStringSync()
+    }
   });
 
-  final plugin = ExtenstionLoader()
+  final extractorApi = ExtenstionLoader()
       .runtimeEval(compiled)
-      .executeLib('package:meiyou/main.dart', 'main') as $BasePluginApi;
+      .executeLib('package:meiyou/main.dart', 'main') as $ExtractorApi;
 
-  print(plugin);
+  print(extractorApi);
+  print(extractorApi.extract().then(print));
 }

@@ -11,17 +11,17 @@ Future<File> updateIndexJson(Plugin plugin) async {
 
   final index = (await client.get(indexUrl)).json(IndexJson.fromJson);
   switch (plugin.type.toLowerCase()) {
-    case 'anime':
-      index.anime.removeWhere((e) => e.id == plugin.id);
-      index.anime.add(plugin);
+    case 'video':
+      index.video.removeWhere((e) => e.id == plugin.id);
+      index.video.add(plugin);
       break;
-    case 'manga':
-      index.manga.removeWhere((e) => e.id == plugin.id);
-      index.manga.add(plugin);
+    case 'image':
+      index.image.removeWhere((e) => e.id == plugin.id);
+      index.image.add(plugin);
       break;
-    case 'movies':
-      index.movies.removeWhere((e) => e.id == plugin.id);
-      index.movies.add(plugin);
+    case 'text':
+      index.text.removeWhere((e) => e.id == plugin.id);
+      index.text.add(plugin);
       break;
   }
   final file = File('index.json');
@@ -30,39 +30,39 @@ Future<File> updateIndexJson(Plugin plugin) async {
 }
 
 class IndexJson {
-  final List<Plugin> anime;
+  final List<Plugin> video;
 
-  final List<Plugin> movies;
-  final List<Plugin> manga;
+  final List<Plugin> image;
+  final List<Plugin> text;
 
-  IndexJson({required this.anime, required this.movies, required this.manga});
+  IndexJson({required this.video, required this.image, required this.text});
 
   factory IndexJson.decode(String json) => IndexJson.fromJson(jsonDecode(json));
 
   String get encode => JsonEncoder.withIndent('    ').convert(toJson());
 
   factory IndexJson.fromJson(dynamic json) {
-    final anime = json['anime'] as List? ?? [];
+    final video = json['video'] as List? ?? [];
 
-    final movies = json['movies'] as List? ?? [];
+    final image = json['image'] as List? ?? [];
 
-    final manga = json['manga'] as List? ?? [];
+    final text = json['text'] as List? ?? [];
 
     return IndexJson(
-      anime: anime.mapAsList((it) => Plugin.fromJson(
+      video: video.mapAsList((it) => Plugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
-      movies: movies.mapAsList((it) => Plugin.fromJson(
+      image: image.mapAsList((it) => Plugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
-      manga: manga.mapAsList((it) => Plugin.fromJson(
+      text: text.mapAsList((it) => Plugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'anime': anime.mapAsList((it) => it.toJson()),
-      'movies': movies.mapAsList((it) => it.toJson()),
-      'manga': manga.mapAsList((it) => it.toJson()),
+      'video': video.mapAsList((it) => it.toJson()),
+      'image': image.mapAsList((it) => it.toJson()),
+      'text': text.mapAsList((it) => it.toJson()),
     };
   }
 }
