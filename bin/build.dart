@@ -7,14 +7,19 @@ import 'dart:convert';
 
 import 'package:meiyou_extenstions/ok_http/ok_http.dart';
 
+extension on Directory {
+  String get fixedPath =>
+      path.contains('\\') ? path.replaceAll('\\', '/') : path;
+}
+
 void main(List<String> args) {
   final sourceFolder =
-      '${Directory.current.path.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo\\src';
+      '${Directory.current.fixedPath.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo/src';
 
   final directories = [
-    Directory('$sourceFolder\\video'),
-    Directory('$sourceFolder\\image'),
-    Directory('$sourceFolder\\text'),
+    Directory('$sourceFolder/video'),
+    Directory('$sourceFolder/image'),
+    Directory('$sourceFolder/text'),
   ];
 
   final buildDir = getBuildsDirectory()..createSync();
@@ -35,15 +40,15 @@ build(Directory builds, Directory folder) {
 
   print('Creating plugin.json.... ');
   final plugin =
-      Plugin.decode(File('${folder.path}\\info.json').readAsStringSync());
+      Plugin.decode(File('${folder.fixedPath}/info.json').readAsStringSync());
 
   File(filePaths[0]).writeAsStringSync(plugin.encode);
 
   print('Compiling code.... ');
 
-  final mainCode =
-      File('${folder.path}\\${folder.path.substringAfterLast('\\')}.dart')
-          .readAsStringSync();
+  final mainCode = File(
+          '${folder.fixedPath}/${folder.fixedPath.substringAfterLast('/')}.dart')
+      .readAsStringSync();
   final packages = {
     'meiyou': {'main.dart': fixImports(mainCode), ...getAllExtractors(mainCode)}
   };
@@ -58,7 +63,7 @@ build(Directory builds, Directory folder) {
   List<ArchiveFile> archiveFiles = [];
 
   File(filePaths[2])
-      .writeAsBytesSync(File('${folder.path}\\icon.png').readAsBytesSync());
+      .writeAsBytesSync(File('${folder.fixedPath}/icon.png').readAsBytesSync());
 
   print('Building...');
   for (String filePath in filePaths) {
@@ -69,10 +74,10 @@ build(Directory builds, Directory folder) {
     file.deleteSync();
   }
 
-  final outputFile = "${folder.path.substringAfterLast('\\')}.plugin";
+  final outputFile = "${folder.fixedPath.substringAfterLast('/')}.plugin";
   // Create the archive and write it to a file
   Archive archive = Archive()..files.addAll(archiveFiles);
-  File outputZipFile = File('${builds.path}\\$outputFile');
+  File outputZipFile = File('${builds.fixedPath}/$outputFile');
   outputZipFile.writeAsBytesSync(ZipEncoder().encode(archive)!);
 
   print('Successfully built $outputFile');
@@ -84,10 +89,10 @@ build(Directory builds, Directory folder) {
 }
 
 Directory getExtractorsDirectory() => Directory(
-    '${Directory.current.path.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo\\lib\\extractors');
+    '${Directory.current.fixedPath.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo/lib/extractors');
 
 Directory getBuildsDirectory() => Directory(
-    '${Directory.current.path.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo\\builds');
+    '${Directory.current.fixedPath.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo/builds');
 
 String fixImports(String code) {
   final importRegex = RegExp(
@@ -110,7 +115,7 @@ Map<String, String> getAllExtractors(String code) {
 
   final allImports = <String, String>{};
   for (var e in extractors) {
-    allImports[e] = File('${extractorsDir.path}\\$e').readAsStringSync();
+    allImports[e] = File('${extractorsDir.fixedPath}/$e').readAsStringSync();
   }
   return allImports;
 }
@@ -136,7 +141,7 @@ Future<File> updateIndexJson(Plugin plugin) async {
       break;
   }
   final file = File(
-      "${Directory.current.path.substringBefore("meiyou_extensions_repo")}meiyou_extensions_repo\\builds\\index.json");
+      "${Directory.current.fixedPath.substringBefore("meiyou_extensions_repo")}meiyou_extensions_repo/builds/index.json");
   await file.writeAsString(index.encode);
   return file;
 }
