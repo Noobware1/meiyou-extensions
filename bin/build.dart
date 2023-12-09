@@ -15,21 +15,21 @@ extension on Directory {
 void main(List<String> args) {
   print(Directory.current);
   final sourceFolder =
-      '${Directory.current.fixedPath.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo/src';
+      '${Directory.current.fixedPath.substringBefore('bin')}/src';
   print(Directory(sourceFolder).existsSync());
-  // final directories = [
-  //   Directory('$sourceFolder/video'),
-  //   Directory('$sourceFolder/image'),
-  //   Directory('$sourceFolder/text'),
-  // ];
+  final directories = [
+    Directory('$sourceFolder/video'),
+    Directory('$sourceFolder/image'),
+    Directory('$sourceFolder/text'),
+  ];
 
-  // final buildDir = getBuildsDirectory()..createSync();
+  final buildDir = getBuildsDirectory()..createSync();
 
-  // for (var folders in directories) {
-  //   for (var subfolders in folders.listSync().whereType<Directory>()) {
-  //     build(buildDir, subfolders);
-  //   }
-  // }
+  for (var folders in directories) {
+    for (var subfolders in folders.listSync().whereType<Directory>()) {
+      build(buildDir, subfolders);
+    }
+  }
 }
 
 build(Directory builds, Directory folder) {
@@ -90,10 +90,10 @@ build(Directory builds, Directory folder) {
 }
 
 Directory getExtractorsDirectory() => Directory(
-    '${Directory.current.fixedPath.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo/lib/extractors');
+    '${Directory.current.fixedPath.substringBefore('bin')}lib/extractors');
 
-Directory getBuildsDirectory() => Directory(
-    '${Directory.current.fixedPath.substringBefore('meiyou_extensions_repo')}meiyou_extensions_repo/builds');
+Directory getBuildsDirectory() =>
+    Directory('${Directory.current.fixedPath.substringBefore('bin')}builds');
 
 String fixImports(String code) {
   final importRegex = RegExp(
@@ -142,7 +142,7 @@ Future<File> updateIndexJson(Plugin plugin) async {
       break;
   }
   final file = File(
-      "${Directory.current.fixedPath.substringBefore("meiyou_extensions_repo")}meiyou_extensions_repo/builds/index.json");
+      "${Directory.current.fixedPath.substringBefore("bin")}builds/index.json");
   await file.writeAsString(index.encode);
   return file;
 }
