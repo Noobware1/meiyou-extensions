@@ -52,8 +52,7 @@ void main(List<String> args) {
     }
   }
 
-  final file = File(
-      "${Directory.current.fixedPath.substringBefore("bin")}builds/index.json");
+  final file = File("${buildDir.fixedPath}/index.json");
   file.writeAsStringSync(index.encode);
 }
 
