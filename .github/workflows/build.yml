@@ -33,6 +33,7 @@ jobs:
           git fetch origin builds:builds
 
           git checkout builds
+          rm -r ./icons/*
 
           mv builds/* .
 

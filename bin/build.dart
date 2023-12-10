@@ -45,7 +45,7 @@ void main(List<String> args) {
           }
         } catch (e) {
           print(
-              'Failed to build plugin ${subfolder.fixedPath.substringAfterLast('/')}');
+              'Failed to build ${subfolder.fixedPath.substringAfterLast('/')}');
           print(e);
         }
       }
@@ -110,7 +110,7 @@ OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
   File outputZipFile = File('${builds.fixedPath}/$outputFile');
   outputZipFile.writeAsBytesSync(ZipEncoder().encode(archive)!);
 
-  print('Successfully built plugin $outputFile');
+  print('Successfully built $outputFile');
 
   return plugin;
 }
