@@ -9,7 +9,8 @@
             "description": "watch free anime form gogoanime",
             "lang": "multi",
             "baseUrl": "https://anitaku.to",
-            "version": "0.0.1"
+            "version": "0.0.1",
+            "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/gogo_anime.png"
         }
     ],
     "image": [],
