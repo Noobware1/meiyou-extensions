@@ -49,16 +49,19 @@ void main(List<String> args) {
     stdout.write('Enter plugin baseUrl: ');
     final baseUrl = stdin.readLineSync() ?? '';
 
-    final Plugin plugin = Plugin(
-        name: name,
-        type: type,
-        author: author,
-        description: description,
-        lang: lang,
-        baseUrl: baseUrl,
-        version: '0.0.1',
-        downloadUrl:
-            "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/$folderName.plugin");
+    final OnlinePlugin plugin = OnlinePlugin(
+      name: name,
+      type: type,
+      author: author,
+      description: description,
+      lang: lang,
+      baseUrl: baseUrl,
+      version: '0.0.1',
+      downloadUrl:
+          "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/$folderName.plugin",
+      iconUrl:
+          "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/$folderName.png",
+    );
 
     File('${folder.path}/info.json')
       ..createSync()

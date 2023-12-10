@@ -5,18 +5,15 @@ import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
 import 'dart:convert';
 
-import 'package:meiyou_extenstions/ok_http/ok_http.dart';
-
 extension on Directory {
   String get fixedPath =>
       path.contains('\\') ? path.replaceAll('\\', '/') : path;
 }
 
 void main(List<String> args) {
-  print(Directory.current);
   final sourceFolder =
       '${Directory.current.fixedPath.substringBefore('bin')}src';
-  print(Directory(sourceFolder).existsSync());
+
   final directories = [
     Directory('$sourceFolder/video'),
     Directory('$sourceFolder/image'),
@@ -25,33 +22,61 @@ void main(List<String> args) {
 
   final buildDir = getBuildsDirectory()..createSync();
 
+  final icons = Directory('${buildDir.fixedPath}/icons')..createSync();
+
+  final IndexJson index = IndexJson(video: [], image: [], text: []);
+
   for (var folders in directories) {
     if (folders.existsSync()) {
       for (var subfolder in folders.listSync().whereType<Directory>()) {
-        build(buildDir, subfolder);
+        try {
+          final plugin = build(buildDir, icons, subfolder);
+          switch (plugin.type.toLowerCase()) {
+            case 'video':
+              index.video.add(plugin);
+              break;
+            case 'image':
+              index.image.add(plugin);
+              break;
+            case 'text':
+              index.text.add(plugin);
+              break;
+            default:
+          }
+        } catch (e) {
+          print(
+              'Failed to build plugin ${subfolder.fixedPath.substringAfterLast('/')}');
+          print(e);
+        }
       }
     }
   }
+
+  final file = File(
+      "${Directory.current.fixedPath.substringBefore("bin")}builds/index.json");
+  file.writeAsStringSync(index.encode);
 }
 
-build(Directory builds, Directory folder) {
-  final filePaths = [
-    'plugin.json',
-    'code.evc',
-    'icon.png',
-  ];
+const filePaths = [
+  'plugin.json',
+  'code.evc',
+  'icon.png',
+];
+
+OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
+  final plugin = OnlinePlugin.decode(
+      File('${folder.fixedPath}/info.json').readAsStringSync());
+  print('Building ${plugin.name}...');
 
   print('Creating plugin.json.... ');
-  final plugin =
-      Plugin.decode(File('${folder.fixedPath}/info.json').readAsStringSync());
 
   File(filePaths[0]).writeAsStringSync(plugin.encode);
+  final codeFileName = '${folder.fixedPath.substringAfterLast('/')}.dart';
 
-  print('Compiling code.... ');
+  print('Compiling $codeFileName.... ');
 
-  final mainCode = File(
-          '${folder.fixedPath}/${folder.fixedPath.substringAfterLast('/')}.dart')
-      .readAsStringSync();
+  final mainCode = File('${folder.fixedPath}/$codeFileName').readAsStringSync();
+
   final packages = {
     'meiyou': {'main.dart': fixImports(mainCode), ...getAllExtractors(mainCode)}
   };
@@ -59,16 +84,19 @@ build(Directory builds, Directory folder) {
   final code = ExtenstionComplier().compilePackages(packages);
 
   print('Creating code.evc.... ');
+
   File(filePaths[1]).writeAsBytesSync(code);
 
-  print('Creating icon.png.... ');
+  print('Copying icon.png.... ');
+  final icon = File('${folder.fixedPath}/icon.png');
+  icon.copySync(filePaths[2]);
+
+  icon.copySync(
+      '${icons.fixedPath}/${folder.fixedPath.substringAfterLast('/')}.png');
 
   List<ArchiveFile> archiveFiles = [];
 
-  File(filePaths[2])
-      .writeAsBytesSync(File('${folder.fixedPath}/icon.png').readAsBytesSync());
-
-  print('Building...');
+  print('Building plugin...');
   for (String filePath in filePaths) {
     File file = File(filePath);
     List<int> fileContent = file.readAsBytesSync();
@@ -83,12 +111,9 @@ build(Directory builds, Directory folder) {
   File outputZipFile = File('${builds.fixedPath}/$outputFile');
   outputZipFile.writeAsBytesSync(ZipEncoder().encode(archive)!);
 
-  print('Successfully built $outputFile');
+  print('Successfully built plugin $outputFile');
 
-  print('Creating updated index.json....');
-  updateIndexJson(plugin).then((value) {
-    print('Successfully updated index.json');
-  });
+  return plugin;
 }
 
 Directory getExtractorsDirectory() => Directory(
@@ -123,37 +148,11 @@ Map<String, String> getAllExtractors(String code) {
   return allImports;
 }
 
-Future<File> updateIndexJson(Plugin plugin) async {
-  final client = OKHttpClient();
-  final indexUrl =
-      "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/index.json";
-
-  final index = (await client.get(indexUrl)).json(IndexJson.fromJson);
-  switch (plugin.type.toLowerCase()) {
-    case 'video':
-      index.video.removeWhere((e) => e.id == plugin.id);
-      index.video.add(plugin);
-      break;
-    case 'image':
-      index.image.removeWhere((e) => e.id == plugin.id);
-      index.image.add(plugin);
-      break;
-    case 'text':
-      index.text.removeWhere((e) => e.id == plugin.id);
-      index.text.add(plugin);
-      break;
-  }
-  final file = File(
-      "${Directory.current.fixedPath.substringBefore("bin")}builds/index.json");
-  await file.writeAsString(index.encode);
-  return file;
-}
-
 class IndexJson {
-  final List<Plugin> video;
+  final List<OnlinePlugin> video;
 
-  final List<Plugin> image;
-  final List<Plugin> text;
+  final List<OnlinePlugin> image;
+  final List<OnlinePlugin> text;
 
   IndexJson({required this.video, required this.image, required this.text});
 
@@ -169,11 +168,11 @@ class IndexJson {
     final text = json['text'] as List? ?? [];
 
     return IndexJson(
-      video: video.mapAsList((it) => Plugin.fromJson(
+      video: video.mapAsList((it) => OnlinePlugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
-      image: image.mapAsList((it) => Plugin.fromJson(
+      image: image.mapAsList((it) => OnlinePlugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
-      text: text.mapAsList((it) => Plugin.fromJson(
+      text: text.mapAsList((it) => OnlinePlugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
     );
   }

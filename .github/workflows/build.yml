@@ -37,5 +37,5 @@ jobs:
           mv builds/* .
 
           git add .
-          git commit -m "Adding build plugins"
+          git commit -m "Adding built plugins"
           git push origin builds --force
