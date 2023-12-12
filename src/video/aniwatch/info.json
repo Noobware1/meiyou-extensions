@@ -1,0 +1,12 @@
+{
+    "id": 628517137,
+    "name": "Aniwatch",
+    "type": "Video",
+    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/aniwatch.plugin",
+    "author": "Noobware1",
+    "description": "watch anime from aniwatch.to",
+    "lang": "multi",
+    "baseUrl": "https://aniwatch.to",
+    "version": "0.0.1",
+    "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/aniwatch.png"
+}

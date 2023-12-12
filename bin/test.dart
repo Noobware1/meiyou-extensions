@@ -2,31 +2,45 @@ import 'dart:io';
 
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
-void main(List<String> args) {
-  final compiled = ExtenstionComplier().compilePackages({
-    'meiyou': {
-      'main.dart': '''
-import 'gogo_cdn.dart';
+import 'build.dart';
 
-main() {
-  return GogoCDN(ExtractorLink(
-      url:
-          'https://goone.pro/streaming.php?id=MjE1NTk1&title=Kibou+no+Chikara%3A+Otona+Precure+%2723+Episode+7',
-      name: ''));
-}
+// void main(List<String> args) {
+//   final a = File(
+//           'C:/Users/freem/OneDrive/Desktop/Projects/meiyou_extensions_repo/src/video/aniwatch/aniwatch.dart')
+//       .readAsStringSync();
+//   final packages = {
+//     'meiyou': {
+//       'main.dart': fixImports(a),
+//       ...getAllRelativeImports(
+//           'C:/Users/freem/OneDrive/Desktop/Projects/meiyou_extensions_repo/src/video/aniwatch',
+//           a, {}),
+//       ...getAllExtractors(a, {})
+//     }
+//   };
 
-''',
-      'gogo_cdn.dart': File(
-              'C:/Users/freem/OneDrive/Desktop/Projects/meiyou_extensions_repo/lib/extractors/gogo_cdn.dart')
-          .readAsStringSync()
-    }
-  });
+//   final compiled = ExtenstionComplier().compilePackages(packages);
+
+//   final api = ExtenstionLoader()
+//       .runtimeEval(compiled)
+//       .executeLib('package:meiyou/main.dart', 'main') as $BasePluginApi;
+
+//   print(api);
+// }
+
+void main(List<String> args) async {
+  final a = File(
+          "C:/Users/freem/OneDrive/Desktop/Projects/meiyou_extensions_repo/bin/lol.dart")
+      .readAsStringSync();
+  final packages = {
+    'meiyou': {'main.dart': fixImports(a), ...getAllExtractors(a, {})}
+  };
+
+  final compiled = ExtenstionComplier().compilePackages(packages);
 
   final extractorApi = ExtenstionLoader()
       .runtimeEval(compiled)
-      .executeLib('package:meiyou/main.dart', 'main') as $ExtractorApi;
+      .executeLib('package:meiyou/main.dart', 'main');
 
-  print(extractorApi);
-  print(extractorApi.extract().then(print));
+  print(await extractorApi);
+  // print(extractorApi.extract().then(print));
 }
-

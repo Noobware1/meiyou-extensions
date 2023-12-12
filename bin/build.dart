@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
+import 'package:meiyou_extenstions/extenstions.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
 import 'dart:convert';
@@ -77,7 +78,11 @@ OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
   final mainCode = File('${folder.fixedPath}/$codeFileName').readAsStringSync();
 
   final packages = {
-    'meiyou': {'main.dart': fixImports(mainCode), ...getAllExtractors(mainCode)}
+    'meiyou': {
+      'main.dart': fixImports(mainCode),
+      ...getAllRelativeImports(folder.fixedPath, mainCode, {}),
+      ...getAllExtractors(mainCode, {})
+    }
   };
 
   final code = ExtenstionComplier().compilePackages(packages);
@@ -132,19 +137,53 @@ String fixImports(String code) {
   return code;
 }
 
-Map<String, String> getAllExtractors(String code) {
-  final extractors = RegExp(r"..extractors\/(.*)';")
-      .allMatches(code)
-      .map((it) => it.group(1))
-      .nonNulls;
+Map<String, String> getAllRelativeImports(
+  String folderPath,
+  String code,
+  Map<String, String> files,
+) {
+  Iterable<String> getImports(String codeFile) {
+    final regex = RegExp(r"""import\s+['"](\w+\.\w+)['"]\s*;""");
+    final imports =
+        regex.allMatches(codeFile).map((it) => it.group(1)).nonNulls;
+    return imports.where((e) => !e.startsWith('dart:'));
+  }
+
+  var allImports = getImports(code);
+  for (var e in allImports) {
+    final codeFile = File('$folderPath/$e').readAsStringSync();
+    files[e] = codeFile;
+  }
+  return files;
+}
+
+Map<String, String> getAllExtractors(
+    String code, Map<String, String> extractors) {
+  Iterable<String> getExtractors(String codeFile) {
+    final regex = RegExp(r"..extractors\/(.*)';");
+    final extractors =
+        regex.allMatches(codeFile).map((it) => it.group(1)).nonNulls;
+    return extractors;
+  }
 
   final extractorsDir = getExtractorsDirectory();
 
-  final allImports = <String, String>{};
-  for (var e in extractors) {
-    allImports[e] = File('${extractorsDir.fixedPath}/$e').readAsStringSync();
+  var allImports = getExtractors(code);
+  extractors = getAllRelativeImports(extractorsDir.fixedPath, code, extractors);
+
+  for (var e in allImports) {
+    final codeFile = File('${extractorsDir.fixedPath}/$e').readAsStringSync();
+    extractors[e] = fixImports(codeFile);
+
+    extractors =
+        getAllRelativeImports(extractorsDir.fixedPath, codeFile, extractors);
+
+    allImports = getExtractors(codeFile);
+    if (allImports.isNotEmpty) {
+      getAllExtractors(codeFile, extractors);
+    }
   }
-  return allImports;
+  return extractors;
 }
 
 class IndexJson {

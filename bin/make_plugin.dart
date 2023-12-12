@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:meiyou_extenstions/extenstions.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 import 'dart:io';
 
@@ -14,7 +15,7 @@ void main(List<String> args) {
     print('Creating $folderName....');
 
     final folder = Directory(
-        '${Directory.current.path.substringBeforeLast('bin').replaceAll('\\', '/')}lib/$folderName')
+        '${Directory.current.path.substringBeforeLast('bin').replaceAll('\\', '/')}src/$folderName')
       ..createSync(recursive: true);
 
     print('Generating plugin temeplate....');
