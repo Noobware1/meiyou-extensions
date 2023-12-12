@@ -13,6 +13,18 @@
             "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/aniwatch.png"
         },
         {
+            "id": 12089627,
+            "name": "FlixHQ",
+            "type": "video",
+            "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/flixhq.plugin",
+            "author": "Noobware1",
+            "description": "watch videos from flixhq.to",
+            "lang": "multi",
+            "baseUrl": "https://flixhq.to",
+            "version": "0.0.1",
+            "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/flixhq.png"
+        },
+        {
             "id": 1678981770,
             "name": "GogoAnime",
             "type": "Video",
