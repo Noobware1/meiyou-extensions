@@ -85,6 +85,10 @@ OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
     }
   };
 
+  print('Compiling packages....');
+
+  print('{\n  meiyou\n   --${packages['meiyou']!.keys.join('\n   --')}\n}');
+
   final code = ExtenstionComplier().compilePackages(packages);
 
   print('Creating code.evc.... ');

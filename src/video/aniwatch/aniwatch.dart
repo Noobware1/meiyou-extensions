@@ -16,33 +16,80 @@ class AniWatch extends BasePluginApi {
 
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
-        'name': 'key',
+        'Trending': '$hostUrl/home',
+        'Top Airing': '$hostUrl/top-airing',
+        'Latest Episodes': '$hostUrl/recently-updated',
+        'Most Popular': '$hostUrl/most-popular',
+        'New on Aniwatch': '$hostUrl/recently-added',
       });
 
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
-    return HomePage(data: HomePageList(name: '', data: []), page: page);
+    if (request.name == 'Trending') {
+      return getTrending(request);
+    } else {
+      return HomePage(
+          data: HomePageList(
+              name: request.name,
+              data: await parseSearchResponse('${request.data}?page=$page')),
+          page: page);
+    }
+  }
+
+  Future<HomePage> getTrending(HomePageRequest request) async {
+    final list = (await AppUtils.httpRequest(
+            url: request.data, method: 'GET', headers: headers))
+        .document
+        .select('.deslide-item');
+    final data = ListUtils.mapList(list, (e) {
+      return parseTrending(e);
+    });
+
+    return HomePage(
+        data: HomePageList(name: request.name, data: data),
+        page: 1,
+        hasNextPage: false);
+  }
+
+  SearchResponse parseTrending(ElementObject e) {
+    final content = e.selectFirst('.deslide-item-content');
+
+    return SearchResponse(
+        title: content.selectFirst('div.desi-head-title.dynamic-name').text(),
+        url: content
+            .selectFirst('.desi-buttons > .btn-secondary.btn-radius')
+            .text(),
+        poster: e.selectFirst('.deslide-cover > div > img').attr('data-src'),
+        type: getType(content.selectFirst('.sc-detail > div').text()),
+        description: content.selectFirst('.desi-description').text().trim());
   }
 
   @override
-  Future<List<SearchResponse>> search(String query) async {
-    return ListUtils.mapList(
-        (await AppUtils.httpRequest(
-                url: '$hostUrl/search?keyword=${AppUtils.encode(query)}',
-                method: 'GET',
-                headers: headers))
+  Future<List<SearchResponse>> search(String query) {
+    return parseSearchResponse(
+        '$hostUrl/search?keyword=${AppUtils.encode(query)}');
+  }
+
+  Future<List<SearchResponse>> parseSearchResponse(String url) async {
+    final list =
+        (await AppUtils.httpRequest(url: url, method: 'GET', headers: headers))
             .document
-            .select('div.film_list-wrap > div.flw-item'), (it) {
+            .select('div.film_list-wrap > div.flw-item');
+    return ListUtils.mapList(list, (it) {
       return toSearchResponse(it);
     });
   }
 
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
-    final animePage = (await AppUtils.httpRequest(
-            url: '$hostUrl${searchResponse.url}', method: 'GET'))
-        .document;
+    final fixUrl = '$hostUrl${searchResponse.url}';
+    final animePage =
+        (await AppUtils.httpRequest(url: fixUrl, method: 'GET')).document;
     final media = MediaDetails();
+
+    media.copyFromSearchResponse(searchResponse);
+
+    media.url = fixUrl;
 
     media.name = searchResponse.title;
 
@@ -179,12 +226,15 @@ class AniWatch extends BasePluginApi {
   SearchResponse toSearchResponse(ElementObject e) {
     final element = e.selectFirst('.film-poster');
     return SearchResponse(
-        title: element.selectFirst("a").attr("title"),
-        poster: element.selectFirst("img").attr("data-src"),
-        url: element.selectFirst("a").attr("href"),
-        type: getType(e
-            .selectFirst('div.film-detail > div.fd-infor > span.fdi-item')
-            .text()));
+      title: element.selectFirst("a").attr("title"),
+      poster: element.selectFirst("img").attr("data-src"),
+      url: element.selectFirst("a").attr("href"),
+      type: getType(
+        e.selectFirst('div.film-detail > div.fd-infor > span.fdi-item').text(),
+      ),
+      current: StringUtils.toIntOrNull(
+          element.selectFirst(".film-poster >.tick > .tick-sub").text()),
+    );
   }
 
   ActorData toActorData(ElementObject element) {

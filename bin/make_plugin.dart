@@ -7,32 +7,23 @@ import 'dart:io';
 void main(List<String> args) {
   if (args.isEmpty) {
     throw ArgumentError(
-        'Please Provide folder name like: dart run make_plugin.dart example_plugin');
+        'Please Provide plugin name and plugin type like: dart run make_plugin.dart example_plugin video');
   }
+
+  final type = args[1].toLowerCase();
   try {
     final folderName = args[0];
 
     print('Creating $folderName....');
 
     final folder = Directory(
-        '${Directory.current.path.substringBeforeLast('bin').replaceAll('\\', '/')}src/$folderName')
-      ..createSync(recursive: true);
-
-    print('Generating plugin temeplate....');
-
-    File('${folder.path}/$folderName.dart')
-      ..createSync()
-      ..writeAsStringSync(codeTemplate('ExamplePlugin'));
+        '${Directory.current.path.substringBeforeLast('bin').replaceAll('\\', '/')}src/$type/$folderName'); // ..createSync(recursive: true);
 
     print('Creating build.info.json....');
 
     //Name
     stdout.write('Enter plugin name: ');
     final name = stdin.readLineSync() ?? '';
-
-    //Type
-    stdout.write('Enter plugin type: ');
-    final type = stdin.readLineSync() ?? '';
 
     //Author
     stdout.write('Enter plugin author: ');
@@ -64,10 +55,19 @@ void main(List<String> args) {
           "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/$folderName.png",
     );
 
+    folder.createSync(recursive: true);
+
     File('${folder.path}/info.json')
       ..createSync()
       ..writeAsStringSync(
           JsonEncoder.withIndent('    ').convert(plugin.toJson()));
+
+    print('Generating plugin temeplate....');
+
+    File('${folder.path}/$folderName.dart')
+      ..createSync()
+      ..writeAsStringSync(codeTemplate(plugin.name));
+
     print('Successfully created plugin at ${folder.path}');
   } catch (e, s) {
     print('Failed to create plugin: $e');

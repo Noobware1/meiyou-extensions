@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
 import 'build.dart';
@@ -18,6 +17,21 @@ void main(List<String> args) async {
       .runtimeEval(compiled)
       .executeLib('package:meiyou/main.dart', 'main') as $BasePluginApi;
 
+  print('Starting homePage');
+  try {
+    for (var r in pluginApi.homePage) {
+      final c = await pluginApi.loadHomePage(
+          1,
+          HomePageRequest(
+              name: r.name,
+              data: r.data,
+              horizontalImages: r.horizontalImages));
+      print(c);
+    }
+  } catch (e) {
+    print(e);
+  }
+
   print('Starting search for $query');
   final search = await pluginApi.search(query);
   print(search);
@@ -32,6 +46,17 @@ void main(List<String> args) async {
   print('Start loadLinks for $query');
 
   printRest(pluginApi, media.mediaItem!);
+}
+
+@override
+Stream<(ExtractorLink, Media)> loadLinkAndMediaStream(
+    BasePluginApi api, String url) async* {
+  final responseLinks = await api.loadLinks(url);
+
+  for (var e in responseLinks) {
+    final media = await api.loadMedia(e).timeout(const Duration(minutes: 1));
+    print(media);
+  }
 }
 
 printRest(BasePluginApi api, MediaItem mediaItem) async {
