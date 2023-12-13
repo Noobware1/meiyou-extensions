@@ -17,8 +17,8 @@ class AniWatch extends BasePluginApi {
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Trending': '$hostUrl/home',
-        'Top Airing': '$hostUrl/top-airing',
         'Latest Episodes': '$hostUrl/recently-updated',
+        'Top Airing': '$hostUrl/top-airing',
         'Most Popular': '$hostUrl/most-popular',
         'New on Aniwatch': '$hostUrl/recently-added',
       });
