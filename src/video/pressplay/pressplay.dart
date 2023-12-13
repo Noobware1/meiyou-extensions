@@ -36,7 +36,7 @@ class Pressplay extends BasePluginApi {
     final list = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
         .document
         .select('.swiper-slide');
-    final data = ListUtils.mapList(list, (e) {
+    final data = ListUtils.mapList<SearchResponse, ElementObject>(list, (e) {
       return parseTrending(e);
     });
 
@@ -89,7 +89,7 @@ class Pressplay extends BasePluginApi {
   }
 
   @override
-  Future<Media?> loadMedia(ExtractorLink link) async {
+  Future<Media?> loadMedia(ExtractorLink link) {
     return MoviesClub(link).extract();
   }
 
@@ -98,12 +98,13 @@ class Pressplay extends BasePluginApi {
     final media = MediaDetails();
 
     media.copyFromSearchResponse(searchResponse);
+
     final doc =
-        (await AppUtils.httpRequest(url: searchResponse.url, method: 'GET'))
-            .document;
+        (await AppUtils.httpRequest(url: media.url, method: 'GET')).document;
 
     media.rating =
         StringUtils.toDoubleOrNull(doc.selectFirst('.stats > span > i').text());
+
     media.duration = parseDuation(doc.select('.stats > span').last.text());
 
     media.description = doc.selectFirst('.description').text();
@@ -124,8 +125,8 @@ class Pressplay extends BasePluginApi {
       }
     }
 
-    media.recommendations = ListUtils.mapList(
-        doc.select('.film_list-wrap > div > div.film-poster'), (e) {
+    media.recommendations =
+        ListUtils.mapList(doc.select('.film_list-wrap > div'), (e) {
       return toSearchResponse(e);
     });
 
@@ -144,16 +145,23 @@ class Pressplay extends BasePluginApi {
   Future<Movie> getMovie(String url) async {
     final iframe = await extractIframe(url);
 
-    final jsonData = (json.decode((await AppUtils.httpRequest(
+    final jsonData = (await AppUtils.httpRequest(
             url: await extractIframe(iframe), method: 'GET'))
-        .text)['simple-api'] as List)[0];
+        .json((j) {
+      return parseJsonResponse(j);
+    });
 
     return Movie(
-        url: ExtractorLinkData(
-      name: jsonData['name'],
-      url: jsonData['iframe'],
-      referer: iframe,
-    ).encode);
+      url: ExtractorLinkData(
+        name: jsonData['name'],
+        url: jsonData['iframe'],
+        referer: iframe,
+      ).encode,
+    );
+  }
+
+  dynamic parseJsonResponse(dynamic j) {
+    return (j['simple-api'] as List)[0];
   }
 
   Future<TvSeries> getTv(String url) async {
@@ -224,17 +232,20 @@ class Pressplay extends BasePluginApi {
         info.selectFirst('.film-detail > div > .float-right.fdi-type').text();
     final url = info.selectFirst('a').attr('href');
     return SearchResponse(
-        title: info.selectFirst('a').attr('title'),
-        url: url,
-        poster: hostUrl + info.selectFirst('img').attr('data-src'),
-        type: getType(type));
+      title: info.selectFirst('a').attr('title'),
+      url: url,
+      poster: hostUrl + info.selectFirst('img').attr('data-src'),
+      type: getType(type),
+    );
   }
 
   ShowType getType(String type) {
-    if (type.trim() == 'Movie') {
+    final trimed = type.trim();
+    if (trimed == 'Movie') {
       return ShowType.Movie;
+    } else {
+      return ShowType.TvSeries;
     }
-    return ShowType.TvSeries;
   }
 
   //Why just why????
@@ -276,9 +287,9 @@ class Pressplay extends BasePluginApi {
 
     final iframe = (await AppUtils.httpRequest(
             url: '$hostUrl$apiUrl', method: 'GET', params: params))
-        .json((json) {
+        .json((j) {
       return StringUtils.valueToString(
-          (json['simple-api'] as List)[0]['iframe']);
+          parseJsonResponse(j)['iframe']);
     });
 
     return iframe;
@@ -343,79 +354,6 @@ class PressPlaySeasonData {
         title: json['name']);
   }
 }
-
-// class PressPlaySearchData {
-//   final String title;
-//   final String url;
-//   final String? poster;
-//   final String? description;
-//   final double? rating;
-//   final List<String>? genres;
-//   final List<String>? actors;
-
-//   PressPlaySearchData({
-//     required this.title,
-//     required this.url,
-//     this.poster,
-//     this.description,
-//     this.rating,
-//     this.genres,
-//     this.actors,
-//   });
-
-//   factory PressPlaySearchData.fromJson(dynamic json) {
-//     return PressPlaySearchData(
-//       title: json['title'],
-//       url: json['url'],
-//       poster: json['poster'],
-//       description: json['description'],
-//       rating: json['rating'],
-//       genres: PressPlaySearchData.mapList(json['genres']),
-//       actors: PressPlaySearchData.mapList(json['actors']),
-//     );
-//   }
-
-//   factory PressPlaySearchData.fromPressPlayResponse(dynamic json) {
-//     return PressPlaySearchData(
-//       title: json['title'] ?? json['title_en'] ?? json['title_full'] ?? '',
-//       url: json['url'],
-//       poster: PressPlaySearchData.fixUrl(json['poster_big'] ?? json['poster']),
-//       description: json['description'],
-//       rating:
-//           StringUtils.toDoubleOrNull(StringUtils.valueToString(json['rating'])),
-//       genres: PressPlaySearchData.mapList(json['genres_arr']),
-//       actors: PressPlaySearchData.mapList(json['actors_arr']),
-//     );
-//   }
-
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'title': this.title,
-//       'url': this.url,
-//       'poster': this.poster,
-//       'description': this.description,
-//       'rating': this.rating,
-//       'genres': this.genres,
-//       'actors': this.actors,
-//     };
-//   }
-
-//   static List<String>? mapList(dynamic list) {
-//     if (AppUtils.isNotNull(list)) {
-//       return ListUtils.mapList(list as List, (e) {
-//         return StringUtils.valueToString(e);
-//       });
-//     }
-//     return null;
-//   }
-
-//   static String fixUrl(dynamic url) {
-//     if (AppUtils.isNotNull(url)) {
-//       return '$hostUrl$url';
-//     }
-//     return '';
-//   }
-// }
 
 BasePluginApi main() {
   return Pressplay();

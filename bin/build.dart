@@ -44,10 +44,11 @@ void main(List<String> args) {
               break;
             default:
           }
-        } catch (e) {
+        } catch (e, s) {
           print(
               'Failed to build ${subfolder.fixedPath.substringAfterLast('/')}');
           print(e);
+          print(s);
         }
       }
     }
@@ -84,7 +85,6 @@ OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
       ...getAllExtractors(mainCode, {})
     }
   };
-
   print('Compiling packages....');
 
   print('{\n  meiyou\n   --${packages['meiyou']!.keys.join('\n   --')}\n}');
