@@ -5,7 +5,9 @@ import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
 //have to add corsproxy to avoid annoying handshake error
 
-const String hostUrl = 'https://corsproxy.io/?https://flixhq.to';
+const String crosProxy = 'https://corsproxy.io';
+
+const String hostUrl = '$crosProxy/?https://flixhq.to';
 
 class FlixHQ extends BasePluginApi {
   FlixHQ();
@@ -53,7 +55,7 @@ class FlixHQ extends BasePluginApi {
     return SearchResponse(
       title: a.text(),
       url: url,
-      poster: e.selectFirst('.deslide-cover > div > img').attr('data-src'),
+      poster: '$crosProxy/?${AppUtils.getBackgroundImage(e.attr('style'))}',
       generes: getGenresForTrending(info),
       type: getType(url),
       description: info.selectFirst('.sc-desc').text(),
@@ -78,11 +80,10 @@ class FlixHQ extends BasePluginApi {
 
     final List<ExtractorLink> links = [];
     final idRegex = RegExp(r'-(\d+)');
-
     for (var e in servers) {
       final link = (await AppUtils.httpRequest(
               url:
-                  '$hostUrl/ajax/get_link/${AppUtils.regexFirstMatch(idRegex, e.attr("id"), 1)}',
+                  '$hostUrl/ajax/get_link/${idRegex.firstMatch(e.attr("id"))?.group(1)}',
               method: 'GET',
               headers: {
             "X-Requested-With": "XMLHttpRequest",
@@ -233,7 +234,7 @@ class FlixHQ extends BasePluginApi {
     return SearchResponse(
         title: e.selectFirst('a').attr('title'),
         url: hostUrl + url,
-        poster: e.selectFirst('img').attr('data-src'),
+        poster: '$crosProxy/?${e.selectFirst('img').attr('data-src')}',
         type: getType(url));
   }
 
