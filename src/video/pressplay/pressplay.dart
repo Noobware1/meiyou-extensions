@@ -49,13 +49,12 @@ class Pressplay extends BasePluginApi {
   SearchResponse parseTrending(ElementObject e) {
     final info = e.selectFirst('.container > .slide-caption');
     final a = info.selectFirst('.film-title > a');
-    final url = hostUrl + a.attr('href');
 
     return SearchResponse(
       title: a.text(),
-      url: url,
+      url: a.attr('href'),
       type: ShowType.Others,
-      poster: AppUtils.getBackgroundImage(e.attr('style')),
+      poster: hostUrl + AppUtils.getBackgroundImage(e.attr('style')),
       generes: getGenresForTrending(info),
       description: info.selectFirst('.sc-desc').text(),
     );
@@ -288,8 +287,7 @@ class Pressplay extends BasePluginApi {
     final iframe = (await AppUtils.httpRequest(
             url: '$hostUrl$apiUrl', method: 'GET', params: params))
         .json((j) {
-      return StringUtils.valueToString(
-          parseJsonResponse(j)['iframe']);
+      return StringUtils.valueToString(parseJsonResponse(j)['iframe']);
     });
 
     return iframe;
