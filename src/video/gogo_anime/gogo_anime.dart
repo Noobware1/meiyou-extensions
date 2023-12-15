@@ -1,12 +1,13 @@
-// ignore_for_file: unnecessary_cast
+// ignore_for_file: unnecessary_cast, unnecessary_this
 
 import 'package:meiyou_extensions_repo/extractors/gogo_cdn.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
-const hostUrl = 'https://anitaku.to';
-
 class GogoAnime extends BasePluginApi {
   GogoAnime();
+
+  @override
+  String get baseUrl => 'https://anitaku.to';
 
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
@@ -38,11 +39,11 @@ class GogoAnime extends BasePluginApi {
   }
 
   Future<List<SearchResponse>> getPopularPage(int page) {
-    return parseHomePage('$hostUrl/popular.html?page=$page');
+    return parseHomePage('${this.baseUrl}/popular.html?page=$page');
   }
 
   Future<List<SearchResponse>> getMoviesPage(int page) {
-    return parseHomePage('$hostUrl/anime-movies.html?aph=&page=$page');
+    return parseHomePage('${this.baseUrl}/anime-movies.html?aph=&page=$page');
   }
 
   Future<List<SearchResponse>> getRecentPage(int page) async {
@@ -66,14 +67,14 @@ class GogoAnime extends BasePluginApi {
 
     return SearchResponse(
         title: e.select('a')[1].text().trim(),
-        url: hostUrl + a.attr('href'),
+        url: this.baseUrl + a.attr('href'),
         generes: getGeneres(e.select('.genres > a')),
         poster: img,
         type: ShowType.Anime);
   }
 
   Future<List<SearchResponse>> getSeasonal(int page) {
-    return parseHomePage('$hostUrl/new-season.html?page=$page');
+    return parseHomePage('${this.baseUrl}/new-season.html?page=$page');
   }
 
   Future<List<SearchResponse>> parseHomePage(String url) async {
@@ -89,7 +90,7 @@ class GogoAnime extends BasePluginApi {
     final a = e.selectFirst('p.name > a');
     return SearchResponse(
         title: a.text(),
-        url: hostUrl + a.attr('href'),
+        url: this.baseUrl + a.attr('href'),
         poster: e.selectFirst('div.img > a > img').attr('src'),
         type: ShowType.Anime);
   }
@@ -103,7 +104,7 @@ class GogoAnime extends BasePluginApi {
   @override
   Future<List<SearchResponse>> search(String query) async {
     final doc = (await AppUtils.httpRequest(
-            url: '$hostUrl/search.html?keyword=${AppUtils.encode(query)}',
+            url: '${this.baseUrl}/search.html?keyword=${AppUtils.encode(query)}',
             method: 'GET'))
         .document;
 
@@ -195,14 +196,14 @@ class GogoAnime extends BasePluginApi {
   SearchResponse toSearchResponse(ElementObject element) {
     return SearchResponse(
         title: element.selectFirst('p.name > a').text(),
-        url: hostUrl + element.selectFirst('div.img > a').attr('href'),
+        url: this.baseUrl + element.selectFirst('div.img > a').attr('href'),
         poster: element.selectFirst('div.img > a > img').attr('src'),
         type: ShowType.Anime);
   }
 
   Episode toEpisode(ElementObject element) {
     return Episode(
-        data: hostUrl + StringUtils.trim(element.attr('href')),
+        data: this.baseUrl + StringUtils.trim(element.attr('href')),
         episode: StringUtils.toNum(
             element.selectFirst('div.name').text().replaceFirst('EP ', '')));
   }

@@ -1,23 +1,24 @@
-// ignore_for_file: unnecessary_cast
+// ignore_for_file: unnecessary_cast, unnecessary_this
 
 import 'package:meiyou_extensions_repo/extractors/rabbit_stream.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
 //have to add corsproxy to avoid annoying handshake error
 
-const String crosProxy = 'https://corsproxy.io';
-
-const String hostUrl = '$crosProxy/?https://flixhq.to';
-
 class FlixHQ extends BasePluginApi {
   FlixHQ();
 
+  static const String crosProxy = 'https://corsproxy.io';
+
+  @override
+  String baseUrl = '${FlixHQ.crosProxy}/?https://flixhq.to';
+
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
-        'Trending': '$hostUrl/home',
-        'Trending in India': '$hostUrl/country/IN',
-        'Popular Movies': '$hostUrl/movie',
-        'Popular TV Shows': '$hostUrl/tv-show',
+        'Trending': '${this.baseUrl}/home',
+        'Trending in India': '${this.baseUrl}/country/IN',
+        'Popular Movies': '${this.baseUrl}/movie',
+        'Popular TV Shows': '${this.baseUrl}/tv-show',
       });
 
   @override
@@ -50,7 +51,7 @@ class FlixHQ extends BasePluginApi {
   SearchResponse parseTrending(ElementObject e) {
     final info = e.selectFirst('.container > .slide-caption');
     final a = info.selectFirst('.film-title > a');
-    final url = hostUrl + a.attr('href');
+    final url = baseUrl + a.attr('href');
 
     return SearchResponse(
       title: a.text(),
@@ -83,7 +84,7 @@ class FlixHQ extends BasePluginApi {
     for (var e in servers) {
       final link = (await AppUtils.httpRequest(
               url:
-                  '$hostUrl/ajax/get_link/${idRegex.firstMatch(e.attr("id"))?.group(1)}',
+                  '${this.baseUrl}/ajax/get_link/${idRegex.firstMatch(e.attr("id"))?.group(1)}',
               method: 'GET',
               headers: {
             "X-Requested-With": "XMLHttpRequest",
@@ -164,12 +165,13 @@ class FlixHQ extends BasePluginApi {
   }
 
   Movie getMovie(String url) {
-    return Movie(url: '$hostUrl/ajax/episode/list/${extractIdFromUrl(url)}');
+    return Movie(
+        url: '${this.baseUrl}/ajax/episode/list/${extractIdFromUrl(url)}');
   }
 
   Future<TvSeries> getTv(String url) async {
     final seasons = (await AppUtils.httpRequest(
-            url: '$hostUrl/ajax/season/list/${extractIdFromUrl(url)}',
+            url: '${this.baseUrl}/ajax/season/list/${extractIdFromUrl(url)}',
             method: 'GET',
             referer: url))
         .document
@@ -190,7 +192,7 @@ class FlixHQ extends BasePluginApi {
 
   Future<List<Episode>> getEpisodes(String id) async {
     final list = (await AppUtils.httpRequest(
-            url: '$hostUrl/ajax/season/episodes/$id', method: 'GET'))
+            url: '${this.baseUrl}/ajax/season/episodes/$id', method: 'GET'))
         .document
         .select('ul.nav > li > a');
     return ListUtils.mapList(list, (e) {
@@ -200,7 +202,7 @@ class FlixHQ extends BasePluginApi {
 
   Episode toEpisode(ElementObject e) {
     return Episode(
-        data: '$hostUrl/ajax/episode/servers/${e.attr('data-id')}',
+        data: '${this.baseUrl}/ajax/episode/servers/${e.attr('data-id')}',
         episode: StringUtils.toNumOrNull(RegExp(r'\d+')
                 .firstMatch(e.selectFirst('strong').text())
                 ?.group(0) ??
@@ -215,12 +217,12 @@ class FlixHQ extends BasePluginApi {
   @override
   Future<List<SearchResponse>> search(String query) {
     return parseSearchResponse(
-        '$hostUrl/search/${AppUtils.encode(query, "-")}');
+        '${this.baseUrl}/search/${AppUtils.encode(query, "-")}');
   }
 
   Future<List<SearchResponse>> parseSearchResponse(String url) async {
     final list = (await AppUtils.httpRequest(url: url, method: 'GET', headers: {
-      "Referer": "$hostUrl/home",
+      "Referer": "${this.baseUrl}/home",
     }))
         .document
         .select('.film_list-wrap > div > div.film-poster');
@@ -233,7 +235,7 @@ class FlixHQ extends BasePluginApi {
     final url = e.selectFirst('a').attr('href');
     return SearchResponse(
         title: e.selectFirst('a').attr('title'),
-        url: hostUrl + url,
+        url: baseUrl + url,
         poster: '$crosProxy/?${e.selectFirst('img').attr('data-src')}',
         type: getType(url));
   }

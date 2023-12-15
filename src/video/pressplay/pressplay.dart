@@ -5,18 +5,20 @@ import 'dart:convert';
 import 'package:meiyou_extensions_repo/extractors/movies_club.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
-final String hostUrl = 'https://pressplay.top';
 
 class Pressplay extends BasePluginApi {
   Pressplay();
 
+ @override
+  String get baseUrl => 'https://pressplay.top';
+  
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
-        'Trending': '$hostUrl/',
-        'Movies': '$hostUrl/type-movies',
-        'Tv Shows': '$hostUrl/type-series',
-        'Anime': '$hostUrl/type-anime',
-        'Cartoons': '$hostUrl/type-cartoons',
+        'Trending': '${this.baseUrl}/',
+        'Movies': '${this.baseUrl}/type-movies',
+        'Tv Shows': '${this.baseUrl}/type-series',
+        'Anime': '${this.baseUrl}/type-anime',
+        'Cartoons': '${this.baseUrl}/type-cartoons',
       });
 
   @override
@@ -54,7 +56,7 @@ class Pressplay extends BasePluginApi {
       title: a.text(),
       url: a.attr('href'),
       type: ShowType.Others,
-      poster: hostUrl + AppUtils.getBackgroundImage(e.attr('style')),
+      poster: this.baseUrl + AppUtils.getBackgroundImage(e.attr('style')),
       generes: getGenresForTrending(info),
       description: info.selectFirst('.sc-desc').text(),
     );
@@ -213,7 +215,7 @@ class Pressplay extends BasePluginApi {
 
   @override
   Future<List<SearchResponse>> search(String query) {
-    return parseSearchResponse('$hostUrl/search?q=${AppUtils.encode(query)}');
+    return parseSearchResponse('${this.baseUrl}/search?q=${AppUtils.encode(query)}');
   }
 
   Future<List<SearchResponse>> parseSearchResponse(String url) async {
@@ -233,7 +235,7 @@ class Pressplay extends BasePluginApi {
     return SearchResponse(
       title: info.selectFirst('a').attr('title'),
       url: url,
-      poster: hostUrl + info.selectFirst('img').attr('data-src'),
+      poster: this.baseUrl + info.selectFirst('img').attr('data-src'),
       type: getType(type),
     );
   }
@@ -285,7 +287,7 @@ class Pressplay extends BasePluginApi {
     };
 
     final iframe = (await AppUtils.httpRequest(
-            url: '$hostUrl$apiUrl', method: 'GET', params: params))
+            url: '${this.baseUrl}$apiUrl', method: 'GET', params: params))
         .json((j) {
       return StringUtils.valueToString(parseJsonResponse(j)['iframe']);
     });

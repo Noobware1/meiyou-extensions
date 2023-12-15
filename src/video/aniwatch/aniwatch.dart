@@ -1,26 +1,29 @@
+// ignore_for_file: unnecessary_this
+
 import 'dart:convert';
 import 'package:meiyou_extensions_repo/extractors/mega_cloud.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
-
-const hostUrl = 'https://aniwatch.to';
-
-final headers = {
-  'X-Requested-With': 'XMLHttpRequest',
-  'referer': hostUrl,
-};
-
-final embedHeaders = {"referer": '$hostUrl/'};
 
 class AniWatch extends BasePluginApi {
   AniWatch();
 
   @override
+  String get baseUrl => 'https://aniwatch.to';
+
+  Map<String, String> get headers => {
+        'X-Requested-With': 'XMLHttpRequest',
+        'referer': this.baseUrl,
+      };
+
+  Map<String, String> get embedHeaders => {"referer": '${this.baseUrl}/'};
+
+  @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
-        'Trending': '$hostUrl/home',
-        'Latest Episodes': '$hostUrl/recently-updated',
-        'Top Airing': '$hostUrl/top-airing',
-        'Most Popular': '$hostUrl/most-popular',
-        'New on Aniwatch': '$hostUrl/recently-added',
+        'Trending': '${this.baseUrl}/home',
+        'Latest Episodes': '${this.baseUrl}/recently-updated',
+        'Top Airing': '${this.baseUrl}/top-airing',
+        'Most Popular': '${this.baseUrl}/most-popular',
+        'New on Aniwatch': '${this.baseUrl}/recently-added',
       });
 
   @override
@@ -67,7 +70,7 @@ class AniWatch extends BasePluginApi {
   @override
   Future<List<SearchResponse>> search(String query) {
     return parseSearchResponse(
-        '$hostUrl/search?keyword=${AppUtils.encode(query)}');
+        '${this.baseUrl}/search?keyword=${AppUtils.encode(query)}');
   }
 
   Future<List<SearchResponse>> parseSearchResponse(String url) async {
@@ -82,7 +85,7 @@ class AniWatch extends BasePluginApi {
 
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
-    final fixUrl = '$hostUrl${searchResponse.url}';
+    final fixUrl = '${this.baseUrl}${searchResponse.url}';
     final animePage =
         (await AppUtils.httpRequest(url: fixUrl, method: 'GET')).document;
     final media = MediaDetails();
@@ -151,7 +154,7 @@ class AniWatch extends BasePluginApi {
   @override
   Future<List<ExtractorLink>> loadLinks(String url) async {
     final res = (await AppUtils.httpRequest(
-            url: '$hostUrl/ajax/v2/episode/servers?episodeId=$url',
+            url: '${this.baseUrl}/ajax/v2/episode/servers?episodeId=$url',
             method: 'GET',
             headers: embedHeaders))
         .json((e) => StringUtils.valueToString(e['html']));
@@ -162,7 +165,8 @@ class AniWatch extends BasePluginApi {
 
     for (var e in servers) {
       final link = (await AppUtils.httpRequest(
-              url: '$hostUrl/ajax/v2/episode/sources?id=${e.attr('data-id')}',
+              url:
+                  '${this.baseUrl}/ajax/v2/episode/sources?id=${e.attr('data-id')}',
               method: 'GET',
               headers: embedHeaders))
           .json((e) => StringUtils.valueToString(e['link']));
@@ -189,7 +193,7 @@ class AniWatch extends BasePluginApi {
   Future<List<Episode>> getEpisodes(String id) async {
     return ListUtils.mapList(
         AppUtils.parseHtml(json.decode((await AppUtils.httpRequest(
-                    url: "$hostUrl/ajax/v2/episode/list/$id",
+                    url: "${this.baseUrl}/ajax/v2/episode/list/$id",
                     method: 'GET',
                     headers: headers))
                 .text)['html'])
