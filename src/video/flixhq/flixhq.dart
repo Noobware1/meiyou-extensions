@@ -132,13 +132,13 @@ class FlixHQ extends BasePluginApi {
 
     final elements = page.select('div.elements > .row-line');
     for (var e in elements) {
-      final type = StringUtils.trim(e.selectFirst('span.type').text());
+      final type = e.selectFirst('span.type').text().trim();
 
       if (type == 'Genre:') {
         media.genres = AppUtils.selectMultiAttr(e.select('a'), 'title');
       } else if (type == 'Released:') {
-        media.startDate = DateTime.tryParse(
-            StringUtils.trim(e.text().replaceFirst('Released:', '')));
+        media.startDate =
+            DateTime.tryParse(e.text().replaceFirst('Released:', '').trim());
       } else if (type == 'Casts:') {
         media.actorData = ListUtils.mapList(e.select('a'), (e) {
           return toActorData(e);
@@ -248,8 +248,8 @@ class FlixHQ extends BasePluginApi {
   }
 
   Duration? parseDuation(String s) {
-    final min = StringUtils.toIntOrNull(
-        StringUtils.trim(StringUtils.substringBefore(s, 'min')));
+    final min =
+        StringUtils.toIntOrNull(StringUtils.substringBefore(s, 'min').trim());
     if (min == null) {
       return null;
     }

@@ -17,45 +17,41 @@ void main(List<String> args) async {
       .runtimeEval(compiled)
       .executeLib('package:meiyou/main.dart', 'main') as $BasePluginApi;
 
-  print('Starting homePage');
-  try {
-    for (var r in pluginApi.homePage) {
-      final c = await pluginApi.loadHomePage(
-          1,
-          HomePageRequest(
-              name: r.name,
-              data: r.data,
-              horizontalImages: r.horizontalImages));
-      print(c);
-    }
-  } catch (e) {
-    print(e);
-  }
-  print('Starting search for $query');
-  final search = await pluginApi.search(query);
-  print(search);
-  print('');
+  // print('Starting homePage');
+  // try {
+  //   for (var r in pluginApi.homePage) {
+  //     final c = await pluginApi.loadHomePage(
+  //         1,
+  //         HomePageRequest(
+  //             name: r.name,
+  //             data: r.data,
+  //             horizontalImages: r.horizontalImages));
+  //     print(c);
+  //     break;
+  //   }
+  // } catch (e) {
+  //   print(e);
+  // }
+  // print('Starting search for $query');
+  // final search = await pluginApi.search(query);
+  // print(search);
+  // print('');
 
   print('Starting loadMediaDetails for $query');
-  final media = await pluginApi.loadMediaDetails(search.first);
-  print(media);
-  print('');
-  if (media.mediaItem == null) return;
-
-  print('Start loadLinks for $query');
-
-  printRest(pluginApi, media.mediaItem!);
-}
-
-@override
-Stream<(ExtractorLink, Media)> loadLinkAndMediaStream(
-    BasePluginApi api, String url) async* {
-  final responseLinks = await api.loadLinks(url);
-
-  for (var e in responseLinks) {
-    final media = await api.loadMedia(e).timeout(const Duration(minutes: 1));
+  // final media = await pluginApi.loadMediaDetails(search.first);
+  try {
+    final media = await pluginApi.loadMediaDetails(
+        SearchResponse(title: '', url: '', poster: '', type: ShowType.Anime));
     print(media);
+  } catch (e) {
+    print('Error: $e');
   }
+  // print('');
+  // if (media.mediaItem == null) return;
+
+  // print('Start loadLinks for $query');
+
+  // printRest(pluginApi, media.mediaItem!);
 }
 
 printRest(BasePluginApi api, MediaItem mediaItem) async {

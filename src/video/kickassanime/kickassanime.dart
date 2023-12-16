@@ -1,18 +1,21 @@
 // ignore_for_file: unnecessary_this
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 import 'package:meiyou_extenstions/ok_http/ok_http.dart';
 
-// void main(List<String> args) async {
-//   final a = KickassAnime();
+void main(List<String> args) async {
+  final a = KickassAnime();
 
-//   print(await a.loadHomePage(
-//       1,
-//       HomePageRequest(
-//           name: a.homePage.first.name,
-//           data: a.homePage.first.data,
-//           horizontalImages: false)));
-// }
+  print(await a.loadHomePage(
+      1,
+      HomePageRequest(
+          name: a.homePage.first.name,
+          data: a.homePage.first.data,
+          horizontalImages: false)));
+}
 
 class KickassAnime extends BasePluginApi {
   @override
@@ -28,19 +31,12 @@ class KickassAnime extends BasePluginApi {
 
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
-    // final res =
-    //     await AppUtils.httpRequest(url: request.data, method: 'GET', headers: {
-    //   'Accept': "application/json, text/plain, */*",
-    //   'x-timezone': "-330",
-    //   'x-client-ts': "${DateTime.now().millisecondsSinceEpoch}",
-    // });
-    final res = await OKHttpClient().get(request.data, headers: {
-      'Accept': "application/json, text/plain, */*",
-      'Referer': "${this.baseUrl}/",
-      'User-Agent':
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
-    });
-
+    final res = await OKHttpClient().get(
+      request.data,
+      // method: 'GET',
+      headers: {"Accept": "application/json, text/plain, */*"},
+      verify: false,
+    );
     print(res.text);
     if (request.name == 'Top Airing') {
       return HomePage(

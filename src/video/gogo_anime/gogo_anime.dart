@@ -104,7 +104,8 @@ class GogoAnime extends BasePluginApi {
   @override
   Future<List<SearchResponse>> search(String query) async {
     final doc = (await AppUtils.httpRequest(
-            url: '${this.baseUrl}/search.html?keyword=${AppUtils.encode(query)}',
+            url:
+                '${this.baseUrl}/search.html?keyword=${AppUtils.encode(query)}',
             method: 'GET'))
         .document;
 
@@ -126,25 +127,22 @@ class GogoAnime extends BasePluginApi {
     media.posterImage = body.selectFirst('img').attr('src');
 
     for (var e in body.select('p.type')) {
-      final header = StringUtils.trim(e.selectFirst('span').text());
+      final header = e.selectFirst('span').text().trim();
 
       if (header == 'Plot Summary:') {
-        media.description =
-            StringUtils.trim(e.text().replaceFirst('Plot Summary:', ''));
+        media.description = e.text().replaceFirst('Plot Summary:', '').trim();
       } else if (header == 'Type:') {
         media.type = getType(e.selectFirst('a').attr('title'));
       } else if (header == 'Genre:') {
         media.genres = AppUtils.selectMultiAttr(e.select('a'), 'title');
       } else if (header == 'Released:') {
-        media.startDate = AppUtils.toDateTime(StringUtils.toInt(
-            StringUtils.trim(e.text().replaceFirst('Released:', ''))));
+        media.startDate = AppUtils.toDateTime(
+            StringUtils.toInt(e.text().replaceFirst('Released:', '').trim()));
       } else if (header == 'Status:') {
-        media.status =
-            getStatus(StringUtils.trim(e.text().replaceFirst('Status:', '')));
+        media.status = getStatus(e.text().replaceFirst('Status:', ''));
       } else if (header == 'Other name:') {
         media.otherTitles =
-            StringUtils.trim(e.text().replaceFirst('Other name:', ''))
-                .split(';');
+            e.text().replaceFirst('Other name:', '').trim().split(';');
       }
     }
     final epEnd =
@@ -203,7 +201,7 @@ class GogoAnime extends BasePluginApi {
 
   Episode toEpisode(ElementObject element) {
     return Episode(
-        data: this.baseUrl + StringUtils.trim(element.attr('href')),
+        data: this.baseUrl + element.attr('href').trim(),
         episode: StringUtils.toNum(
             element.selectFirst('div.name').text().replaceFirst('EP ', '')));
   }
@@ -230,7 +228,7 @@ class GogoAnime extends BasePluginApi {
 
   ExtractorLink toExtractorLink(ElementObject it) {
     return ExtractorLink(
-      name: StringUtils.trim(it.text().replaceFirst('Choose this server', '')),
+      name: it.text().replaceFirst('Choose this server', '').trim(),
       url: AppUtils.httpify(it.attr('data-video')),
     );
   }

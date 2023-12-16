@@ -109,18 +109,18 @@ class AniWatch extends BasePluginApi {
 
       if (head == 'Aired:') {
         final aired = getName(info[i]).split(' ');
-        media.startDate = AppUtils.toDateTime(
-          StringUtils.toInt(
-            StringUtils.trim(aired[2]),
-          ),
-          month: AppUtils.getMonthByName(aired[0]),
-          day: StringUtils.toInt(StringUtils.trim(
-            StringUtils.substringBefore(aired[1], ','),
-          )),
-        );
+        final year = StringUtils.toIntOrNull(aired[2]);
+        if (year != null) {
+          media.startDate = AppUtils.toDateTime(
+            year,
+            month: AppUtils.getMonthByName(aired[0]),
+            day: StringUtils.toIntOrNull(
+              StringUtils.substringBefore(aired[1], ',').trim(),
+            ),
+          );
+        }
       } else if (head == 'Overview:') {
-        media.description =
-            StringUtils.trim(info[i].selectFirst('div.text').text());
+        media.description = info[i].selectFirst('div.text').text().trim();
       } else if (head == 'Japanese:') {
         media.otherTitles = [getName(info[i])];
       } else if (head == 'Duration:') {
@@ -256,15 +256,19 @@ class AniWatch extends BasePluginApi {
     return element.selectFirst('span.name').text().trim();
   }
 
-  Duration parseDuration(String d) {
+  Duration? parseDuration(String d) {
     final l = d.toLowerCase().split(' ');
-    if (l.length > 1) {
-      return Duration(
-          hours: StringUtils.toInt(StringUtils.substringBefore(l[0], 'h')),
-          minutes: StringUtils.toInt(StringUtils.substringBefore(l[1], 'm')));
-    } else {
-      return Duration(
-          minutes: StringUtils.toInt(StringUtils.substringBefore(l[0], 'm')));
+    try {
+      if (l.length > 1) {
+        return Duration(
+            hours: StringUtils.toInt(StringUtils.substringBefore(l[0], 'h')),
+            minutes: StringUtils.toInt(StringUtils.substringBefore(l[1], 'm')));
+      } else {
+        return Duration(
+            minutes: StringUtils.toInt(StringUtils.substringBefore(l[0], 'm')));
+      }
+    } catch (e) {
+      return null;
     }
   }
 

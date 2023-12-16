@@ -101,7 +101,7 @@ class RabbitStream extends ExtractorApi {
   }
 
   bool removeThumbnail(Subtitle e) {
-    return e.langauge != 'thumbnails';
+    return e.language != 'thumbnails';
   }
 
   VideoFormat getVideoFormat(String type) {
@@ -114,8 +114,8 @@ class RabbitStream extends ExtractorApi {
   Subtitle toSubtitle(dynamic e) {
     return Subtitle(
       url: e['file'],
-      langauge: e['label'] ?? 'thumbnails',
-      format: AppUtils.getSubtitleFromatFromUrl(e['file']),
+      language: e['label'] ?? 'thumbnails',
+      format: AppUtils.getSubtitleFormatFromUrl(e['file']),
     );
   }
 

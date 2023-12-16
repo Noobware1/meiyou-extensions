@@ -51,8 +51,8 @@ class MoviesClub extends ExtractorApi {
     final file = json['file'];
     return Subtitle(
         url: file,
-        langauge: json['label'],
-        format: AppUtils.getSubtitleFromatFromUrl(file));
+        language: json['label'],
+        format: AppUtils.getSubtitleFormatFromUrl(file));
   }
 
   VideoSource toVideoSource(dynamic json) {

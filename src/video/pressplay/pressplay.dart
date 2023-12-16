@@ -5,13 +5,12 @@ import 'dart:convert';
 import 'package:meiyou_extensions_repo/extractors/movies_club.dart';
 import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
-
 class Pressplay extends BasePluginApi {
   Pressplay();
 
- @override
+  @override
   String get baseUrl => 'https://pressplay.top';
-  
+
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Trending': '${this.baseUrl}/',
@@ -112,7 +111,7 @@ class Pressplay extends BasePluginApi {
 
     final elements = doc.select('div.elements > .row-line');
     for (var e in elements) {
-      final type = StringUtils.trim(e.selectFirst('span.type').text());
+      final type = e.selectFirst('span.type').text().trim();
 
       if (type == 'Genre:') {
         media.genres = AppUtils.selectMultiText(e.select('a'));
@@ -215,7 +214,8 @@ class Pressplay extends BasePluginApi {
 
   @override
   Future<List<SearchResponse>> search(String query) {
-    return parseSearchResponse('${this.baseUrl}/search?q=${AppUtils.encode(query)}');
+    return parseSearchResponse(
+        '${this.baseUrl}/search?q=${AppUtils.encode(query)}');
   }
 
   Future<List<SearchResponse>> parseSearchResponse(String url) async {

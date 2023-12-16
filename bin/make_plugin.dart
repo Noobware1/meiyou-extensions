@@ -80,6 +80,10 @@ import 'package:meiyou_extenstions/meiyou_extenstions.dart';
 
 class $className extends BasePluginApi {
   @override
+  // TODO: implement baseUrl
+  String get baseUrl => throw UnimplementedError();
+
+  @override
   // TODO: implement homePage
   Iterable<HomePageData> get homePage => throw UnimplementedError();
 
