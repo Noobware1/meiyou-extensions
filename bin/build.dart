@@ -69,9 +69,6 @@ OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
       File('${folder.fixedPath}/info.json').readAsStringSync());
   print('Building ${plugin.name}...');
 
-  print('Creating plugin.json.... ');
-
-  File(filePaths[0]).writeAsStringSync(plugin.encode);
   final codeFileName = '${folder.fixedPath.substringAfterLast('/')}.dart';
 
   print('Compiling $codeFileName.... ');
@@ -101,6 +98,10 @@ OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
 
   icon.copySync(
       '${icons.fixedPath}/${folder.fixedPath.substringAfterLast('/')}.png');
+
+  print('Creating plugin.json.... ');
+
+  File(filePaths[0]).writeAsStringSync(plugin.encode);
 
   List<ArchiveFile> archiveFiles = [];
 
