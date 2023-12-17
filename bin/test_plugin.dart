@@ -17,35 +17,35 @@ void main(List<String> args) async {
       .runtimeEval(compiled)
       .executeLib('package:meiyou/main.dart', 'main') as $BasePluginApi;
 
-  // print('Starting homePage');
-  // try {
-  //   for (var r in pluginApi.homePage) {
-  //     final c = await pluginApi.loadHomePage(
-  //         1,
-  //         HomePageRequest(
-  //             name: r.name,
-  //             data: r.data,
-  //             horizontalImages: r.horizontalImages));
-  //     print(c);
-  //     break;
-  //   }
-  // } catch (e) {
-  //   print(e);
-  // }
-  // print('Starting search for $query');
-  // final search = await pluginApi.search(query);
-  // print(search);
-  // print('');
-
-  print('Starting loadMediaDetails for $query');
-  // final media = await pluginApi.loadMediaDetails(search.first);
+  print('Starting homePage');
   try {
-    final media = await pluginApi.loadMediaDetails(
-        SearchResponse(title: '', url: '', poster: '', type: ShowType.Anime));
-    print(media);
+    for (var r in pluginApi.homePage) {
+      final c = await pluginApi.loadHomePage(
+          1,
+          HomePageRequest(
+              name: r.name,
+              data: r.data,
+              horizontalImages: r.horizontalImages));
+      print(c);
+      break;
+    }
   } catch (e) {
-    print('Error: $e');
+    print(e);
   }
+  print('Starting search for $query');
+  final search = await pluginApi.search(query);
+  print(search);
+  print('');
+
+  // print('Starting loadMediaDetails for $query');
+  // // final media = await pluginApi.loadMediaDetails(search.first);
+  // try {
+  //   final media = await pluginApi.loadMediaDetails(
+  //       SearchResponse(title: '', url: '', poster: '', type: ShowType.Anime));
+  //   print(media);
+  // } catch (e) {
+  //   print('Error: $e');
+  // }
   // print('');
   // if (media.mediaItem == null) return;
 
