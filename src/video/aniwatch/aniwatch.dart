@@ -60,8 +60,8 @@ class AniWatch extends BasePluginApi {
     return SearchResponse(
         title: content.selectFirst('div.desi-head-title.dynamic-name').text(),
         url: content
-            .selectFirst('.desi-buttons > .btn-secondary.btn-radius')
-            .text(),
+            .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')
+            .attr('href'),
         poster: e.selectFirst('.deslide-cover > div > img').attr('data-src'),
         type: getType(content.selectFirst('.sc-detail > div').text()),
         description: content.selectFirst('.desi-description').text().trim());

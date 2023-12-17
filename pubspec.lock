@@ -111,7 +111,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "3889842c2067b9353ba53629da86c8ee6d315e7d"
+      resolved-ref: e58fcedad79210df57741231ae69161dfe80b592
       url: "https://github.com/Noobware1/dart_eval.git"
     source: git
     version: "0.7.2"
@@ -256,7 +256,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: bca293d083f19c537f93f45c36dc161fafe2c85c
+      resolved-ref: "7aaa075d371554ad274ac756ac19a0588c7b5bed"
       url: "https://github.com/Noobware1/meiyou_extenstions.git"
     source: git
     version: "1.0.0"
