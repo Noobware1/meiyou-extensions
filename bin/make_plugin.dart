@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:meiyou_extenstions/extenstions.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 import 'dart:io';
 
 void main(List<String> args) {
@@ -76,7 +76,7 @@ void main(List<String> args) {
 }
 
 String codeTemplate(String className) => '''
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class $className extends BasePluginApi {
   @override

@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_this
 
 import 'dart:convert';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 //Copied from mega_cloud.dart because dart_eval won't let me extend it :(
 class RabbitStream extends ExtractorApi {
@@ -35,8 +35,8 @@ class RabbitStream extends ExtractorApi {
     final List<VideoSource> sources;
 
     if (response['encrypted'] == false) {
-      sources = ListUtils.mapList(
-          (response['sources'] as List), (e) => toVideoSource(e));
+      sources =
+          ListUtils.map((response['sources'] as List), (e) => toVideoSource(e));
     } else {
       final decryptKey = await getDecryptKey();
 
@@ -59,7 +59,7 @@ class RabbitStream extends ExtractorApi {
       final decrypted = CryptoUtils.AES(
           ciphertext: sourcesArray.join(''), key: extractedKey, encrypt: false);
 
-      sources = ListUtils.mapList(
+      sources = ListUtils.map(
           (json.decode(decrypted) as List), (e) => toVideoSource(e));
     }
     final List<Subtitle>? tracks;
@@ -67,7 +67,7 @@ class RabbitStream extends ExtractorApi {
     if (response['tracks'] == null) {
       tracks = null;
     } else {
-      tracks = ListUtils.mapList((response['tracks'] as List), (e) {
+      tracks = ListUtils.map((response['tracks'] as List), (e) {
         return toSubtitle(e);
       }).where((e) => removeThumbnail(e)).toList();
     }
@@ -84,9 +84,9 @@ class RabbitStream extends ExtractorApi {
   Future<List<List<int>>> getDecryptKey() async {
     return (await AppUtils.httpRequest(url: keyUrl, method: 'GET'))
         .json<List<List<int>>>((json) {
-      return ListUtils.mapList(
+      return ListUtils.map(
         json as List,
-        (l) => ListUtils.mapList(
+        (l) => ListUtils.map(
             l, (l) => StringUtils.toInt(StringUtils.valueToString(l))),
       );
     });

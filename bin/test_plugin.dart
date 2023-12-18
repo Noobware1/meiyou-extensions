@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 import 'build.dart';
 

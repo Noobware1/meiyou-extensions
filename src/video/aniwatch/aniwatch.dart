@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 import 'package:meiyou_extensions_repo/extractors/mega_cloud.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class AniWatch extends BasePluginApi {
   AniWatch();
@@ -44,7 +44,7 @@ class AniWatch extends BasePluginApi {
             url: request.data, method: 'GET', headers: headers))
         .document
         .select('.deslide-item');
-    final data = ListUtils.mapList(list, (e) {
+    final data = ListUtils.map(list, (e) {
       return parseTrending(e);
     });
 
@@ -78,7 +78,7 @@ class AniWatch extends BasePluginApi {
         (await AppUtils.httpRequest(url: url, method: 'GET', headers: headers))
             .document
             .select('div.film_list-wrap > div.flw-item');
-    return ListUtils.mapList(list, (it) {
+    return ListUtils.map(list, (it) {
       return toSearchResponse(it);
     });
   }
@@ -134,13 +134,13 @@ class AniWatch extends BasePluginApi {
       }
     }
 
-    media.actorData = ListUtils.mapList(
+    media.actorData = ListUtils.map(
         animePage.select('div.bac-list-wrap > div.bac-item > div.per-info.ltr'),
         (it) {
       return toActorData(it);
     });
 
-    media.recommendations = ListUtils.mapList(
+    media.recommendations = ListUtils.map(
         animePage.select('div.film_list-wrap > div.flw-item'), (it) {
       return toSearchResponse(it);
     });
@@ -191,7 +191,7 @@ class AniWatch extends BasePluginApi {
   }
 
   Future<List<Episode>> getEpisodes(String id) async {
-    return ListUtils.mapList(
+    return ListUtils.map(
         AppUtils.parseHtml(json.decode((await AppUtils.httpRequest(
                     url: "${this.baseUrl}/ajax/v2/episode/list/$id",
                     method: 'GET',

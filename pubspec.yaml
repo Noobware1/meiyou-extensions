@@ -9,9 +9,9 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  meiyou_extenstions:
+  meiyou_extensions_lib:
     git:
-      url: https://github.com/Noobware1/meiyou_extenstions.git
+      url: https://github.com/Noobware1/meiyou_extensions_lib.git
       ref: master
   archive:
   # path: ^1.8.0

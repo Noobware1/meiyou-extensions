@@ -1,1 +1,1 @@
-Video Plugins
+Contains all video extensions

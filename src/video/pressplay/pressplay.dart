@@ -3,7 +3,7 @@
 import 'dart:convert';
 
 import 'package:meiyou_extensions_repo/extractors/movies_club.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class Pressplay extends BasePluginApi {
   Pressplay();
@@ -37,7 +37,7 @@ class Pressplay extends BasePluginApi {
     final list = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
         .document
         .select('.swiper-slide');
-    final data = ListUtils.mapList<SearchResponse, ElementObject>(list, (e) {
+    final data = ListUtils.map<ElementObject, SearchResponse>(list, (e) {
       return parseTrending(e);
     });
 
@@ -64,7 +64,7 @@ class Pressplay extends BasePluginApi {
   List<String>? getGenresForTrending(ElementObject e) {
     for (var l in e.select('.sc-detail > .scd-item')) {
       if (l.text().contains('Genre:')) {
-        return ListUtils.mapList(
+        return ListUtils.map(
             l.select('strong > a'), (j) => (j as ElementObject).text());
       }
     }
@@ -119,14 +119,14 @@ class Pressplay extends BasePluginApi {
         media.startDate =
             DateTime.tryParse(e.text().replaceFirst('Released:', '').trim());
       } else if (type == 'Casts:') {
-        media.actorData = ListUtils.mapList(e.select('a'), (e) {
+        media.actorData = ListUtils.map(e.select('a'), (e) {
           return toActorData(e);
         });
       }
     }
 
     media.recommendations =
-        ListUtils.mapList(doc.select('.film_list-wrap > div'), (e) {
+        ListUtils.map(doc.select('.film_list-wrap > div'), (e) {
       return toSearchResponse(e);
     });
 
@@ -167,7 +167,7 @@ class Pressplay extends BasePluginApi {
   Future<TvSeries> getTv(String url) async {
     final iframe = await extractIframe(url);
 
-    final seasons = ListUtils.mapList(
+    final seasons = ListUtils.map(
         json.decode((await AppUtils.httpRequest(
                 url: await extractIframe(iframe), method: 'GET'))
             .text)['simple-api'] as List, (e) {
@@ -222,7 +222,7 @@ class Pressplay extends BasePluginApi {
     final list = (await AppUtils.httpRequest(url: url, method: 'GET'))
         .document
         .select('.film_list-wrap > div');
-    return ListUtils.mapList(list, (e) {
+    return ListUtils.map(list, (e) {
       return toSearchResponse(e);
     });
   }

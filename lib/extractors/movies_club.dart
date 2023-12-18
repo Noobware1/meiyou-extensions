@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class MoviesClub extends ExtractorApi {
   MoviesClub(ExtractorLink extractorLink) : super(extractorLink);
@@ -29,7 +29,7 @@ class MoviesClub extends ExtractorApi {
           ivEncoding: 'hex', salt: jsScript.salt, iv: jsScript.iv),
     ).replaceAll('\\n', '\n').replaceAll('\\', '');
 
-    final sources = ListUtils.mapList(
+    final sources = ListUtils.map(
         json.decode(
             RegExp(r'sources: ([^\]]*\])').firstMatch(decrypted)?.group(1) ??
                 '') as List, (e) {
@@ -39,7 +39,7 @@ class MoviesClub extends ExtractorApi {
         RegExp(r'tracks: ([^]*?\}\])').firstMatch(decrypted)?.group(1);
 
     final subtitles = subtitleMatch != null
-        ? ListUtils.mapList(json.decode(subtitleMatch), (e) {
+        ? ListUtils.map(json.decode(subtitleMatch), (e) {
             return toSubtitle(e);
           })
         : null;

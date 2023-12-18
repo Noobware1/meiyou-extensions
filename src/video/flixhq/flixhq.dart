@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_cast, unnecessary_this
 
 import 'package:meiyou_extensions_repo/extractors/rabbit_stream.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 //have to add corsproxy to avoid annoying handshake error
 
@@ -38,7 +38,7 @@ class FlixHQ extends BasePluginApi {
     final list = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
         .document
         .select('.swiper-slide');
-    final data = ListUtils.mapList(list, (e) {
+    final data = ListUtils.map(list, (e) {
       return parseTrending(e);
     });
 
@@ -66,7 +66,7 @@ class FlixHQ extends BasePluginApi {
   List<String>? getGenresForTrending(ElementObject e) {
     for (var l in e.select('.sc-detail > .scd-item')) {
       if (l.text().contains('Genre:')) {
-        return ListUtils.mapList(
+        return ListUtils.map(
             l.select('strong > a'), (j) => (j as ElementObject).text());
       }
     }
@@ -140,13 +140,13 @@ class FlixHQ extends BasePluginApi {
         media.startDate =
             DateTime.tryParse(e.text().replaceFirst('Released:', '').trim());
       } else if (type == 'Casts:') {
-        media.actorData = ListUtils.mapList(e.select('a'), (e) {
+        media.actorData = ListUtils.map(e.select('a'), (e) {
           return toActorData(e);
         });
       }
     }
 
-    media.recommendations = ListUtils.mapList(
+    media.recommendations = ListUtils.map(
         page.select('.film_list-wrap > div > div.film-poster'), (e) {
       return toSearchResponse(e);
     });
@@ -195,7 +195,7 @@ class FlixHQ extends BasePluginApi {
             url: '${this.baseUrl}/ajax/season/episodes/$id', method: 'GET'))
         .document
         .select('ul.nav > li > a');
-    return ListUtils.mapList(list, (e) {
+    return ListUtils.map(list, (e) {
       return toEpisode(e);
     });
   }
@@ -226,7 +226,7 @@ class FlixHQ extends BasePluginApi {
     }))
         .document
         .select('.film_list-wrap > div > div.film-poster');
-    return ListUtils.mapList(list, (e) {
+    return ListUtils.map(list, (e) {
       return toSearchResponse(e);
     });
   }

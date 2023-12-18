@@ -1,4 +1,4 @@
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 void main(List<String> args) {
   final edges = json['data']!['search']!['videos']['edges'] as List;

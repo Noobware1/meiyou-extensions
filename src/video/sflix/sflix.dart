@@ -3,7 +3,7 @@
 import 'dart:convert';
 
 import 'package:meiyou_extensions_repo/extractors/rabbit_stream.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 main() {
   return Sflix();
@@ -94,7 +94,7 @@ class Sflix extends BasePluginApi {
         media.startDate =
             DateTime.tryParse(e.text().replaceFirst('Released:', '').trim());
       } else if (type == 'Casts:') {
-        media.actorData = ListUtils.mapList(e.select('a'), (e) {
+        media.actorData = ListUtils.map(e.select('a'), (e) {
           return toActorData(e);
         });
       } else if (type == 'Duration:') {
@@ -104,7 +104,7 @@ class Sflix extends BasePluginApi {
     }
 
     media.recommendations =
-        ListUtils.mapList(page.select('div.flw-item > div.film-poster'), (e) {
+        ListUtils.map(page.select('div.flw-item > div.film-poster'), (e) {
       return toSearchResponse(e);
     });
 
@@ -152,7 +152,7 @@ class Sflix extends BasePluginApi {
   }
 
   Future<List<Episode>> getEpisodes(String id) async {
-    return ListUtils.mapList(
+    return ListUtils.map(
         (await AppUtils.httpRequest(
                 url: '${this.baseUrl}/ajax/season/episodes/$id', method: 'GET'))
             .document
@@ -184,7 +184,7 @@ class Sflix extends BasePluginApi {
 
   @override
   Future<List<SearchResponse>> search(String query) async {
-    return ListUtils.mapList(
+    return ListUtils.map(
         (await AppUtils.httpRequest(
           url: '${this.baseUrl}/search/${AppUtils.encode(query, "-")}',
           method: 'GET',

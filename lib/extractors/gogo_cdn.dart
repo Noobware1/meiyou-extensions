@@ -1,9 +1,7 @@
 // ignore_for_file: unnecessary_this
 
 import 'dart:convert';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
-
-
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class GogoCDN extends ExtractorApi {
   GogoCDN(ExtractorLink extractorLink) : super(extractorLink);

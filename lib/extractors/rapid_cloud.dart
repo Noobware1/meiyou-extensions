@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_this
 
 import 'mega_cloud.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class RapidCloud extends MegaCloud {
   RapidCloud(ExtractorLink extractorLink) : super(extractorLink);

@@ -3,8 +3,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
-import 'package:meiyou_extenstions/ok_http/ok_http.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
+import 'package:meiyou_extensions_lib/ok_http/ok_http.dart';
 
 void main(List<String> args) async {
   final a = KickassAnime();
@@ -68,7 +68,7 @@ class KickassAnime extends BasePluginApi {
   List<SearchResponse> parseSearchResponse(dynamic jsonList,
       [bool banner = false]) {
     final img = banner ? 'banner' : 'poster';
-    return ListUtils.mapList(
+    return ListUtils.map(
       jsonList as List,
       (e) => SearchResponse(
         title: e['title'],
@@ -135,7 +135,7 @@ class KickassAnime extends BasePluginApi {
         .json((json) {
       return _EpisodeResponse(
           episodes: parseEpisodeResponse(json['result']),
-          total: ListUtils.mapList(json['pages'],
+          total: ListUtils.map(json['pages'],
               (e) => StringUtils.toInt(StringUtils.valueToString(e))));
     });
 
@@ -155,7 +155,7 @@ class KickassAnime extends BasePluginApi {
   }
 
   List<Episode> parseEpisodeResponse(dynamic json) {
-    return ListUtils.mapList(json, (e) {
+    return ListUtils.map(json, (e) {
       return Episode(
         name: json['title'],
         data: json['slug'],
@@ -219,8 +219,8 @@ class _Poster {
   });
 
   factory _Poster.fromJson(dynamic json) => _Poster(
-        formats: ListUtils.mapList(
-            json["formats"], (e) => StringUtils.valueToString(e)),
+        formats:
+            ListUtils.map(json["formats"], (e) => StringUtils.valueToString(e)),
         sm: json["sm"],
         hq: json["hq"],
       );

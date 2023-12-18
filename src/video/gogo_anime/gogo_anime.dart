@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_cast, unnecessary_this
 
 import 'package:meiyou_extensions_repo/extractors/gogo_cdn.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class GogoAnime extends BasePluginApi {
   GogoAnime();
@@ -47,7 +47,7 @@ class GogoAnime extends BasePluginApi {
   }
 
   Future<List<SearchResponse>> getRecentPage(int page) async {
-    return ListUtils.mapList(
+    return ListUtils.map(
         (await AppUtils.httpRequest(
                 url:
                     'https://ajax.gogo-load.com/ajax/page-recent-release-ongoing.html?page=$page',
@@ -78,7 +78,7 @@ class GogoAnime extends BasePluginApi {
   }
 
   Future<List<SearchResponse>> parseHomePage(String url) async {
-    return ListUtils.mapList(
+    return ListUtils.map(
         (await AppUtils.httpRequest(url: url, method: 'GET'))
             .document
             .select("div > ul.items > li"), (e) {
@@ -96,7 +96,7 @@ class GogoAnime extends BasePluginApi {
   }
 
   List<String> getGeneres(List<ElementObject> elements) {
-    return ListUtils.mapList<String, ElementObject>(elements, (it) {
+    return ListUtils.map<ElementObject, String>(elements, (it) {
       return (it as ElementObject).attr('title');
     });
   }
@@ -109,7 +109,7 @@ class GogoAnime extends BasePluginApi {
             method: 'GET'))
         .document;
 
-    return ListUtils.mapList(doc.select('.items > li'), (it) {
+    return ListUtils.map(doc.select('.items > li'), (it) {
       return toSearchResponse(it);
     });
   }
@@ -157,7 +157,7 @@ class GogoAnime extends BasePluginApi {
         .attr('value');
 
     media.mediaItem = Anime(
-        episodes: ListUtils.mapList(
+        episodes: ListUtils.map(
             (await AppUtils.httpRequest(
                     url:
                         'https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end=$epEnd&id=$id&alias=$alias',
@@ -172,7 +172,7 @@ class GogoAnime extends BasePluginApi {
 
   @override
   Future<List<ExtractorLink>> loadLinks(String url) async {
-    return ListUtils.mapList(
+    return ListUtils.map(
         (await AppUtils.httpRequest(url: url, method: 'GET'))
             .document
             .select('.anime_muti_link > ul > li > a'), (it) {

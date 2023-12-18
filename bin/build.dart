@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
-import 'package:meiyou_extenstions/extenstions.dart';
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
+import 'package:meiyou_extensions_lib/extenstions.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 import 'dart:convert';
 
@@ -17,15 +17,15 @@ void main(List<String> args) {
 
   final directories = [
     Directory('$sourceFolder/video'),
-    Directory('$sourceFolder/image'),
-    Directory('$sourceFolder/text'),
+    Directory('$sourceFolder/manga'),
+    Directory('$sourceFolder/novel'),
   ];
 
   final buildDir = getBuildsDirectory()..createSync();
 
   final icons = Directory('${buildDir.fixedPath}/icons')..createSync();
 
-  final IndexJson index = IndexJson(video: [], image: [], text: []);
+  final IndexJson index = IndexJson(video: [], manga: [], novel: []);
 
   for (var folders in directories) {
     if (folders.existsSync()) {
@@ -36,11 +36,11 @@ void main(List<String> args) {
             case 'video':
               index.video.add(plugin);
               break;
-            case 'image':
-              index.image.add(plugin);
+            case 'manga':
+              index.manga.add(plugin);
               break;
-            case 'text':
-              index.text.add(plugin);
+            case 'novel':
+              index.novel.add(plugin);
               break;
             default:
           }
@@ -194,10 +194,10 @@ Map<String, String> getAllExtractors(
 class IndexJson {
   final List<OnlinePlugin> video;
 
-  final List<OnlinePlugin> image;
-  final List<OnlinePlugin> text;
+  final List<OnlinePlugin> manga;
+  final List<OnlinePlugin> novel;
 
-  IndexJson({required this.video, required this.image, required this.text});
+  IndexJson({required this.video, required this.manga, required this.novel});
 
   factory IndexJson.decode(String json) => IndexJson.fromJson(jsonDecode(json));
 
@@ -206,16 +206,16 @@ class IndexJson {
   factory IndexJson.fromJson(dynamic json) {
     final video = json['video'] as List? ?? [];
 
-    final image = json['image'] as List? ?? [];
+    final manga = json['manga'] as List? ?? [];
 
-    final text = json['text'] as List? ?? [];
+    final novel = json['novel'] as List? ?? [];
 
     return IndexJson(
       video: video.mapAsList((it) => OnlinePlugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
-      image: image.mapAsList((it) => OnlinePlugin.fromJson(
+      manga: manga.mapAsList((it) => OnlinePlugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
-      text: text.mapAsList((it) => OnlinePlugin.fromJson(
+      novel: novel.mapAsList((it) => OnlinePlugin.fromJson(
           (it as Map).map((key, value) => MapEntry(key.toString(), value)))),
     );
   }
@@ -223,8 +223,8 @@ class IndexJson {
   Map<String, dynamic> toJson() {
     return {
       'video': video.mapAsList((it) => it.toJson()),
-      'image': image.mapAsList((it) => it.toJson()),
-      'text': text.mapAsList((it) => it.toJson()),
+      'manga': manga.mapAsList((it) => it.toJson()),
+      'novel': novel.mapAsList((it) => it.toJson()),
     };
   }
 }

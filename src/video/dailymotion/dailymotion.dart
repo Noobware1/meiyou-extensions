@@ -2,8 +2,8 @@
 
 import 'dart:convert';
 
-import 'package:meiyou_extenstions/meiyou_extenstions.dart';
-import 'package:meiyou_extenstions/ok_http/ok_http.dart';
+import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
+import 'package:meiyou_extensions_lib/ok_http/ok_http.dart';
 
 class Dailymotion extends BasePluginApi {
   @override
@@ -80,7 +80,7 @@ class Dailymotion extends BasePluginApi {
     return res.json((json) {
       final list = json['data']?['search']?['videos']['edges'] as List;
 
-      return ListUtils.mapList(list, (e) => toSearchResponse(e['node']));
+      return ListUtils.map(list, (e) => toSearchResponse(e['node']));
     });
   }
 

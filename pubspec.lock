@@ -251,13 +251,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.16+1"
-  meiyou_extenstions:
+  meiyou_extensions_lib:
     dependency: "direct main"
     description:
       path: "."
       ref: master
-      resolved-ref: "7aaa075d371554ad274ac756ac19a0588c7b5bed"
-      url: "https://github.com/Noobware1/meiyou_extenstions.git"
+      resolved-ref: "9384ee1bb7eb4a2c1b8e045fdfef42a5acc87b29"
+      url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"
   meta:
