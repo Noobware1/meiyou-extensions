@@ -4,9 +4,9 @@
     "type": "video",
     "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/kickassanime.plugin",
     "author": "Noobware1",
-    "description": "watch anime from kickassanime.am",
+    "description": "watch anime from kaas.ro",
     "lang": "English",
-    "baseUrl": "https://kickassanime.am",
+    "baseUrl": "https://kaas.ro",
     "version": "0.0.1",
     "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/kickassanime.png"
 }

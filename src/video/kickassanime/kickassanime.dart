@@ -179,7 +179,7 @@ class KickassAnime extends BasePluginApi {
   }
 
   Episode parseEpisode(String slug, Map json) {
-    final int number = json['episode_number'];
+    final int number = json['episode_number'] as int;
     return Episode(
       name: json['title'],
       data: '$slug/ep-$number-${StringUtils.valueToString(json['slug'])}',
