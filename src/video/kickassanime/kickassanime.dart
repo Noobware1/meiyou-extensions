@@ -19,7 +19,17 @@ class KickassAnime extends BasePluginApi {
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
     final HomePage homePage;
-    if (request.name == 'Latest Update') {
+    if (request.name == 'Top Airing') {
+      homePage = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
+          .json((json) {
+        return HomePage(
+          data:
+              HomePageList(name: request.name, data: parseSearchResponse(json)),
+          page: page,
+          hasNextPage: false,
+        );
+      });
+    } else {
       homePage = (await AppUtils.httpRequest(
               url: '${request.data}&page=$page', method: 'GET'))
           .json((json) {
@@ -28,16 +38,6 @@ class KickassAnime extends BasePluginApi {
               name: request.name, data: parseSearchResponse(json['result'])),
           page: page,
           hasNextPage: json['hadNext'],
-        );
-      });
-    } else {
-      homePage = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
-          .json((json) {
-        return HomePage(
-          data:
-              HomePageList(name: request.name, data: parseSearchResponse(json)),
-          page: page,
-          hasNextPage: false,
         );
       });
     }
