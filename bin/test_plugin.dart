@@ -37,21 +37,16 @@ void main(List<String> args) async {
   print(search);
   print('');
 
-  // print('Starting loadMediaDetails for $query');
-  // // final media = await pluginApi.loadMediaDetails(search.first);
-  // try {
-  //   final media = await pluginApi.loadMediaDetails(
-  //       SearchResponse(title: '', url: '', poster: '', type: ShowType.Anime));
-  //   print(media);
-  // } catch (e) {
-  //   print('Error: $e');
-  // }
-  // print('');
-  // if (media.mediaItem == null) return;
+  print('Starting loadMediaDetails for $query');
+  final media = await pluginApi.loadMediaDetails(search.first);
 
-  // print('Start loadLinks for $query');
+  print(media);
+  print('');
+  if (media.mediaItem == null) return;
 
-  // printRest(pluginApi, media.mediaItem!);
+  print('Start loadLinks for $query');
+
+  printRest(pluginApi, media.mediaItem!);
 }
 
 printRest(BasePluginApi api, MediaItem mediaItem) async {

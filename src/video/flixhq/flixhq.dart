@@ -3,11 +3,10 @@
 import 'package:meiyou_extensions_repo/extractors/rabbit_stream.dart';
 import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
-//have to add corsproxy to avoid annoying handshake error
-
 class FlixHQ extends BasePluginApi {
   FlixHQ();
 
+  //have to add corsproxy to avoid annoying handshake error
   static const String crosProxy = 'https://corsproxy.io';
 
   @override

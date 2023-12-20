@@ -1,6 +1,4 @@
 // ignore_for_file: unnecessary_this
-
-import 'dart:convert';
 import 'package:meiyou_extensions_repo/extractors/mega_cloud.dart';
 import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
@@ -10,10 +8,14 @@ class AniWatch extends BasePluginApi {
   @override
   String get baseUrl => 'https://aniwatch.to';
 
-  Map<String, String> get headers => {
-        'X-Requested-With': 'XMLHttpRequest',
-        'referer': this.baseUrl,
-      };
+  Map<String, String> apiheaders(String referer) {
+    return {
+      "Accept": "*/*",
+      "Host": Uri.parse(baseUrl).host,
+      "Referer": referer,
+      "X-Requested-With": "XMLHttpRequest"
+    };
+  }
 
   Map<String, String> get embedHeaders => {"referer": '${this.baseUrl}/'};
 
@@ -40,8 +42,7 @@ class AniWatch extends BasePluginApi {
   }
 
   Future<HomePage> getTrending(HomePageRequest request) async {
-    final list = (await AppUtils.httpRequest(
-            url: request.data, method: 'GET', headers: headers))
+    final list = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
         .document
         .select('.deslide-item');
     final data = ListUtils.map(list, (e) {
@@ -74,10 +75,9 @@ class AniWatch extends BasePluginApi {
   }
 
   Future<List<SearchResponse>> parseSearchResponse(String url) async {
-    final list =
-        (await AppUtils.httpRequest(url: url, method: 'GET', headers: headers))
-            .document
-            .select('div.film_list-wrap > div.flw-item');
+    final list = (await AppUtils.httpRequest(url: url, method: 'GET'))
+        .document
+        .select('div.film_list-wrap > div.flw-item');
     return ListUtils.map(list, (it) {
       return toSearchResponse(it);
     });
@@ -103,12 +103,13 @@ class AniWatch extends BasePluginApi {
 
     media.type = getType(animePage.selectFirst('div.tick > span.item').text());
 
-    final info = animePage.select('.anisc-info > div');
-    for (var i = 0; i < info.length - 1; i++) {
-      final head = info[i].selectFirst('.item-head').text().trim();
+    final info = animePage.select('.anisc-info > div')..removeLast();
+
+    for (var e in info) {
+      final head = e.selectFirst('.item-head').text().trim();
 
       if (head == 'Aired:') {
-        final aired = getName(info[i]).split(' ');
+        final aired = getName(e).split(' ');
         final year = StringUtils.toIntOrNull(aired[2]);
         if (year != null) {
           media.startDate = AppUtils.toDateTime(
@@ -120,17 +121,17 @@ class AniWatch extends BasePluginApi {
           );
         }
       } else if (head == 'Overview:') {
-        media.description = info[i].selectFirst('div.text').text().trim();
+        media.description = e.selectFirst('div.text').text().trim();
       } else if (head == 'Japanese:') {
-        media.otherTitles = [getName(info[i])];
+        media.otherTitles = [getName(e)];
       } else if (head == 'Duration:') {
-        media.duration = parseDuration(getName(info[i]));
+        media.duration = parseDuration(getName(e));
       } else if (head == 'Status:') {
-        media.status = getStatus(getName(info[i]));
+        media.status = getStatus(getName(e));
       } else if (head == 'MAL Score:') {
-        media.rating = StringUtils.toDoubleOrNull(getName(info[i]));
+        media.rating = StringUtils.toDoubleOrNull(getName(e));
       } else if (head == 'Genres:') {
-        media.genres = AppUtils.selectMultiAttr(info[i].select('a'), 'title');
+        media.genres = AppUtils.selectMultiAttr(e.select('a'), 'title');
       }
     }
 
@@ -144,9 +145,7 @@ class AniWatch extends BasePluginApi {
         animePage.select('div.film_list-wrap > div.flw-item'), (it) {
       return toSearchResponse(it);
     });
-
-    media.mediaItem =
-        Anime(episodes: await getEpisodes(getIdFromUrl(searchResponse.url)));
+    media.mediaItem = Anime(episodes: await getEpisodes(searchResponse.url));
 
     return media;
   }
@@ -190,13 +189,14 @@ class AniWatch extends BasePluginApi {
     return null;
   }
 
-  Future<List<Episode>> getEpisodes(String id) async {
+  Future<List<Episode>> getEpisodes(String url) async {
+    final response = await AppUtils.httpRequest(
+        url: "${this.baseUrl}/ajax/v2/episode/list/${getIdFromUrl(url)}",
+        method: 'GET',
+        headers: apiheaders(baseUrl + url));
+
     return ListUtils.map(
-        AppUtils.parseHtml(json.decode((await AppUtils.httpRequest(
-                    url: "${this.baseUrl}/ajax/v2/episode/list/$id",
-                    method: 'GET',
-                    headers: headers))
-                .text)['html'])
+        AppUtils.parseHtml(response.json((json) => json['html']))
             .select('div.ss-list > a'), (e) {
       return toEpisode(e);
     });
@@ -257,18 +257,10 @@ class AniWatch extends BasePluginApi {
   }
 
   Duration? parseDuration(String d) {
-    final l = d.toLowerCase().split(' ');
-    try {
-      if (l.length > 1) {
-        return Duration(
-            hours: StringUtils.toInt(StringUtils.substringBefore(l[0], 'h')),
-            minutes: StringUtils.toInt(StringUtils.substringBefore(l[1], 'm')));
-      } else {
-        return Duration(
-            minutes: StringUtils.toInt(StringUtils.substringBefore(l[0], 'm')));
-      }
-    } catch (e) {
-      return null;
+    if (d.contains('h')) {
+      return AppUtils.tryParseDuration(d, 'hh/mm');
+    } else {
+      return AppUtils.tryParseDuration(d, 'mm');
     }
   }
 
@@ -287,7 +279,7 @@ class AniWatch extends BasePluginApi {
   }
 
   ShowStatus getStatus(String t) {
-    if (t.contains('Finished')) {
+    if (t.trim() == 'Finished Airing') {
       return ShowStatus.Completed;
     } else {
       return ShowStatus.Ongoing;
