@@ -42,7 +42,7 @@
             "type": "Video",
             "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/gogo_anime.plugin",
             "author": "Noobware1",
-            "description": "watch free anime form gogoanime",
+            "description": "watch anime form gogoanime",
             "lang": "multi",
             "baseUrl": "https://anitaku.to",
             "version": "0.0.1",
