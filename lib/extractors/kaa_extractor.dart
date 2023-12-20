@@ -136,16 +136,29 @@ class _SourceDecrypted {
 
   _SourceDecrypted({this.hls, this.dash, this.subtitles});
 
-  factory _SourceDecrypted.decode(String jsonString) =>
-      _SourceDecrypted.fromJson(json.decode(jsonString));
+  factory _SourceDecrypted.decode(String jsonString) {
+    return _SourceDecrypted.fromJson(json.decode(jsonString));
+  }
 
   factory _SourceDecrypted.fromJson(dynamic json) {
+    final host = _SourceDecrypted.getHost(json);
+
     return _SourceDecrypted(
       hls: _SourceDecrypted.toVideoSource(json['hls'], true),
       dash: _SourceDecrypted.toVideoSource(json['dash'], false),
       subtitles: ListUtils.mapNullable(
-          json['subtitles'], (e) => _SourceDecrypted.toSubtitle(e)),
+          json['subtitles'], (e) => _SourceDecrypted.toSubtitle(host, e)),
     );
+  }
+
+  static String getHost(dynamic json) {
+    final String url;
+    if (AppUtils.isNotNull(json['hls'])) {
+      url = StringUtils.valueToString(json['hls']);
+    } else {
+      url = StringUtils.valueToString(json['dash']);
+    }
+    return Uri.parse(AppUtils.httpify(url)).host;
   }
 
   static VideoSource? toVideoSource(dynamic url, bool isHLS) {
@@ -172,11 +185,16 @@ class _SourceDecrypted {
     return VideoQuality.unknown;
   }
 
-  static Subtitle toSubtitle(dynamic json) {
+  static Subtitle toSubtitle(String host, dynamic json) {
+    var subtitleUrl = AppUtils.httpify(StringUtils.valueToString(json['src']));
+
+    if (subtitleUrl.startsWith('/')) {
+      subtitleUrl = 'https://$host$subtitleUrl';
+    }
     return Subtitle(
-      url: AppUtils.httpify(json['src']),
+      url: subtitleUrl,
       language: json['name'],
-      format: AppUtils.getSubtitleFormatFromUrl(json['src']),
+      format: AppUtils.getSubtitleFormatFromUrl(subtitleUrl),
     );
   }
 }

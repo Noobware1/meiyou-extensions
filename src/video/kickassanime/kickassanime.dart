@@ -61,6 +61,8 @@ class KickassAnime extends BasePluginApi {
         current: e["episode_number"],
         poster: this.baseUrl + _Poster.fromJson(e['poster']).poster,
         type: getType(e['type']),
+        generes: ListUtils.mapNullable(
+            e['genres'], (it) => StringUtils.valueToString(it)),
       );
     });
   }

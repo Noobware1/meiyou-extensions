@@ -32,27 +32,27 @@ void main(List<String> args) async {
   } catch (e) {
     print(e);
   }
-  // print('Starting search for $query');
-  // final search = await pluginApi.search(query);
-  // print(search);
-  // print('');
+  print('Starting search for $query');
+  final search = await pluginApi.search(query);
+  print(search);
+  print('');
 
-  // print('Starting loadMediaDetails for $query');
-  // final media = await pluginApi.loadMediaDetails(search.first);
+  print('Starting loadMediaDetails for $query');
+  final media = await pluginApi.loadMediaDetails(search.first);
 
-  // print(media);
-  // print('');
-  // if (media.mediaItem == null) return;
+  print(media);
+  print('');
+  if (media.mediaItem == null) return;
 
-  // print('Start loadLinks for $query');
+  print('Start loadLinks for $query');
 
-  // printRest(pluginApi, media.mediaItem!);
+  printRest(pluginApi, media.mediaItem!);
 }
 
 printRest(BasePluginApi api, MediaItem mediaItem) async {
   List<ExtractorLink>? links;
   if (mediaItem is Anime) {
-    links = await api.loadLinks((mediaItem).episodes[0].data);
+    links = await api.loadLinks((mediaItem).episodes.last.data);
   } else if (mediaItem is TvSeries) {
     links = await api.loadLinks((mediaItem).data[0].episodes.first.data);
   } else if (mediaItem is Movie) {
@@ -65,6 +65,6 @@ printRest(BasePluginApi api, MediaItem mediaItem) async {
   }
   print(links);
 
-  print('Starting loadMedia with ${links[0].name}');
-  print(await api.loadMedia(links[0]));
+  print('Starting loadMedia with ${links[1].name}');
+  print(await api.loadMedia(links[1]));
 }
