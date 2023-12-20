@@ -27,26 +27,26 @@ void main(List<String> args) async {
               data: r.data,
               horizontalImages: r.horizontalImages));
       print(c);
-      break;
+      // break;
     }
   } catch (e) {
     print(e);
   }
-  print('Starting search for $query');
-  final search = await pluginApi.search(query);
-  print(search);
-  print('');
+  // print('Starting search for $query');
+  // final search = await pluginApi.search(query);
+  // print(search);
+  // print('');
 
-  print('Starting loadMediaDetails for $query');
-  final media = await pluginApi.loadMediaDetails(search.first);
+  // print('Starting loadMediaDetails for $query');
+  // final media = await pluginApi.loadMediaDetails(search.first);
 
-  print(media);
-  print('');
-  if (media.mediaItem == null) return;
+  // print(media);
+  // print('');
+  // if (media.mediaItem == null) return;
 
-  print('Start loadLinks for $query');
+  // print('Start loadLinks for $query');
 
-  printRest(pluginApi, media.mediaItem!);
+  // printRest(pluginApi, media.mediaItem!);
 }
 
 printRest(BasePluginApi api, MediaItem mediaItem) async {
