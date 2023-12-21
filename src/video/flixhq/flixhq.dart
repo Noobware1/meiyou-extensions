@@ -12,6 +12,8 @@ class FlixHQ extends BasePluginApi {
   @override
   String baseUrl = '${FlixHQ.crosProxy}/?https://flixhq.to';
 
+  // ============================== HomePage ===================================
+
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Trending': '${this.baseUrl}/home',
@@ -19,6 +21,8 @@ class FlixHQ extends BasePluginApi {
         'Popular Movies': '${this.baseUrl}/movie',
         'Popular TV Shows': '${this.baseUrl}/tv-show',
       });
+
+  // ============================== LoadHomePage ===============================
 
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
@@ -72,44 +76,7 @@ class FlixHQ extends BasePluginApi {
     return null;
   }
 
-  @override
-  Future<List<ExtractorLink>> loadLinks(String url) async {
-    final servers = (await AppUtils.httpRequest(url: url, method: 'GET'))
-        .document
-        .select('ul.nav > li > a');
-
-    final List<ExtractorLink> links = [];
-    final idRegex = RegExp(r'-(\d+)');
-    for (var e in servers) {
-      final link = (await AppUtils.httpRequest(
-              url:
-                  '${this.baseUrl}/ajax/get_link/${idRegex.firstMatch(e.attr("id"))?.group(1)}',
-              method: 'GET',
-              headers: {
-            "X-Requested-With": "XMLHttpRequest",
-          }))
-          .json((j) => StringUtils.valueToString(j['link']));
-
-      try {
-        links.add(ExtractorLink(
-          name: StringUtils.trimNewLines(
-              e.attr('title').replaceFirst('Server', '')),
-          url: link,
-        ));
-      } catch (e) {}
-    }
-    return links;
-  }
-
-  @override
-  Future<Media?> loadMedia(ExtractorLink link) async {
-    if (link.url.contains('doki')) {
-      return RabbitStream(link).extract();
-    } else if (link.url.contains('rabbit')) {
-      return RabbitStream(link).extract();
-    }
-    return null;
-  }
+  // =========================== LoadMediaDetails ==============================
 
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
@@ -124,8 +91,8 @@ class FlixHQ extends BasePluginApi {
     media.rating = StringUtils.toDoubleOrNull(
         page.selectFirst('span.item:nth-child(2)').text());
 
-    media.duration =
-        parseDuation(page.selectFirst('span.item:nth-child(3)').text());
+    media.duration = AppUtils.tryParseDuration(
+        page.selectFirst('span.item:nth-child(3)').text(), 'min');
 
     media.description = page.selectFirst('.description').text();
 
@@ -199,6 +166,58 @@ class FlixHQ extends BasePluginApi {
     });
   }
 
+  // =============================== LoadLinks =================================
+
+  @override
+  Future<List<ExtractorLink>> loadLinks(String url) async {
+    final servers = (await AppUtils.httpRequest(url: url, method: 'GET'))
+        .document
+        .select('ul.nav > li > a');
+
+    final List<ExtractorLink> links = [];
+    final idRegex = RegExp(r'-(\d+)');
+    for (var e in servers) {
+      final link = (await AppUtils.httpRequest(
+              url:
+                  '${this.baseUrl}/ajax/get_link/${idRegex.firstMatch(e.attr("id"))?.group(1)}',
+              method: 'GET',
+              headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          }))
+          .json((j) => StringUtils.valueToString(j['link']));
+
+      try {
+        links.add(ExtractorLink(
+          name: StringUtils.trimNewLines(
+              e.attr('title').replaceFirst('Server', '')),
+          url: link,
+        ));
+      } catch (e) {}
+    }
+    return links;
+  }
+  // =============================== LoadMedia =================================
+
+  @override
+  Future<Media?> loadMedia(ExtractorLink link) async {
+    if (link.url.contains('doki')) {
+      return RabbitStream(link).extract();
+    } else if (link.url.contains('rabbit')) {
+      return RabbitStream(link).extract();
+    }
+    return null;
+  }
+
+  // ================================ Search ===================================
+
+  @override
+  Future<List<SearchResponse>> search(String query) {
+    return parseSearchResponse(
+        '${this.baseUrl}/search/${AppUtils.encode(query, "-")}');
+  }
+
+  // ================================ Helpers ==================================
+
   Episode toEpisode(ElementObject e) {
     return Episode(
         data: '${this.baseUrl}/ajax/episode/servers/${e.attr('data-id')}',
@@ -211,12 +230,6 @@ class FlixHQ extends BasePluginApi {
 
   String extractIdFromUrl(String url) {
     return StringUtils.substringAfterLast(url, '-');
-  }
-
-  @override
-  Future<List<SearchResponse>> search(String query) {
-    return parseSearchResponse(
-        '${this.baseUrl}/search/${AppUtils.encode(query, "-")}');
   }
 
   Future<List<SearchResponse>> parseSearchResponse(String url) async {
@@ -244,15 +257,6 @@ class FlixHQ extends BasePluginApi {
       return ShowType.TvSeries;
     }
     return ShowType.Movie;
-  }
-
-  Duration? parseDuation(String s) {
-    final min =
-        StringUtils.toIntOrNull(StringUtils.substringBefore(s, 'min').trim());
-    if (min == null) {
-      return null;
-    }
-    return Duration(minutes: min);
   }
 }
 

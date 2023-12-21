@@ -9,6 +9,8 @@ class GogoAnime extends BasePluginApi {
   @override
   String get baseUrl => 'https://anitaku.to';
 
+  // ============================== HomePage ===================================
+
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Recently Released': '1',
@@ -16,6 +18,8 @@ class GogoAnime extends BasePluginApi {
         'Anime Movies': '3',
         'Seasonal Anime': '4',
       });
+
+  // ============================== LoadHomePage ===============================
 
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
@@ -58,61 +62,11 @@ class GogoAnime extends BasePluginApi {
     });
   }
 
-  SearchResponse parseRecentPage(ElementObject e) {
-    final a = e.selectFirst('a');
-    final img = RegExp(r"""background:\surl\(['|"](.*)['|"]\)""")
-            .firstMatch(a.selectFirst('div').attr('style'))
-            ?.group(1) ??
-        '';
-
-    return SearchResponse(
-        title: e.select('a')[1].text().trim(),
-        url: this.baseUrl + a.attr('href'),
-        generes: getGeneres(e.select('.genres > a')),
-        poster: img,
-        type: ShowType.Anime);
-  }
-
   Future<List<SearchResponse>> getSeasonal(int page) {
     return parseHomePage('${this.baseUrl}/new-season.html?page=$page');
   }
 
-  Future<List<SearchResponse>> parseHomePage(String url) async {
-    return ListUtils.map(
-        (await AppUtils.httpRequest(url: url, method: 'GET'))
-            .document
-            .select("div > ul.items > li"), (e) {
-      return toHomePageList(e);
-    });
-  }
-
-  SearchResponse toHomePageList(ElementObject e) {
-    final a = e.selectFirst('p.name > a');
-    return SearchResponse(
-        title: a.text(),
-        url: this.baseUrl + a.attr('href'),
-        poster: e.selectFirst('div.img > a > img').attr('src'),
-        type: ShowType.Anime);
-  }
-
-  List<String> getGeneres(List<ElementObject> elements) {
-    return ListUtils.map<ElementObject, String>(elements, (it) {
-      return (it as ElementObject).attr('title');
-    });
-  }
-
-  @override
-  Future<List<SearchResponse>> search(String query) async {
-    final doc = (await AppUtils.httpRequest(
-            url:
-                '${this.baseUrl}/search.html?keyword=${AppUtils.encode(query)}',
-            method: 'GET'))
-        .document;
-
-    return ListUtils.map(doc.select('.items > li'), (it) {
-      return toSearchResponse(it);
-    });
-  }
+  // =========================== LoadMediaDetails ==============================
 
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
@@ -170,6 +124,8 @@ class GogoAnime extends BasePluginApi {
     return media;
   }
 
+  // =============================== LoadLinks =================================
+
   @override
   Future<List<ExtractorLink>> loadLinks(String url) async {
     return ListUtils.map(
@@ -180,6 +136,8 @@ class GogoAnime extends BasePluginApi {
     });
   }
 
+  // =============================== LoadMedia =================================
+
   @override
   Future<Media?> loadMedia(ExtractorLink link) async {
     if (link.url.contains('/streaming.php?')) {
@@ -189,6 +147,62 @@ class GogoAnime extends BasePluginApi {
     } else {
       return null;
     }
+  }
+
+  // ============================== Search ===============================
+
+  @override
+  Future<List<SearchResponse>> search(String query) async {
+    final doc = (await AppUtils.httpRequest(
+            url:
+                '${this.baseUrl}/search.html?keyword=${AppUtils.encode(query)}',
+            method: 'GET'))
+        .document;
+
+    return ListUtils.map(doc.select('.items > li'), (it) {
+      return toSearchResponse(it);
+    });
+  }
+
+  // ============================== Helpers ===============================
+
+  SearchResponse parseRecentPage(ElementObject e) {
+    final a = e.selectFirst('a');
+    final img = RegExp(r"""background:\surl\(['|"](.*)['|"]\)""")
+            .firstMatch(a.selectFirst('div').attr('style'))
+            ?.group(1) ??
+        '';
+
+    return SearchResponse(
+        title: e.select('a')[1].text().trim(),
+        url: this.baseUrl + a.attr('href'),
+        generes: getGeneres(e.select('.genres > a')),
+        poster: img,
+        type: ShowType.Anime);
+  }
+
+  Future<List<SearchResponse>> parseHomePage(String url) async {
+    return ListUtils.map(
+        (await AppUtils.httpRequest(url: url, method: 'GET'))
+            .document
+            .select("div > ul.items > li"), (e) {
+      return toHomePageList(e);
+    });
+  }
+
+  SearchResponse toHomePageList(ElementObject e) {
+    final a = e.selectFirst('p.name > a');
+    return SearchResponse(
+        title: a.text(),
+        url: this.baseUrl + a.attr('href'),
+        poster: e.selectFirst('div.img > a > img').attr('src'),
+        type: ShowType.Anime);
+  }
+
+  List<String> getGeneres(List<ElementObject> elements) {
+    return ListUtils.map<ElementObject, String>(elements, (it) {
+      return (it as ElementObject).attr('title');
+    });
   }
 
   SearchResponse toSearchResponse(ElementObject element) {

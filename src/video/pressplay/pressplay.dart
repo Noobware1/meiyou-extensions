@@ -11,6 +11,8 @@ class Pressplay extends BasePluginApi {
   @override
   String get baseUrl => 'https://pressplay.top';
 
+  // ============================== HomePage ===================================
+
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Trending': '${this.baseUrl}/',
@@ -19,6 +21,8 @@ class Pressplay extends BasePluginApi {
         'Anime': '${this.baseUrl}/type-anime',
         'Cartoons': '${this.baseUrl}/type-cartoons',
       });
+
+  // ============================== LoadHomePage ===============================
 
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
@@ -71,27 +75,7 @@ class Pressplay extends BasePluginApi {
     return null;
   }
 
-  @override
-  Future<List<ExtractorLink>> loadLinks(String url) async {
-    final decoded = ExtractorLinkData.decode(url);
-
-    final link = (await AppUtils.httpRequest(
-            url: decoded.url, method: 'GET', referer: decoded.referer))
-        .document
-        .selectFirst('iframe.vidframe')
-        .attr('src');
-
-    final host = Uri.parse(decoded.url).host;
-
-    return [
-      ExtractorLink(url: link, name: decoded.name, referer: 'https://$host/')
-    ];
-  }
-
-  @override
-  Future<Media?> loadMedia(ExtractorLink link) {
-    return MoviesClub(link).extract();
-  }
+  // =========================== LoadMediaDetails ==============================
 
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
@@ -105,7 +89,8 @@ class Pressplay extends BasePluginApi {
     media.rating =
         StringUtils.toDoubleOrNull(doc.selectFirst('.stats > span > i').text());
 
-    media.duration = parseDuation(doc.select('.stats > span').last.text());
+    media.duration = AppUtils.tryParseDuration(
+        doc.select('.stats > span').last.text(), 'min');
 
     media.description = doc.selectFirst('.description').text();
 
@@ -138,10 +123,6 @@ class Pressplay extends BasePluginApi {
     return media;
   }
 
-  ActorData toActorData(ElementObject e) {
-    return ActorData(name: e.text());
-  }
-
   Future<Movie> getMovie(String url) async {
     final iframe = await extractIframe(url);
 
@@ -152,16 +133,12 @@ class Pressplay extends BasePluginApi {
     });
 
     return Movie(
-      url: ExtractorLinkData(
+      url: _ExtractorLinkData(
         name: jsonData['name'],
         url: jsonData['iframe'],
         referer: iframe,
       ).encode,
     );
-  }
-
-  dynamic parseJsonResponse(dynamic j) {
-    return (j['simple-api'] as List)[0];
   }
 
   Future<TvSeries> getTv(String url) async {
@@ -171,7 +148,7 @@ class Pressplay extends BasePluginApi {
         json.decode((await AppUtils.httpRequest(
                 url: await extractIframe(iframe), method: 'GET'))
             .text)['simple-api'] as List, (e) {
-      return PressPlaySeasonData.fromJson(e);
+      return _PressPlaySeasonData.fromJson(e);
     });
 
     final List<int> trueSeasonsNumber = [];
@@ -196,13 +173,13 @@ class Pressplay extends BasePluginApi {
   }
 
   List<Episode> getEpisodes(
-      List<PressPlaySeasonData> seasons, int number, String iframe) {
+      List<_PressPlaySeasonData> seasons, int number, String iframe) {
     final List<Episode> episodes = [];
     for (var i = 0; i < seasons.length; i++) {
       if (seasons[i].season == number) {
         episodes.add(Episode(
             episode: seasons[i].episode,
-            data: ExtractorLinkData(
+            data: _ExtractorLinkData(
                     name: seasons[i].title,
                     url: seasons[i].iframe,
                     referer: iframe)
@@ -212,11 +189,41 @@ class Pressplay extends BasePluginApi {
     return episodes;
   }
 
+  // =============================== LoadLinks =================================
+
+  @override
+  Future<List<ExtractorLink>> loadLinks(String url) async {
+    final decoded = _ExtractorLinkData.decode(url);
+
+    final link = (await AppUtils.httpRequest(
+            url: decoded.url, method: 'GET', referer: decoded.referer))
+        .document
+        .selectFirst('iframe.vidframe')
+        .attr('src');
+
+    final host = Uri.parse(decoded.url).host;
+
+    return [
+      ExtractorLink(url: link, name: decoded.name, referer: 'https://$host/')
+    ];
+  }
+
+  // =============================== LoadMedia =================================
+
+  @override
+  Future<Media?> loadMedia(ExtractorLink link) {
+    return MoviesClub(link).extract();
+  }
+
+  // ================================ Search ===================================
+
   @override
   Future<List<SearchResponse>> search(String query) {
     return parseSearchResponse(
         '${this.baseUrl}/search?q=${AppUtils.encode(query)}');
   }
+
+  // ================================ Helpers ==================================
 
   Future<List<SearchResponse>> parseSearchResponse(String url) async {
     final list = (await AppUtils.httpRequest(url: url, method: 'GET'))
@@ -238,6 +245,14 @@ class Pressplay extends BasePluginApi {
       poster: this.baseUrl + info.selectFirst('img').attr('data-src'),
       type: getType(type),
     );
+  }
+
+  ActorData toActorData(ElementObject e) {
+    return ActorData(name: e.text());
+  }
+
+  dynamic parseJsonResponse(dynamic j) {
+    return (j['simple-api'] as List)[0];
   }
 
   ShowType getType(String type) {
@@ -294,29 +309,20 @@ class Pressplay extends BasePluginApi {
 
     return iframe;
   }
-
-  Duration? parseDuation(String s) {
-    final min =
-        StringUtils.toIntOrNull(StringUtils.substringBefore(s, 'min').trim());
-    if (min != null) {
-      return Duration(minutes: min);
-    }
-    return null;
-  }
 }
 
-class ExtractorLinkData {
+class _ExtractorLinkData {
   final String name;
   final String url;
   final String referer;
 
-  ExtractorLinkData(
+  _ExtractorLinkData(
       {required this.name, required this.url, required this.referer});
 
   String get encode => json.encode(toJson());
 
-  factory ExtractorLinkData.decode(String jsonString) {
-    return ExtractorLinkData.fromJson(json.decode(jsonString));
+  factory _ExtractorLinkData.decode(String jsonString) {
+    return _ExtractorLinkData.fromJson(json.decode(jsonString));
   }
 
   Map<String, dynamic> toJson() {
@@ -327,27 +333,27 @@ class ExtractorLinkData {
     };
   }
 
-  factory ExtractorLinkData.fromJson(dynamic json) {
-    return ExtractorLinkData(
+  factory _ExtractorLinkData.fromJson(dynamic json) {
+    return _ExtractorLinkData(
         name: json['name'], url: json['url'], referer: json['referer']);
   }
 }
 
-class PressPlaySeasonData {
+class _PressPlaySeasonData {
   final int season;
   final String iframe;
   final int episode;
   final String title;
 
-  PressPlaySeasonData({
+  _PressPlaySeasonData({
     required this.season,
     required this.iframe,
     required this.episode,
     required this.title,
   });
 
-  factory PressPlaySeasonData.fromJson(dynamic json) {
-    return PressPlaySeasonData(
+  factory _PressPlaySeasonData.fromJson(dynamic json) {
+    return _PressPlaySeasonData(
         season: StringUtils.toInt(json['season']),
         iframe: json['iframe'],
         episode: StringUtils.toInt(json['episode']),

@@ -1,6 +1,7 @@
-// ignore_for_file: unnecessary_this
-import 'package:meiyou_extensions_repo/extractors/mega_cloud.dart';
+// ignore_for_file: unnecessary_cast, unnecessary_this
+
 import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
+import 'package:meiyou_extensions_repo/extractors/mega_cloud.dart';
 
 class AniWatch extends BasePluginApi {
   AniWatch();
@@ -8,16 +9,7 @@ class AniWatch extends BasePluginApi {
   @override
   String get baseUrl => 'https://aniwatch.to';
 
-  Map<String, String> apiheaders(String referer) {
-    return {
-      "Accept": "*/*",
-      "Host": Uri.parse(baseUrl).host,
-      "Referer": referer,
-      "X-Requested-With": "XMLHttpRequest"
-    };
-  }
-
-  Map<String, String> get embedHeaders => {"referer": '${this.baseUrl}/'};
+  // ============================== HomePage ===================================
 
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
@@ -27,6 +19,8 @@ class AniWatch extends BasePluginApi {
         'Most Popular': '${this.baseUrl}/most-popular',
         'New on Aniwatch': '${this.baseUrl}/recently-added',
       });
+
+  // ============================== LoadHomePage ===============================
 
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
@@ -55,34 +49,7 @@ class AniWatch extends BasePluginApi {
         hasNextPage: false);
   }
 
-  SearchResponse parseTrending(ElementObject e) {
-    final content = e.selectFirst('.deslide-item-content');
-
-    return SearchResponse(
-        title: content.selectFirst('div.desi-head-title.dynamic-name').text(),
-        url: content
-            .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')
-            .attr('href'),
-        poster: e.selectFirst('.deslide-cover > div > img').attr('data-src'),
-        type: getType(content.selectFirst('.sc-detail > div').text()),
-        description: content.selectFirst('.desi-description').text().trim());
-  }
-
-  @override
-  Future<List<SearchResponse>> search(String query) {
-    return parseSearchResponse(
-        '${this.baseUrl}/search?keyword=${AppUtils.encode(query)}');
-  }
-
-  Future<List<SearchResponse>> parseSearchResponse(String url) async {
-    final list = (await AppUtils.httpRequest(url: url, method: 'GET'))
-        .document
-        .select('div.film_list-wrap > div.flw-item');
-    return ListUtils.map(list, (it) {
-      return toSearchResponse(it);
-    });
-  }
-
+  // =========================== LoadMediaDetails ==============================
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
     final fixUrl = '${this.baseUrl}${searchResponse.url}';
@@ -150,6 +117,21 @@ class AniWatch extends BasePluginApi {
     return media;
   }
 
+  Future<List<Episode>> getEpisodes(String url) async {
+    final response = await AppUtils.httpRequest(
+        url: "${this.baseUrl}/ajax/v2/episode/list/${getIdFromUrl(url)}",
+        method: 'GET',
+        headers: apiheaders(baseUrl + url));
+
+    return ListUtils.map(
+        AppUtils.parseHtml(response.json((json) => json['html']))
+            .select('div.ss-list > a'), (e) {
+      return toEpisode(e);
+    });
+  }
+
+  // =============================== LoadLinks =================================
+
   @override
   Future<List<ExtractorLink>> loadLinks(String url) async {
     final res = (await AppUtils.httpRequest(
@@ -179,6 +161,8 @@ class AniWatch extends BasePluginApi {
     return list;
   }
 
+  // =============================== LoadMedia =================================
+
   @override
   Future<Media?> loadMedia(ExtractorLink link) async {
     if (link.url.contains('megacloud')) {
@@ -188,18 +172,47 @@ class AniWatch extends BasePluginApi {
     }
     return null;
   }
+  // ================================ Search ===================================
 
-  Future<List<Episode>> getEpisodes(String url) async {
-    final response = await AppUtils.httpRequest(
-        url: "${this.baseUrl}/ajax/v2/episode/list/${getIdFromUrl(url)}",
-        method: 'GET',
-        headers: apiheaders(baseUrl + url));
+  @override
+  Future<List<SearchResponse>> search(String query) {
+    return parseSearchResponse(
+        '${this.baseUrl}/search?keyword=${AppUtils.encode(query)}');
+  }
 
-    return ListUtils.map(
-        AppUtils.parseHtml(response.json((json) => json['html']))
-            .select('div.ss-list > a'), (e) {
-      return toEpisode(e);
+  // ============================== Helpers ====================================
+
+  Map<String, String> apiheaders(String referer) {
+    return {
+      "Accept": "*/*",
+      "Host": Uri.parse(baseUrl).host,
+      "Referer": referer,
+      "X-Requested-With": "XMLHttpRequest"
+    };
+  }
+
+  Map<String, String> get embedHeaders => {"referer": '${this.baseUrl}/'};
+
+  Future<List<SearchResponse>> parseSearchResponse(String url) async {
+    final list = (await AppUtils.httpRequest(url: url, method: 'GET'))
+        .document
+        .select('div.film_list-wrap > div.flw-item');
+    return ListUtils.map(list, (it) {
+      return toSearchResponse(it);
     });
+  }
+
+  SearchResponse parseTrending(ElementObject e) {
+    final content = e.selectFirst('.deslide-item-content');
+
+    return SearchResponse(
+        title: content.selectFirst('div.desi-head-title.dynamic-name').text(),
+        url: content
+            .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')
+            .attr('href'),
+        poster: e.selectFirst('.deslide-cover > div > img').attr('data-src'),
+        type: getType(content.selectFirst('.sc-detail > div').text()),
+        description: content.selectFirst('.desi-description').text().trim());
   }
 
   Episode toEpisode(ElementObject e) {
@@ -214,18 +227,6 @@ class AniWatch extends BasePluginApi {
     return StringUtils.substringAfterLast(
         StringUtils.substringBeforeLast(url, '?'), '-');
   }
-
-// Map<String, String>? getExternalIds(DocumentObject doc) {
-//   try {
-//     final data = json.decode(doc.selectFirst('#syncData').text());
-//     return {
-//       'mal': data['mal_id'],
-//       'anilist': data['anilist_id'],
-//     };
-//   } catch (e) {
-//     return null;
-//   }
-// }
 
   SearchResponse toSearchResponse(ElementObject e) {
     final element = e.selectFirst('.film-poster');

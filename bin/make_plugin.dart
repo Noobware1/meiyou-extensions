@@ -76,50 +76,61 @@ void main(List<String> args) {
 }
 
 String codeTemplate(String className) => '''
+// ignore_for_file: unnecessary_cast, unnecessary_this
+
 import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
 class $className extends BasePluginApi {
-  @override
-  // TODO: implement baseUrl
-  String get baseUrl => throw UnimplementedError();
+  $className();
 
   @override
-  // TODO: implement homePage
+  String get baseUrl => throw UnimplementedError();
+
+  // ============================== HomePage ===================================
+
+  @override
   Iterable<HomePageData> get homePage => throw UnimplementedError();
+
+  // ============================== LoadHomePage ===============================
 
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) {
-    // TODO: implement loadHomePage
     throw UnimplementedError();
   }
 
+  // =========================== LoadMediaDetails ==============================
+
   @override
-  Future<List<ExtractorLink>> loadLinks(String url) {
-    // TODO: implement loadLinks
+  Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse)  {
     throw UnimplementedError();
   }
 
+  // =============================== LoadLinks =================================
+
   @override
-  Future<Media?> loadMedia(ExtractorLink link) {
-    // TODO: implement loadMedia
+  Future<List<ExtractorLink>> loadLinks(String url)  {
     throw UnimplementedError();
   }
 
+  // =============================== LoadMedia =================================
+
   @override
-  Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) {
-    // TODO: implement loadMediaDetails
+  Future<Media?> loadMedia(ExtractorLink link)  {
     throw UnimplementedError();
   }
+
+  // ================================ Search ===================================
 
   @override
   Future<List<SearchResponse>> search(String query) {
-    // TODO: implement search
     throw UnimplementedError();
   }
+
+  // ================================ Helpers ==================================
+
 }
 
-
-BasePluginApi main() {
+main() {
   return $className();
 }
 

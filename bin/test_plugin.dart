@@ -18,20 +18,20 @@ void main(List<String> args) async {
       .executeLib('package:meiyou/main.dart', 'main') as $BasePluginApi;
 
   print('Starting homePage');
-  try {
-    for (var r in pluginApi.homePage) {
-      final c = await pluginApi.loadHomePage(
-          1,
-          HomePageRequest(
-              name: r.name,
-              data: r.data,
-              horizontalImages: r.horizontalImages));
-      print(c);
-      // break;
-    }
-  } catch (e) {
-    print(e);
-  }
+  // try {
+  //   for (var r in pluginApi.homePage) {
+  //     final c = await pluginApi.loadHomePage(
+  //         1,
+  //         HomePageRequest(
+  //             name: r.name,
+  //             data: r.data,
+  //             horizontalImages: r.horizontalImages));
+  //     print(c);
+  //     // break;
+  //   }
+  // } catch (e) {
+  //   print(e);
+  // }
   print('Starting search for $query');
   final search = await pluginApi.search(query);
   print(search);
@@ -65,6 +65,6 @@ printRest(BasePluginApi api, MediaItem mediaItem) async {
   }
   print(links);
 
-  print('Starting loadMedia with ${links[1].name}');
-  print(await api.loadMedia(links[1]));
+  print('Starting loadMedia with ${links[0].name}');
+  print(await api.loadMedia(links[0]));
 }
