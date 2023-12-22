@@ -13,18 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
-
-      - name: Install dependencies
-        run: dart pub get
-
-      # - name: Build
-      #   run: |
-      #     cd bin
-      #     dart run build.dart
-
-      - name: Commit and Push Changes
+      - name: Clear Builds Branch
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -36,10 +25,23 @@ jobs:
           rm -rf ./*
           git add -A .
           git commit -m "feat: clear builds branch"
-
           git checkout master
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Build
+        run: |
           cd bin
           dart run build.dart
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
 
           git checkout builds
 
