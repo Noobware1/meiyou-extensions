@@ -13,12 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
-
-      - name: Install dependencies
-        run: dart pub get
-
       - name: Clear Builds Branch
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -33,6 +27,12 @@ jobs:
           git commit -m "feat: clear builds branch"
           git checkout master
 
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+  
+      - name: Install dependencies
+        run: dart pub get
+  
       - name: Build
         run: |
           cd bin
