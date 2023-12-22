@@ -1,6 +1,4 @@
-// ignore_for_file: unnecessary_this
-
-import 'dart:convert';
+// ignore_for_file: unnecessary_this, unnecessary_cast
 
 import 'package:meiyou_extensions_repo/extractors/rabbit_stream.dart';
 import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
@@ -16,12 +14,51 @@ class Sflix extends BasePluginApi {
   String get baseUrl => 'https://sflix.to';
 
   @override
-  Iterable<HomePageData> get homePage => HomePageData.fromMap({});
+  Iterable<HomePageData> get homePage => HomePageData.fromMap({
+        'Trending': '${this.baseUrl}/home',
+        'Popular Movies': '${this.baseUrl}/movie',
+        'Popular TV Shows': '${this.baseUrl}/tv-show',
+        'Top IMDB Rated': '${this.baseUrl}/top-imdb',
+      });
 
   @override
-  Future<HomePage> loadHomePage(int page, HomePageRequest request) {
-    // TODO: implement loadHomePage
-    throw UnimplementedError();
+  Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
+    if (request.name == 'Trending') {
+      return getTrending(request);
+    } else {
+      return HomePage(
+          data: HomePageList(
+              name: request.name,
+              data: await getAndParseSearchList('${request.data}?page=$page')),
+          page: page);
+    }
+  }
+
+  Future<HomePage> getTrending(HomePageRequest request) async {
+    final list = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
+        .document
+        .select('.swiper-slide > .slide-caption-wrap > .slide-caption');
+    final data = ListUtils.map(list, (e) {
+      return parseTrending(e);
+    });
+
+    return HomePage(
+        data: HomePageList(name: request.name, data: data),
+        page: 1,
+        hasNextPage: false);
+  }
+
+  SearchResponse parseTrending(ElementObject e) {
+    final title = e.selectFirst('.film-title > a');
+    final url = title.attr('href');
+    return SearchResponse(
+        title: title.text(),
+        url: url,
+        poster: e.selectFirst('.film-poster > img').attr('src'),
+        type: getType(url),
+        description: e.selectFirst('.sc-desc').text(),
+        rating: StringUtils.toDoubleOrNull(
+            e.selectFirst('.sc-detail > div.scd-item:nth-child(1)').text()));
   }
 
   @override
@@ -41,14 +78,9 @@ class Sflix extends BasePluginApi {
               headers: {"X-Requested-With": "XMLHttpRequest"}))
           .json((j) => StringUtils.valueToString(j['link']));
 
-      try {
-        list.add(ExtractorLink(
-            url: link,
-            name:
-                StringUtils.trimNewLines(e.text().replaceFirst('Server', ''))));
-      } catch (e) {
-        print(e);
-      }
+      list.add(ExtractorLink(
+          url: link,
+          name: StringUtils.trimNewLines(e.text().replaceFirst('Server', ''))));
     }
     return list;
   }
@@ -70,6 +102,7 @@ class Sflix extends BasePluginApi {
             method: 'GET',
             referer: '${this.baseUrl}/home'))
         .document;
+
     final media = MediaDetails();
 
     media.copyFromSearchResponse(searchResponse);
@@ -94,19 +127,17 @@ class Sflix extends BasePluginApi {
         media.startDate =
             DateTime.tryParse(e.text().replaceFirst('Released:', '').trim());
       } else if (type == 'Casts:') {
-        media.actorData = ListUtils.map(e.select('a'), (e) {
-          return toActorData(e);
-        });
+        media.actorData = ListUtils.map(
+            e.select('a'), (e) => ActorData(name: (e as ElementObject).text()));
       } else if (type == 'Duration:') {
-        media.duration =
-            parseDuation(e.text().replaceFirst('Duration:', '').trim());
+        media.duration = AppUtils.tryParseDuration(
+            e.text().replaceFirst('Duration:', '').trim(), 'min');
       }
     }
 
-    media.recommendations =
-        ListUtils.map(page.select('div.flw-item > div.film-poster'), (e) {
-      return toSearchResponse(e);
-    });
+    media.recommendations = ListUtils.map(
+        page.select('div.flw-item > div.film-poster'),
+        (e) => toSearchResponse(e));
 
     if (searchResponse.type == ShowType.Movie) {
       media.mediaItem = getMovie(extractIdFromUrl(searchResponse.url));
@@ -165,35 +196,23 @@ class Sflix extends BasePluginApi {
     return Movie(url: '${this.baseUrl}/ajax/episode/list/$id');
   }
 
-  Duration? parseDuation(String s) {
-    final min =
-        StringUtils.toIntOrNull(StringUtils.substringBefore(s, 'min').trim());
-    if (min == null) {
-      return null;
-    }
-    return Duration(minutes: min);
-  }
-
   String extractIdFromUrl(String url) {
     return StringUtils.substringAfterLast(url, '-');
   }
 
-  ActorData toActorData(ElementObject e) {
-    return ActorData(name: e.attr('title'));
-  }
-
   @override
   Future<List<SearchResponse>> search(String query) async {
-    return ListUtils.map(
-        (await AppUtils.httpRequest(
-          url: '${this.baseUrl}/search/${AppUtils.encode(query, "-")}',
-          method: 'GET',
-          referer: '${this.baseUrl}/',
-        ))
-            .document
-            .select('div.flw-item > div.film-poster'), (e) {
-      return toSearchResponse(e);
-    });
+    return getAndParseSearchList(
+        '${this.baseUrl}/search/${AppUtils.encode(query, "-")}');
+  }
+
+  Future<List<SearchResponse>> getAndParseSearchList(String url) async {
+    final doc = await AppUtils.httpRequest(
+      url: url,
+      method: 'GET',
+    );
+    return ListUtils.map(doc.document.select('div.flw-item > div.film-poster'),
+        (e) => toSearchResponse(e));
   }
 
   SearchResponse toSearchResponse(ElementObject e) {

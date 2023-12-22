@@ -1,0 +1,12 @@
+{
+    "id": 587122860,
+    "name": "FlixHQ-Mirror",
+    "type": "video",
+    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/flixhq_mirror.plugin",
+    "author": "Noobware1",
+    "description": "watch videos from flixhq",
+    "lang": "multi",
+    "baseUrl": "https://flixhq.click",
+    "version": "0.0.1",
+    "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/flixhq_mirror.png"
+}

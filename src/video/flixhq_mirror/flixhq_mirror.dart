@@ -1,25 +1,22 @@
 // ignore_for_file: unnecessary_cast, unnecessary_this
 
-import 'package:meiyou_extensions_repo/extractors/rabbit_stream.dart';
+import 'dart:convert';
 import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
-class FlixHQ extends BasePluginApi {
-  FlixHQ();
-
-  //have to add corsproxy to avoid annoying handshake error
-  static const String crosProxy = 'https://corsproxy.io';
+class FlixHQMirror extends BasePluginApi {
+  FlixHQMirror();
 
   @override
-  String baseUrl = '${FlixHQ.crosProxy}/?https://flixhq.to';
+  String baseUrl = 'https://flixhq.click';
 
   // ============================== HomePage ===================================
 
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Trending': '${this.baseUrl}/home',
-        'Trending in India': '${this.baseUrl}/country/IN',
-        'Popular Movies': '${this.baseUrl}/movie',
-        'Popular TV Shows': '${this.baseUrl}/tv-show',
+        'Trending in India': '${this.baseUrl}/country/india',
+        'Popular Movies': '${this.baseUrl}/movies',
+        'Popular TV Shows': '${this.baseUrl}/tv-series',
       });
 
   // ============================== LoadHomePage ===============================
@@ -32,7 +29,7 @@ class FlixHQ extends BasePluginApi {
       return HomePage(
           data: HomePageList(
               name: request.name,
-              data: await parseSearchResponse('${request.data}?page=$page')),
+              data: await parseSearchResponse('${request.data}/page/$page/')),
           page: page);
     }
   }
@@ -41,39 +38,37 @@ class FlixHQ extends BasePluginApi {
     final list = (await AppUtils.httpRequest(url: request.data, method: 'GET'))
         .document
         .select('.swiper-slide');
-    final data = ListUtils.map(list, (e) {
-      return parseTrending(e);
-    });
+
+    final data = ListUtils.map(list, (e) => parseTrending(e));
 
     return HomePage(
-        data: HomePageList(name: request.name, data: data),
-        page: 1,
-        hasNextPage: false);
+      data: HomePageList(name: request.name, data: data),
+      page: 1,
+      hasNextPage: false,
+    );
   }
 
   SearchResponse parseTrending(ElementObject e) {
-    final info = e.selectFirst('.container > .slide-caption');
-    final a = info.selectFirst('.film-title > a');
-    final url = baseUrl + a.attr('href');
+    final info = e.selectFirst('.container > .info');
+
+    final url = info.selectFirst('.actions > a').attr('href');
+
+    final meta = info.selectFirst('.meta');
 
     return SearchResponse(
-      title: a.text(),
+      title: info.selectFirst('h3.title').text(),
       url: url,
-      poster: '$crosProxy/?${AppUtils.getBackgroundImage(e.attr('style'))}',
-      generes: getGenresForTrending(info),
-      type: getType(url),
-      description: info.selectFirst('.sc-desc').text(),
+      poster: AppUtils.httpify(e.attr('data-src')),
+      generes: getGenresForTrending(meta.select('span').last),
+      type: ShowType.Movie,
+      rating: StringUtils.toDoubleOrNull(
+          meta.selectFirst('.imdb').text().replaceAll('"', '').trim()),
+      description: info.selectFirst('.desc').text(),
     );
   }
 
   List<String>? getGenresForTrending(ElementObject e) {
-    for (var l in e.select('.sc-detail > .scd-item')) {
-      if (l.text().contains('Genre:')) {
-        return ListUtils.map(
-            l.select('strong > a'), (j) => (j as ElementObject).text());
-      }
-    }
-    return null;
+    return ListUtils.map(e.select('a'), (l) => l.text());
   }
 
   // =========================== LoadMediaDetails ==============================
@@ -87,47 +82,56 @@ class FlixHQ extends BasePluginApi {
     final media = MediaDetails();
 
     media.copyFromSearchResponse(searchResponse);
+    final info = page.selectFirst('div.info');
+    final firstRow = info.selectFirst('.meta.lg');
 
     media.rating = StringUtils.toDoubleOrNull(
-        page.selectFirst('span.item:nth-child(2)').text());
+        firstRow.selectFirst('span.imdb').text().replaceAll('"', '').trim());
 
-    media.duration = AppUtils.tryParseDuration(
-        page.selectFirst('span.item:nth-child(3)').text(), 'min');
+    media.duration =
+        AppUtils.tryParseDuration(firstRow.select('span').last.text(), 'min');
 
-    media.description = page.selectFirst('.description').text();
+    media.description = info.selectFirst('.desc.shorting > p').text();
 
-    final elements = page.select('div.elements > .row-line');
+    final elements = info.select('.meta > div');
     for (var e in elements) {
-      final type = e.selectFirst('span.type').text().trim();
+      final type = e.selectFirst('span:nth-child(1)').text().trim();
 
       if (type == 'Genre:') {
-        media.genres = AppUtils.selectMultiAttr(e.select('a'), 'title');
-      } else if (type == 'Released:') {
-        media.startDate =
-            DateTime.tryParse(e.text().replaceFirst('Released:', '').trim());
-      } else if (type == 'Casts:') {
-        media.actorData = ListUtils.map(e.select('a'), (e) {
-          return toActorData(e);
-        });
+        media.genres = AppUtils.selectMultiText(e.select('a'));
+      } else if (type == 'Stars:') {
+        media.actorData =
+            ListUtils.map(e.select('a'), (e) => ActorData(name: e.text()));
       }
     }
 
-    media.recommendations = ListUtils.map(
-        page.select('.film_list-wrap > div > div.film-poster'), (e) {
+    media.recommendations =
+        ListUtils.map(page.select('.filmlist.active.related > div'), (e) {
       return toSearchResponse(e);
     });
 
-    if (searchResponse.type == ShowType.Movie) {
-      media.mediaItem = getMovie(searchResponse.url);
-    } else {
-      media.mediaItem = await getTv(searchResponse.url);
+    // if (searchResponse.type == ShowType.Movie) {
+    //   media.mediaItem = getMovie(searchResponse.url);
+    // } else {
+    //   media.mediaItem = await getTv(searchResponse.url);
+    // }
+
+    // return media;
+    final List<ExtractorLink> servers = [];
+    final serversNames = parseServersName(page.select('#servers > div.server'));
+    final serversJson =
+        getServersJson(page.selectFirst('#servers-js-extra').text());
+    for (var s in serversNames) {
+      final link = serversJson[s];
+      if (link != null) {
+        servers.add(ExtractorLink(
+          name: s,
+          url: link,
+        ));
+      }
     }
 
     return media;
-  }
-
-  ActorData toActorData(ElementObject e) {
-    return ActorData(name: e.text());
   }
 
   Movie getMovie(String url) {
@@ -170,42 +174,13 @@ class FlixHQ extends BasePluginApi {
 
   @override
   Future<List<ExtractorLink>> loadLinks(String url) async {
-    final servers = (await AppUtils.httpRequest(url: url, method: 'GET'))
-        .document
-        .select('ul.nav > li > a');
-
-    final List<ExtractorLink> links = [];
-    final idRegex = RegExp(r'-(\d+)');
-    for (var e in servers) {
-      final link = (await AppUtils.httpRequest(
-              url:
-                  '${this.baseUrl}/ajax/get_link/${idRegex.firstMatch(e.attr("id"))?.group(1)}',
-              method: 'GET',
-              headers: {
-            "X-Requested-With": "XMLHttpRequest",
-          }))
-          .json((j) => StringUtils.valueToString(j['link']));
-
-      try {
-        links.add(ExtractorLink(
-          name: StringUtils.trimNewLines(
-              e.attr('title').replaceFirst('Server', '')),
-          url: link,
-        ));
-      } catch (e) {}
-    }
-    return links;
+    throw UnimplementedError();
   }
   // =============================== LoadMedia =================================
 
   @override
   Future<Media?> loadMedia(ExtractorLink link) async {
-    if (link.url.contains('doki')) {
-      return RabbitStream(link).extract();
-    } else if (link.url.contains('rabbit')) {
-      return RabbitStream(link).extract();
-    }
-    return null;
+    throw UnimplementedError();
   }
 
   // ================================ Search ===================================
@@ -217,6 +192,16 @@ class FlixHQ extends BasePluginApi {
   }
 
   // ================================ Helpers ==================================
+
+  Iterable<String> parseServersName(List<ElementObject> elements) {
+    return elements.map((e) => StringUtils.substringAfter(
+        StringUtils.substringBeforeLast(e.attr('onclick'), ')'), '('));
+  }
+
+  Map getServersJson(String text) {
+    return json.decode(StringUtils.substringAfter(
+        'var Servers = ', StringUtils.substringBeforeLast(text, ';'))) as Map;
+  }
 
   Episode toEpisode(ElementObject e) {
     return Episode(
@@ -237,23 +222,25 @@ class FlixHQ extends BasePluginApi {
       "Referer": "${this.baseUrl}/home",
     }))
         .document
-        .select('.film_list-wrap > div > div.film-poster');
+        .select('.filmlist.md.active > div')
+      ..removeLast();
     return ListUtils.map(list, (e) {
       return toSearchResponse(e);
     });
   }
 
   SearchResponse toSearchResponse(ElementObject e) {
-    final url = e.selectFirst('a').attr('href');
+    final a = e.selectFirst('a');
+
     return SearchResponse(
-        title: e.selectFirst('a').attr('title'),
-        url: baseUrl + url,
-        poster: '$crosProxy/?${e.selectFirst('img').attr('data-src')}',
-        type: getType(url));
+        title: e.selectFirst('.entry-title > a').text(),
+        url: a.attr('href'),
+        poster: a.selectFirst('img').attr('data-src'),
+        type: getType(e.selectFirst('.meta > i').text().toLowerCase()));
   }
 
-  ShowType getType(String url) {
-    if (url.contains('tv')) {
+  ShowType getType(String type) {
+    if (type == 'tv') {
       return ShowType.TvSeries;
     }
     return ShowType.Movie;
@@ -261,5 +248,17 @@ class FlixHQ extends BasePluginApi {
 }
 
 BasePluginApi main() {
-  return FlixHQ();
+  return FlixHQMirror();
 }
+// void main(List<String> args) async {
+//   // final req = FlixHQ().homePage.elementAt(1);
+//   print(
+//     await FlixHQ().loadMediaDetails(SearchResponse(
+//       title: 'Animal',
+//       url: 'https://flixhq.click/animal/',
+//       poster:
+//           'https://flixhq.click/wp-content/uploads/2023/12/hr9rjR3J0xBBKmlJ4n3gHId9ccx.jpg',
+//       type: ShowType.Movie,
+//     )),
+//   );
+// }

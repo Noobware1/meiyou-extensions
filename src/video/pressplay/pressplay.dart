@@ -166,13 +166,13 @@ class Pressplay extends BasePluginApi {
     for (var number in trueSeasonsNumber) {
       data.add(SeasonList(
           season: SeasonData(season: number),
-          episodes: getEpisodes(seasons, number, iframe)));
+          episodes: _getEpisodes(seasons, number, iframe)));
     }
 
     return TvSeries(data: data);
   }
 
-  List<Episode> getEpisodes(
+  List<Episode> _getEpisodes(
       List<_PressPlaySeasonData> seasons, int number, String iframe) {
     final List<Episode> episodes = [];
     for (var i = 0; i < seasons.length; i++) {
