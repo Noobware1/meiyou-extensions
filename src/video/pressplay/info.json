@@ -2,7 +2,7 @@
     "id": 1013128097,
     "name": "Pressplay",
     "type": "video",
-    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/pressplay.plugin",
+    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/pressplay.plugin",
     "author": "Noobware1",
     "description": "watch videos from pressplay.top",
     "lang": "en",

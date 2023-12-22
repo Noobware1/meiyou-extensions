@@ -2,7 +2,7 @@
     "id": 1678981770,
     "name": "GogoAnime",
     "type": "Video",
-    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/gogo_anime.plugin",
+    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/gogo_anime.plugin",
     "author": "Noobware1",
     "description": "watch anime form gogoanime",
     "lang": "multi",

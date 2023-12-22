@@ -2,7 +2,7 @@
     "id": 628517137,
     "name": "Aniwatch",
     "type": "Video",
-    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/aniwatch.plugin",
+    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/aniwatch.plugin",
     "author": "Noobware1",
     "description": "watch anime from aniwatch.to",
     "lang": "multi",

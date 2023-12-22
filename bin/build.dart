@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:meiyou_extensions_lib/extenstions.dart';
@@ -24,6 +25,7 @@ void main(List<String> args) {
   final buildDir = getBuildsDirectory()..createSync();
 
   final icons = Directory('${buildDir.fixedPath}/icons')..createSync();
+  final plugins = Directory('${buildDir.fixedPath}/plugins')..createSync();
 
   final IndexJson index = IndexJson(video: [], manga: [], novel: []);
 
@@ -31,7 +33,7 @@ void main(List<String> args) {
     if (folders.existsSync()) {
       for (var subfolder in folders.listSync().whereType<Directory>()) {
         try {
-          final plugin = build(buildDir, icons, subfolder);
+          final plugin = build(plugins, icons, subfolder);
           switch (plugin.type.toLowerCase()) {
             case 'video':
               index.video.add(plugin);
@@ -59,14 +61,15 @@ void main(List<String> args) {
 }
 
 const filePaths = [
-  'plugin.json',
   'code.evc',
+  'plugin.json',
   'icon.png',
 ];
 
-OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
+OnlinePlugin build(Directory pluginsFolder, Directory icons, Directory folder) {
   final plugin = OnlinePlugin.decode(
       File('${folder.fixedPath}/info.json').readAsStringSync());
+  final files = <String, Uint8List>{};
   print('Building ${plugin.name}...');
 
   final codeFileName = '${folder.fixedPath.substringAfterLast('/')}.dart';
@@ -89,35 +92,30 @@ OnlinePlugin build(Directory builds, Directory icons, Directory folder) {
   final code = ExtenstionComplier().compilePackages(packages);
 
   print('Creating code.evc.... ');
-
-  File(filePaths[1]).writeAsBytesSync(code);
+  files[filePaths[0]] = code;
 
   print('Copying icon.png.... ');
-  final icon = File('${folder.fixedPath}/icon.png');
-  icon.copySync(filePaths[2]);
+  final icon = File('${folder.fixedPath}/${filePaths[2]}');
+  files[filePaths[2]] = icon.readAsBytesSync();
 
   icon.copySync(
       '${icons.fixedPath}/${folder.fixedPath.substringAfterLast('/')}.png');
 
   print('Creating plugin.json.... ');
-
-  File(filePaths[0]).writeAsStringSync(plugin.encode);
+  files[filePaths[1]] = Uint8List.fromList(utf8.encode(plugin.encode));
 
   List<ArchiveFile> archiveFiles = [];
 
   print('Building plugin...');
-  for (String filePath in filePaths) {
-    File file = File(filePath);
-    List<int> fileContent = file.readAsBytesSync();
-    archiveFiles.add(ArchiveFile(filePath, fileContent.length, fileContent));
-
-    file.deleteSync();
+  for (var file in files.entries) {
+    final fileContent = file.value;
+    archiveFiles.add(ArchiveFile(file.key, fileContent.length, fileContent));
   }
 
   final outputFile = "${folder.fixedPath.substringAfterLast('/')}.plugin";
   // Create the archive and write it to a file
   Archive archive = Archive()..files.addAll(archiveFiles);
-  File outputZipFile = File('${builds.fixedPath}/$outputFile');
+  File outputZipFile = File('${pluginsFolder.fixedPath}/$outputFile');
   outputZipFile.writeAsBytesSync(ZipEncoder().encode(archive)!);
 
   print('Successfully built $outputFile');

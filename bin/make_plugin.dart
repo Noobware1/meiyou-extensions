@@ -50,7 +50,7 @@ void main(List<String> args) {
       baseUrl: baseUrl,
       version: '0.0.1',
       downloadUrl:
-          "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/$folderName.plugin",
+          "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/$folderName.plugin",
       iconUrl:
           "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/$folderName.png",
     );
