@@ -19,10 +19,7 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
-      - name: Install dependencies
-        run: dart pub get
-
-      - name: Build and Generate Files
+      - name: Build
         run: |
           cd bin
           dart run build.dart
@@ -36,13 +33,7 @@ jobs:
           git fetch origin builds:builds
 
           git checkout builds
-          # make folders
-          mkdir -p ./icons
-          mkdir -p ./plugins
-          
-          # remove old files
-          rm -r ./icons/*
-          rm -r ./plugins/*
+          rm -rf ./*
 
           mv builds/* .
 
