@@ -49,16 +49,16 @@
             "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/gogo_anime.png"
         },
         {
-            "id": 727104837,
-            "name": "KickassAnime",
+            "id": 822310243,
+            "name": "Sflix",
             "type": "video",
-            "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/kickassanime.plugin",
+            "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/sflix.plugin",
             "author": "Noobware1",
-            "description": "watch anime from kaas.ro",
-            "lang": "English",
-            "baseUrl": "https://kaas.ro",
+            "description": "watch videos from sflix",
+            "lang": "multi",
+            "baseUrl": "https://sflix.to",
             "version": "0.0.1",
-            "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/kickassanime.png"
+            "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/sflix.png"
         }
     ],
     "manga": [],
