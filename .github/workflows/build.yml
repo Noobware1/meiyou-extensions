@@ -19,6 +19,20 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: Clear Builds Branch
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Fetch 'builds' branch
+          git fetch origin builds:builds
+
+          git checkout builds
+          rm -rf ./*
+          git add -A .
+          git commit -m "feat: clear builds branch"
+          git checkout master
+
       - name: Build
         run: |
           cd bin
@@ -33,7 +47,6 @@ jobs:
           git fetch origin builds:builds
 
           git checkout builds
-          rm -rf ./*
 
           mv builds/* .
 
