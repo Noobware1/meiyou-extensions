@@ -29,10 +29,10 @@ jobs:
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
-  
+
       - name: Install dependencies
         run: dart pub get
-  
+
       - name: Build
         run: |
           cd bin
@@ -44,7 +44,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
           # Fetch 'builds' branch
-          git fetch origin builds:builds
+          git fetch origin master:builds
 
           git checkout builds
 
