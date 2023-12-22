@@ -75,7 +75,7 @@ class KickassAnime extends BasePluginApi {
         minutes: StringUtils.toInt(
             StringUtils.valueToString(json['episode_duration'])),
       );
-      ;
+
       media.otherTitles = ListUtils.whereNotNull([json['title_original']]);
 
       return media;
