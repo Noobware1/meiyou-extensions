@@ -5,7 +5,7 @@
     "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/aniwatch.plugin",
     "author": "Noobware1",
     "description": "watch anime from aniwatch.to",
-    "lang": "multi",
+    "lang": "Multi",
     "baseUrl": "https://aniwatch.to",
     "version": "0.0.1",
     "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/aniwatch.png"

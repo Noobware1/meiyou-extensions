@@ -1,5 +1,5 @@
 name: meiyou_extensions_repo
-description: A sample command-line application.
+description: Repository containing all the plugins availble for Meiyou app.
 version: 1.0.0
 publish_to: "none"
 # repository: https://github.com/my_org/my_repo

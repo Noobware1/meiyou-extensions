@@ -1,0 +1,12 @@
+{
+    "id": 200947633,
+    "name": "Animepahe",
+    "type": "Video",
+    "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/animepahe.plugin",
+    "author": "Noobware1",
+    "description": "Watch anime from animepahe.ru",
+    "lang": "English",
+    "baseUrl": "https://animepahe.ru",
+    "version": "0.0.1",
+    "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/animepahe.png"
+}

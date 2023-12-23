@@ -3,16 +3,13 @@
 import 'package:meiyou_extensions_repo/extractors/rabbit_stream.dart';
 import 'package:meiyou_extensions_lib/meiyou_extensions_lib.dart';
 
-main() {
-  return Sflix();
-}
-
 class Sflix extends BasePluginApi {
   Sflix();
 
   @override
   String get baseUrl => 'https://sflix.to';
 
+  // ============================== HomePage ===================================
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Trending': '${this.baseUrl}/home',
@@ -21,6 +18,7 @@ class Sflix extends BasePluginApi {
         'Top IMDB Rated': '${this.baseUrl}/top-imdb',
       });
 
+  // ============================== LoadHomePage ===============================
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
     if (request.name == 'Trending') {
@@ -61,39 +59,7 @@ class Sflix extends BasePluginApi {
             e.selectFirst('.sc-detail > div.scd-item:nth-child(1)').text()));
   }
 
-  @override
-  Future<List<ExtractorLink>> loadLinks(String url) async {
-    final servers = (await AppUtils.httpRequest(
-            url: url,
-            method: 'GET',
-            headers: {"X-Requested-With": "XMLHttpRequest"}))
-        .document
-        .select('ul.ulclear.fss-list > li > a');
-
-    final List<ExtractorLink> list = [];
-    for (var e in servers) {
-      final link = (await AppUtils.httpRequest(
-              url: '${this.baseUrl}/ajax/sources/${e.attr("data-id")}',
-              method: 'GET',
-              headers: {"X-Requested-With": "XMLHttpRequest"}))
-          .json((j) => StringUtils.valueToString(j['link']));
-
-      list.add(ExtractorLink(
-          url: link,
-          name: StringUtils.trimNewLines(e.text().replaceFirst('Server', ''))));
-    }
-    return list;
-  }
-
-  @override
-  Future<Media?> loadMedia(ExtractorLink link) async {
-    if (link.url.contains('doki')) {
-      return RabbitStream(link).extract();
-    } else if (link.url.contains('rabbit')) {
-      return RabbitStream(link).extract();
-    }
-    return null;
-  }
+  // =========================== LoadMediaDetails ==============================
 
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
@@ -196,14 +162,52 @@ class Sflix extends BasePluginApi {
     return Movie(url: '${this.baseUrl}/ajax/episode/list/$id');
   }
 
-  String extractIdFromUrl(String url) {
-    return StringUtils.substringAfterLast(url, '-');
+  // =============================== LoadLinks =================================
+  @override
+  Future<List<ExtractorLink>> loadLinks(String url) async {
+    final servers = (await AppUtils.httpRequest(
+            url: url,
+            method: 'GET',
+            headers: {"X-Requested-With": "XMLHttpRequest"}))
+        .document
+        .select('ul.ulclear.fss-list > li > a');
+
+    final List<ExtractorLink> list = [];
+    for (var e in servers) {
+      final link = (await AppUtils.httpRequest(
+              url: '${this.baseUrl}/ajax/sources/${e.attr("data-id")}',
+              method: 'GET',
+              headers: {"X-Requested-With": "XMLHttpRequest"}))
+          .json((j) => StringUtils.valueToString(j['link']));
+
+      list.add(ExtractorLink(
+          url: link,
+          name: StringUtils.trimNewLines(e.text().replaceFirst('Server', ''))));
+    }
+    return list;
   }
 
+  // =============================== LoadMedia =================================
+  @override
+  Future<Media?> loadMedia(ExtractorLink link) async {
+    if (link.url.contains('doki')) {
+      return RabbitStream(link).extract();
+    } else if (link.url.contains('rabbit')) {
+      return RabbitStream(link).extract();
+    }
+    return null;
+  }
+
+  // ================================ Search ===================================
   @override
   Future<List<SearchResponse>> search(String query) async {
     return getAndParseSearchList(
         '${this.baseUrl}/search/${AppUtils.encode(query, "-")}');
+  }
+
+  // ================================ Helpers ==================================
+  String extractIdFromUrl(String url) {
+    return StringUtils.substringAfterLast(url, '-');
   }
 
   Future<List<SearchResponse>> getAndParseSearchList(String url) async {
@@ -232,4 +236,8 @@ class Sflix extends BasePluginApi {
     }
     return ShowType.TvSeries;
   }
+}
+
+main() {
+  return Sflix();
 }

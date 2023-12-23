@@ -1,11 +1,11 @@
 {
     "id": 301105717,
     "name": "Dailymotion",
-    "type": "video",
+    "type": "Video",
     "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/dailymotion.plugin",
     "author": "Noobware1",
     "description": "watch videos from dailymotion",
-    "lang": "multi",
+    "lang": "Multi",
     "baseUrl": "https://www.dailymotion.com",
     "version": "0.0.1",
     "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/dailymotion.png"

@@ -1,7 +1,7 @@
 {
     "id": 727104837,
-    "name": "KickassAnime",
-    "type": "video",
+    "name": "KickAssAnime",
+    "type": "Video",
     "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/kickassanime.plugin",
     "author": "Noobware1",
     "description": "watch anime from kaas.ro",

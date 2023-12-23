@@ -1,11 +1,11 @@
 {
     "id": 822310243,
     "name": "Sflix",
-    "type": "video",
+    "type": "Video",
     "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/sflix.plugin",
     "author": "Noobware1",
     "description": "watch videos from sflix",
-    "lang": "multi",
+    "lang": "Multi",
     "baseUrl": "https://sflix.to",
     "version": "0.0.1",
     "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/sflix.png"

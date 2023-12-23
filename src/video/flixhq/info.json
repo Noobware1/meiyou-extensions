@@ -1,11 +1,11 @@
 {
     "id": 12089627,
     "name": "FlixHQ",
-    "type": "video",
+    "type": "Video",
     "downloadUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/plugins/flixhq.plugin",
     "author": "Noobware1",
     "description": "watch videos from flixhq.to",
-    "lang": "multi",
+    "lang": "Multi",
     "baseUrl": "https://flixhq.to",
     "version": "0.0.1",
     "iconUrl": "https://raw.githubusercontent.com/Noobware1/meiyou_extensions_repo/builds/icons/flixhq.png"

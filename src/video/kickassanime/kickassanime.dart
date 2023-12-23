@@ -9,7 +9,6 @@ class KickassAnime extends BasePluginApi {
   String get baseUrl => 'https://kaas.ro';
 
   // ============================== HomePage ===================================
-
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Top Airing': '${this.baseUrl}/api/top_airing',
@@ -19,7 +18,6 @@ class KickassAnime extends BasePluginApi {
       });
 
   // ============================== LoadHomePage ===============================
-
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
     final HomePage homePage;
@@ -47,8 +45,8 @@ class KickassAnime extends BasePluginApi {
     }
     return homePage;
   }
-  // =========================== LoadMediaDetails ==============================
 
+  // =========================== LoadMediaDetails ==============================
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
     final response = await AppUtils.httpRequest(
@@ -134,7 +132,6 @@ class KickassAnime extends BasePluginApi {
   }
 
   // =============================== LoadLinks =================================
-
   @override
   Future<List<ExtractorLink>> loadLinks(String url) async {
     final response = await AppUtils.httpRequest(
@@ -157,14 +154,12 @@ class KickassAnime extends BasePluginApi {
   }
 
   // =============================== LoadMedia =================================
-
   @override
   Future<Media?> loadMedia(ExtractorLink link) async {
     return KickAssAnimeExtractor(link).extract();
   }
 
   // ================================ Search ===================================
-
   @override
   Future<List<SearchResponse>> search(String query) async {
     final response = await AppUtils.httpRequest(
