@@ -43,10 +43,10 @@ void main(List<String> args) {
 
     final OnlinePlugin plugin = OnlinePlugin(
       name: name,
-      type: type,
+      type: type.toUpperCaseFirst(),
       author: author,
       description: description,
-      lang: lang,
+      lang: lang.toUpperCaseFirst(),
       baseUrl: baseUrl,
       version: '0.0.1',
       downloadUrl:
@@ -87,40 +87,34 @@ class $className extends BasePluginApi {
   String get baseUrl => throw UnimplementedError();
 
   // ============================== HomePage ===================================
-
   @override
   Iterable<HomePageData> get homePage => throw UnimplementedError();
 
   // ============================== LoadHomePage ===============================
-
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) {
     throw UnimplementedError();
   }
 
   // =========================== LoadMediaDetails ==============================
-
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse)  {
     throw UnimplementedError();
   }
 
   // =============================== LoadLinks =================================
-
   @override
   Future<List<ExtractorLink>> loadLinks(String url)  {
     throw UnimplementedError();
   }
 
   // =============================== LoadMedia =================================
-
   @override
   Future<Media?> loadMedia(ExtractorLink link)  {
     throw UnimplementedError();
   }
 
   // ================================ Search ===================================
-
   @override
   Future<List<SearchResponse>> search(String query) {
     throw UnimplementedError();
