@@ -111,10 +111,10 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "480ce14c62f5f42e4f90c97d1568e10a7cbbc019"
+      resolved-ref: "3b749af4ad1a7e0b24c71933d2054607a2e4c2c9"
       url: "https://github.com/Noobware1/dart_eval.git"
     source: git
-    version: "0.7.2"
+    version: "0.7.3"
   dart_style:
     dependency: transitive
     description:

@@ -183,7 +183,8 @@ class KickassAnime extends BasePluginApi {
         title: e['title'],
         url: e['slug'],
         description: e["synopsis"],
-        current: e["episode_number"],
+        current: StringUtils.toIntOrNull(
+            StringUtils.valueToString(e["episode_number"])),
         poster: this.baseUrl + _Poster.fromJson(e['poster']).poster,
         type: getType(e['type']),
         generes: ListUtils.mapNullable(

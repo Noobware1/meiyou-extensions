@@ -9,65 +9,109 @@ class GogoAnime extends BasePluginApi {
   @override
   String get baseUrl => 'https://anitaku.to';
 
-  // ============================== HomePage ===================================
+  final ajaxUrl = 'https://ajax.gogo-load.com';
 
+  // ============================== HomePage ===================================
   @override
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
-        'Recently Released': '1',
-        'Popular Anime': '2',
-        'Anime Movies': '3',
-        'Seasonal Anime': '4',
+        'Popular Ongoing':
+            '${this.ajaxUrl}/ajax/page-recent-release-ongoing.html',
+        'Latest episode': '${this.ajaxUrl}/ajax/page-recent-release.html',
+        'Popular Anime': '${this.baseUrl}/popular.html',
       });
 
   // ============================== LoadHomePage ===============================
-
   @override
   Future<HomePage> loadHomePage(int page, HomePageRequest request) async {
     return HomePage(
         data: HomePageList(
             name: request.name, data: await getHomePageListData(page, request)),
-        page: 1);
+        page: page);
   }
 
   Future<List<SearchResponse>> getHomePageListData(
       int page, HomePageRequest request) async {
-    if (request.data == '1') {
-      return getRecentPage(page);
-    } else if (request.data == '2') {
-      return getPopularPage(page);
-    } else if (request.data == '3') {
-      return getMoviesPage(page);
+    if (request.name == 'Popular Ongoing') {
+      return getPopularOnGoing(page, request);
+    } else if (request.name == 'Popular Anime') {
+      return getPopularPage(page, request);
     } else {
-      return getSeasonal(page);
+      return getRecentReleased(page, request);
     }
   }
 
-  Future<List<SearchResponse>> getPopularPage(int page) {
-    return parseHomePage('${this.baseUrl}/popular.html?page=$page');
+  Future<List<SearchResponse>> getPopularPage(
+      int page, HomePageRequest request) async {
+    final res = await AppUtils.httpRequest(
+        url: '${request.data}?page=$page', method: 'GET');
+
+    return parseHomePage(res.document);
   }
 
-  Future<List<SearchResponse>> getMoviesPage(int page) {
-    return parseHomePage('${this.baseUrl}/anime-movies.html?aph=&page=$page');
+  Future<List<SearchResponse>> getRecentReleased(
+      int page, HomePageRequest request) async {
+    final res = await AppUtils.httpRequest(
+        url: '${request.data}?page=$page&type=2', method: 'GET');
+    return parseRecentReleased(res.document);
   }
 
-  Future<List<SearchResponse>> getRecentPage(int page) async {
-    return ListUtils.map(
-        (await AppUtils.httpRequest(
-                url:
-                    'https://ajax.gogo-load.com/ajax/page-recent-release-ongoing.html?page=$page',
-                method: 'GET'))
-            .document
-            .select(".added_series_body.popular > ul > li"), (e) {
-      return parseRecentPage(e);
+  List<SearchResponse> parseRecentReleased(DocumentObject doc) {
+    return ListUtils.map<ElementObject, SearchResponse>(
+        doc.select('.last_episodes.loaddub > .items > li'), (e) {
+      e as ElementObject;
+      final a = e.selectFirst(' p.name > a');
+      return SearchResponse(
+        title: a.text(),
+        url: this.baseUrl + a.attr('href'),
+        poster: e.selectFirst('.img > a > img').attr('src'),
+        type: ShowType.Anime,
+        current: StringUtils.toIntOrNull(StringUtils.substringAfter(
+                e.selectFirst('p.episode').text(), 'Episode')
+            .trim()),
+      );
     });
   }
 
-  Future<List<SearchResponse>> getSeasonal(int page) {
-    return parseHomePage('${this.baseUrl}/new-season.html?page=$page');
+  Future<List<SearchResponse>> getPopularOnGoing(
+      int page, HomePageRequest request) async {
+    final res = await AppUtils.httpRequest(
+        url: '${request.data}?page=$page', method: 'GET');
+
+    return parsePopularOnGoing(res.document);
+  }
+
+  List<SearchResponse> parsePopularOnGoing(DocumentObject doc) {
+    return ListUtils.map<ElementObject, SearchResponse>(
+        doc.select(".added_series_body.popular > ul > li"), (e) {
+      e as ElementObject;
+      final a = e.selectFirst('a');
+      final img = RegExp(r"""background:\surl\(['|"](.*)['|"]\)""")
+              .firstMatch(a.selectFirst('div').attr('style'))
+              ?.group(1) ??
+          '';
+
+      return SearchResponse(
+          title: e.select('a')[1].text().trim(),
+          url: this.baseUrl + a.attr('href'),
+          generes: getGeneres(e.select('.genres > a')),
+          poster: img,
+          type: ShowType.Anime);
+    });
+  }
+
+  List<SearchResponse> parseHomePage(DocumentObject doc) {
+    return ListUtils.map(doc.select("div > ul.items > li"), (e) {
+      e as ElementObject;
+      final a = e.selectFirst('p.name > a');
+      return SearchResponse(
+          title: a.text(),
+          url: this.baseUrl + a.attr('href'),
+          poster: e.selectFirst('div.img > a > img').attr('src'),
+          type: ShowType.Anime);
+    });
   }
 
   // =========================== LoadMediaDetails ==============================
-
   @override
   Future<MediaDetails> loadMediaDetails(SearchResponse searchResponse) async {
     final animePage =
@@ -125,7 +169,6 @@ class GogoAnime extends BasePluginApi {
   }
 
   // =============================== LoadLinks =================================
-
   @override
   Future<List<ExtractorLink>> loadLinks(String url) async {
     return ListUtils.map(
@@ -137,7 +180,6 @@ class GogoAnime extends BasePluginApi {
   }
 
   // =============================== LoadMedia =================================
-
   @override
   Future<Media?> loadMedia(ExtractorLink link) async {
     if (link.url.contains('/streaming.php?')) {
@@ -165,39 +207,6 @@ class GogoAnime extends BasePluginApi {
   }
 
   // ============================== Helpers ===============================
-
-  SearchResponse parseRecentPage(ElementObject e) {
-    final a = e.selectFirst('a');
-    final img = RegExp(r"""background:\surl\(['|"](.*)['|"]\)""")
-            .firstMatch(a.selectFirst('div').attr('style'))
-            ?.group(1) ??
-        '';
-
-    return SearchResponse(
-        title: e.select('a')[1].text().trim(),
-        url: this.baseUrl + a.attr('href'),
-        generes: getGeneres(e.select('.genres > a')),
-        poster: img,
-        type: ShowType.Anime);
-  }
-
-  Future<List<SearchResponse>> parseHomePage(String url) async {
-    return ListUtils.map(
-        (await AppUtils.httpRequest(url: url, method: 'GET'))
-            .document
-            .select("div > ul.items > li"), (e) {
-      return toHomePageList(e);
-    });
-  }
-
-  SearchResponse toHomePageList(ElementObject e) {
-    final a = e.selectFirst('p.name > a');
-    return SearchResponse(
-        title: a.text(),
-        url: this.baseUrl + a.attr('href'),
-        poster: e.selectFirst('div.img > a > img').attr('src'),
-        type: ShowType.Anime);
-  }
 
   List<String> getGeneres(List<ElementObject> elements) {
     return ListUtils.map<ElementObject, String>(elements, (it) {

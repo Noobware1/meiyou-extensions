@@ -17,22 +17,22 @@ void main(List<String> args) async {
       .runtimeEval(compiled)
       .executeLib('package:meiyou/main.dart', 'main') as $BasePluginApi;
 
-  print('Starting homePage');
-  try {
-    for (var r in pluginApi.homePage) {
-      final c = await pluginApi.loadHomePage(
-          1,
-          HomePageRequest(
-              name: r.name,
-              data: r.data,
-              horizontalImages: r.horizontalImages));
-      print(c);
+  // print('Starting homePage');
+  // try {
+  //   for (var r in pluginApi.homePage) {
+  //     final c = await pluginApi.loadHomePage(
+  //         1,
+  //         HomePageRequest(
+  //             name: r.name,
+  //             data: r.data,
+  //             horizontalImages: r.horizontalImages));
+  //     print(c);
 
-      break;
-    }
-  } catch (e) {
-    print(e);
-  }
+  //     // break;
+  //   }
+  // } catch (e) {
+  //   print(e);
+  // }
   print('Starting search for $query');
   final search = await pluginApi.search(query);
   print(search);
