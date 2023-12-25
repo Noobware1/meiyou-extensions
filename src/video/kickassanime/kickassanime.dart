@@ -64,7 +64,7 @@ class KickassAnime extends BasePluginApi {
       media.endDate =
           DateTime.tryParse(StringUtils.valueToString(json['end_date']));
 
-      media.bannerImage = AppUtils.trySync(
+      media.bannerImage = AppUtils.trySync<String>(
           () => this.baseUrl + _Poster.fromJson(json["banner"]).banner);
 
       media.status = getShowStatus(json['status']);

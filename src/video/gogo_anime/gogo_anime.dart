@@ -16,7 +16,7 @@ class GogoAnime extends BasePluginApi {
   Iterable<HomePageData> get homePage => HomePageData.fromMap({
         'Popular Ongoing':
             '${this.ajaxUrl}/ajax/page-recent-release-ongoing.html',
-        'Latest episode': '${this.ajaxUrl}/ajax/page-recent-release.html',
+        'Latest Episodes': '${this.ajaxUrl}/ajax/page-recent-release.html',
         'Popular Anime': '${this.baseUrl}/popular.html',
       });
 
