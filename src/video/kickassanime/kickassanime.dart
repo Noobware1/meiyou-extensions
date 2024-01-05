@@ -64,8 +64,10 @@ class KickassAnime extends BasePluginApi {
       media.endDate =
           DateTime.tryParse(StringUtils.valueToString(json['end_date']));
 
-      media.bannerImage = AppUtils.trySync<String>(
-          () => this.baseUrl + _Poster.fromJson(json["banner"]).banner);
+      final banner = _Poster.fromJson(json["banner"])?.banner ?? '';
+      if (banner.isNotEmpty) {
+        media.bannerImage = this.baseUrl + banner;
+      }
 
       media.status = getShowStatus(json['status']);
 
@@ -185,7 +187,7 @@ class KickassAnime extends BasePluginApi {
         description: e["synopsis"],
         current: StringUtils.toIntOrNull(
             StringUtils.valueToString(e["episode_number"])),
-        poster: this.baseUrl + _Poster.fromJson(e['poster']).poster,
+        poster: this.baseUrl + (_Poster.fromJson(e['poster'])?.poster ?? ''),
         type: getType(e['type']),
         generes: ListUtils.mapNullable(
             e['genres'], (it) => StringUtils.valueToString(it)),
@@ -205,7 +207,8 @@ class KickassAnime extends BasePluginApi {
       name: json['title'],
       data: '$slug/ep-$number-${StringUtils.valueToString(json['slug'])}',
       episode: number,
-      posterImage: this.baseUrl + _Poster.fromJson(json["thumbnail"]).thumbnail,
+      posterImage:
+          this.baseUrl + (_Poster.fromJson(json["thumbnail"])?.thumbnail ?? ''),
     );
   }
 
@@ -250,12 +253,18 @@ class _Poster {
     required this.hq,
   });
 
-  factory _Poster.fromJson(dynamic json) => _Poster(
+  static _Poster? fromJson(dynamic json) {
+    if (AppUtils.isNotNull(json)) {
+      return _Poster(
         formats:
             ListUtils.map(json["formats"], (e) => StringUtils.valueToString(e)),
         sm: json["sm"],
         hq: json["hq"],
       );
+    } else {
+      return null;
+    }
+  }
 
   String get poster => '/image/poster/${hq ?? sm ?? ''}.${formats.last}';
   String get banner => '/image/banner/${hq ?? sm ?? ''}.${formats.last}';
