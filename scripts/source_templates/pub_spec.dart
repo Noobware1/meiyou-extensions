@@ -1,15 +1,21 @@
-name: meiyou_extensions
-description: A sample command-line application.
+part of '../make_source.dart';
+
+String pubSpecTemplate(String sourceName, String lang) {
+  return '''
+name: ${sourceName.toLowerCase()}
+sourceName: $sourceName
+description: No description
+lang: $lang
 version: 1.0.0
+nsfw: 0
 publish_to: none
-# repository: https://github.com/my_org/my_repo
 
 environment:
   sdk: ^3.2.6
 
-# Add regular dependencies here.
 dependencies:
-  yaml: ^3.1.2
+  meiyou_extensions:
+    path: ../../../../
   okhttp:
     git:
       url: https://github.com/Noobware1/okhttp.git
@@ -22,15 +28,10 @@ dependencies:
     git:
       url: https://github.com/Noobware1/meiyou_extensions_lib.git
       ref: models
-  dart_eval:
-    git:
-      url: https://github.com/Noobware1/dart_eval.git
-      ref: fixes
-  archive:
   html: ^0.15.4
-  intl: ^0.19.0
-  isar: 3.1.0+1
 
 dev_dependencies:
   lints: ^2.1.0
-  test: ^1.24.0
+
+''';
+}

@@ -5,4 +5,5 @@ linter:
   rules:
     non_constant_identifier_names: false
     unnecessary_this: false
+    constant_identifier_names: false
 
