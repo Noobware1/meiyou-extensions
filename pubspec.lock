@@ -280,7 +280,7 @@ packages:
     description:
       path: "."
       ref: models
-      resolved-ref: "4f5948fbd423decfa64e98d25c5bafcfb1b0f05a"
+      resolved-ref: "7a96917c048744fae87f269cb093e7ec2f89351e"
       url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"
@@ -322,7 +322,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: d4e3c72003fff07db0393acfcecc5d44d533f729
+      resolved-ref: dcd2b5eae8bceb7a4321367497f0fa05a65432b4
       url: "https://github.com/Noobware1/okhttp.git"
     source: git
     version: "1.0.0"

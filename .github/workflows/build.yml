@@ -1,0 +1,62 @@
+name: Build Plugins
+
+on:
+  push:
+    branches:
+      - wip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Clear Repo Branch
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Fetch 'repo' branch
+          git fetch origin repo:repo
+
+          git checkout repo
+          rm -rf ./*
+          git add -A .
+          git commit -m "feat: clear repo branch"
+          git checkout master
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Build Manga Plugins
+        run: |
+          cd scripts
+          dart run create_repo.dart manga
+          
+      - name: Build Novel Plugins
+        run: |
+          cd scripts
+          dart run create_repo.dart novel
+      
+      - name: Build Video Plugins
+        run: |
+          cd scripts
+          dart run create_repo.dart video
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git checkout repo
+          rm -rf .dart_tool
+          mv repo/* .
+
+          git add .
+          git commit -m "feat: build plugins"
+          git push origin repo --force

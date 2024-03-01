@@ -90,21 +90,21 @@ class KickAssAnime extends HttpSource {
       ).getOrNull();
 
       final String title;
-      final String englishTitle = json['title_en'];
-      if (englishTitle.isNotEmpty && useEnglish) {
+      final String? englishTitle = json['title_en'];
+      if (englishTitle != null && englishTitle.isNotEmpty && useEnglish) {
         title = englishTitle;
       } else {
         title = json['title'];
       }
-
       return SearchResponse(
-          title: title,
-          url: json['slug'],
-          description: json['synopsis'],
-          current: StringUtils.toIntOrNull(json['episode_number'].toString()),
-          poster: '${this.baseUrl}${Poster.fromJson(json["poster"])!.poster}',
-          type: getType(json['type']),
-          generes: genres);
+        title: title,
+        url: json['slug'],
+        description: json['synopsis'],
+        current: StringUtils.toIntOrNull(json['episode_number'].toString()),
+        poster: '${this.baseUrl}${Poster.fromJson(json["poster"])!.poster}',
+        type: getType(json['type']),
+        generes: genres,
+      );
     });
   }
 
@@ -118,10 +118,10 @@ class KickAssAnime extends HttpSource {
         .add("Referer", "${this.baseUrl}/anime")
         .build();
 
-    final body = RequestBody.fromString(jsonEncode({
-      "query": query,
-      "page": page,
-    }));
+    final body = RequestBody.fromMap(
+      {"query": query, "page": page},
+      RequestBodyType.JSON,
+    );
 
     return POST("$baseUrl/api/fsearch", newHeaders, body);
   }
@@ -132,7 +132,7 @@ class KickAssAnime extends HttpSource {
       final MediaDetails media = MediaDetails();
 
       final Map<String, dynamic> data = {
-        'url': json['watch_uri'] as String,
+        'url': json['slug'] as String,
         'locales': json['locales'] as List,
       };
       media.url = jsonEncode(data);
@@ -142,7 +142,7 @@ class KickAssAnime extends HttpSource {
       media.endDate =
           DateTime.tryParse(StringUtils.valueToString(json['end_date']));
 
-      final banner = Poster.fromJson(json["banner"])?.banner;
+      final String? banner = Poster.fromJson(json["banner"])?.banner;
       if (banner != null) {
         media.bannerImage = this.baseUrl + banner;
       }
@@ -168,20 +168,20 @@ class KickAssAnime extends HttpSource {
   @override
   Future<MediaDetails> getMediaDetails(SearchResponse searchResponse) async {
     final request = mediaDetailsRequest(searchResponse);
-    final MediaDetails media = await this
+    final MediaDetails mediaDetails = await this
         .client
         .newCall(request)
         .execute()
         .then((response) => mediaDetailsParse(response));
-    media.copyFromSearchResponse(searchResponse);
 
-    media.mediaItem = await getAnime(media);
+    mediaDetails.mediaItem = await getAnime(mediaDetails.url);
+    mediaDetails.copyFromSearchResponse(searchResponse);
 
-    return media;
+    return mediaDetails;
   }
 
   Request episodeListRequest(String url, int page, String lang) =>
-      GET("$apiUrl$url/episodes?page=$page&lang=$lang");
+      GET("$apiUrl/$url/episodes?ep=1&page=$page&lang=$lang");
 
   EpisodeResponse episodeListParse(String url, Response response) {
     return response.body.json((json) {
@@ -208,8 +208,8 @@ class KickAssAnime extends HttpSource {
     });
   }
 
-  Future<Anime> getAnime(MediaDetails media) async {
-    final decoded = jsonDecode(media.url);
+  Future<Anime> getAnime(String data) async {
+    final decoded = jsonDecode(data);
     final String url = decoded['url'];
     final List<String> locales =
         ListUtils.mapList(decoded['locales'], (e) => e.toString());
@@ -219,7 +219,7 @@ class KickAssAnime extends HttpSource {
         orElse: () => locales.first);
 
     final List<Episode> episodes = [];
-
+    print(episodeListRequest(url, 1, lang).url);
     final first =
         await getEpisodeRsponse(episodeListRequest(url, 1, lang), url);
 
@@ -247,12 +247,13 @@ class KickAssAnime extends HttpSource {
 
   @override
   List<ExtractorLink> linksParse(Response response) {
+    print(response.request.url);
     final hosterSelection = this.preferences.getStringList(
         Preferences.PREF_HOSTER_KEY, Preferences.PREF_HOSTER_DEFAULT)!;
 
     return response.body.json((json) {
       final List<ExtractorLink> links = [];
-      final servers = json['servers'] as List;
+      final List<dynamic> servers = json['servers'];
 
       for (var server in servers) {
         final String name = server['name'];
@@ -271,7 +272,7 @@ class KickAssAnime extends HttpSource {
 
   @override
   Request linksRequest(String url) =>
-      GET(this.apiUrl + url.replaceFirst("/ep-", "/episode/ep-"));
+      GET('${this.apiUrl}/${url.replaceFirst("/ep-", "/episode/ep-")}');
 
   @override
   Future<Video> getMedia(ExtractorLink link) {

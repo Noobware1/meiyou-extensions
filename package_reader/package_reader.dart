@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings
 
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:dart_eval/dart_eval.dart';
 import 'package:meiyou_extensions_lib/extensions_lib.dart';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
@@ -10,9 +12,16 @@ import 'helpers.dart';
 
 class ReadResult {
   final AvailableExtension info;
+  final Program program;
+  final Uint8List iconBytes;
   final Map<String, Map<String, String>> packages;
 
-  ReadResult(this.info, this.packages);
+  ReadResult({
+    required this.program,
+    required this.iconBytes,
+    required this.info,
+    required this.packages,
+  });
 }
 
 class PackageReader {
@@ -30,6 +39,12 @@ class PackageReader {
   late final _pubspecPath =
       _packageFolder.absolute.path + Platform.pathSeparator + 'pubspec.yaml';
 
+  late final _iconPath = _packageFolder.absolute.path +
+      Platform.pathSeparator +
+      'icon' +
+      Platform.pathSeparator +
+      'icon.png';
+
   final List<String> _extensionsImports = [];
 
   AvailableExtension? _info;
@@ -39,19 +54,34 @@ class PackageReader {
 
   ReadResult read() {
     _readYaml(File(_pubspecPath).readAsStringSync());
-    _packages[_info!.pkgName] = {};
-    _read(Directory(_libPath));
-    _addExtensionImports();
-    // print(_packages);
-    _info!.sources.addAll(
-        getSources(_info!.pkgName, ExtensionComplier().compile(_packages)));
 
-    return ReadResult(_info!, _packages);
+    _packages[_info!.pkgName] = {};
+
+    _read(Directory(_libPath));
+
+    _addExtensionImports();
+
+    final program = ExtensionComplier().compile(_packages);
+
+    _info!.sources.addAll(getSources(
+      _info!.pkgName,
+      program,
+    ));
+
+    final iconBytes = _getIconBytes();
+
+    return ReadResult(
+      info: _info!,
+      packages: _packages,
+      program: program,
+      iconBytes: iconBytes,
+    );
   }
 
   void _addExtensionImports() {
     final Map<String, String> files = {};
-    final lib = '${getRepoPath()}lib/';
+    final lib =
+        getRepoPath() + Platform.pathSeparator + 'lib' + Platform.pathSeparator;
     for (var import in _extensionsImports) {
       files[import] = (lib + import).toFile().readAsStringSync();
     }
@@ -107,6 +137,10 @@ class PackageReader {
         continue;
       }
     }
+  }
+
+  Uint8List _getIconBytes() {
+    return File(_iconPath).readAsBytesSync();
   }
 }
 

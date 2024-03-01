@@ -23,12 +23,12 @@ class KickAssAnimeExtractor {
   };
 
   Future<Video> extract(ExtractorLink link) async {
-    final String shortName = link.extra!['shortName'];
+    final String shortName = (link.extra!['shortName'] as String).toLowerCase();
     final uri = Uri.parse(link.url);
     final String key = keysMap[shortName]!;
     final source = await this
         .client
-        .newCall(GET(getSourceUrl(shortName, uri, key)))
+        .newCall(GET(await getSourceUrl(shortName, uri, key)))
         .execute()
         .then((response) {
       response as Response;
