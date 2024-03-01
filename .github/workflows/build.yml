@@ -18,10 +18,13 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          # Fetch 'repo' branch
-          git fetch origin repo:repo
-
-          git checkout repo
+          if git ls-remote --exit-code origin repo; then
+            git fetch origin repo:repo
+            git checkout repo
+          else
+            # If 'repo' branch doesn't exist, create it and push to remote
+            git checkout -b repo
+          fi
           rm -rf ./*
           git add -A .
           git commit -m "feat: clear repo branch"
@@ -37,12 +40,12 @@ jobs:
         run: |
           cd scripts
           dart run create_repo.dart manga
-          
+
       - name: Build Novel Plugins
         run: |
           cd scripts
           dart run create_repo.dart novel
-      
+
       - name: Build Video Plugins
         run: |
           cd scripts
