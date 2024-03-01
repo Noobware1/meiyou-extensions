@@ -21,10 +21,12 @@ void main(List<String> args) async {
       repoFolderPath.absolute.path + Platform.pathSeparator + 'plugin')
     ..createSync();
 
-  final mainDir = getSourceFolderPath() + Platform.pathSeparator + name;
+  final mainDir =
+      Directory(getSourceFolderPath() + Platform.pathSeparator + name).absolute;
+
   final List<AvailableExtension> extensions = [];
 
-  for (var languageDir in mainDir.toDirectory().listSync()) {
+  for (var languageDir in mainDir.listSync()) {
     if (languageDir is Directory) {
       readLanguageFolder(
         extensions,
