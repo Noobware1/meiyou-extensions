@@ -37,6 +37,11 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
+      - name: IDK
+        run: |
+          cd src
+          ls -la
+
       - name: Build Manga Plugins
         run: |
           cd scripts

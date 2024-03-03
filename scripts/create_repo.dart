@@ -11,20 +11,19 @@ void main(List<String> args) async {
   final name = args[0];
 
   final repoFolderPath =
-      Directory(getRepoPath() + Platform.pathSeparator + 'repo')
-        ..createSync(recursive: true);
+      Directory(getRepoPath() + Platform.pathSeparator + 'repo')..createSync();
 
   final iconDir =
       Directory(repoFolderPath.absolute.path + Platform.pathSeparator + 'icon')
-        ..createSync(recursive: true);
+        ..createSync();
 
   final pluginDir = Directory(
       repoFolderPath.absolute.path + Platform.pathSeparator + 'plugin')
-    ..createSync(recursive: true);
+    ..createSync();
 
   final mainDir =
       Directory(getSourceFolderPath() + Platform.pathSeparator + name)
-        ..createSync(recursive: true);
+        ..createSync();
 
   final List<AvailableExtension> extensions = [];
 
