@@ -21,9 +21,8 @@ void main(List<String> args) async {
       repoFolderPath.absolute.path + Platform.pathSeparator + 'plugin')
     ..createSync();
 
-  final mainDir =
-      Directory(getSourceFolderPath() + Platform.pathSeparator + name)
-        ..createSync();
+  print(Directory.current.path);
+  final mainDir = Directory(Directory.current.path + Platform.pathSeparator + name);
 
   final List<AvailableExtension> extensions = [];
 
