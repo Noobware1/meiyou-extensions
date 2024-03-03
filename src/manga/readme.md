@@ -1,1 +1,0 @@
-Contains all manga extensions
