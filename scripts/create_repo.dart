@@ -11,15 +11,16 @@ void main(List<String> args) async {
   final name = args[0];
 
   final repoFolderPath =
-      Directory(getRepoPath() + Platform.pathSeparator + 'repo')..createSync();
+      Directory(getRepoPath() + Platform.pathSeparator + 'repo')
+        ..createSync(recursive: true);
 
   final iconDir =
       Directory(repoFolderPath.absolute.path + Platform.pathSeparator + 'icon')
-        ..createSync();
+        ..createSync(recursive: true);
 
   final pluginDir = Directory(
       repoFolderPath.absolute.path + Platform.pathSeparator + 'plugin')
-    ..createSync();
+    ..createSync(recursive: true);
 
   final mainDir =
       Directory(getSourceFolderPath() + Platform.pathSeparator + name)

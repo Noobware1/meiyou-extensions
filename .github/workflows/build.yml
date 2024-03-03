@@ -61,8 +61,6 @@ jobs:
 
           git checkout repo
 
-          ls -la
-
           rm -rf .dart_tool
           mv repo/* .
 
