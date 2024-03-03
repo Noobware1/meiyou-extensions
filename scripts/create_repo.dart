@@ -78,9 +78,10 @@ void readLanguageFolder(
             .writeAsBytesSync(readResults.program.write());
 
         print('Successfully created entry for source: ${entity.name}');
-      } catch (e) {
+      } catch (e, s) {
         print('Error while creating entry for: ${entity.name}');
         print('Error: $e');
+        print('Stacktrace: $s');
       }
     } else {
       continue;
