@@ -315,7 +315,7 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  List<Preference> setupPreferences() {
+  List<PreferenceData> setupPreferences() {
     return [
       EditTextPreference(
         key: Preferences.PREF_DOMAIN_KEY,
