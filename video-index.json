@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Meiyou: AniWatch",
+    "pkg": "aniwatch",
+    "plugin": "meiyou-aniwatch-v1.0.0.plugin",
+    "version": "1.0.0",
+    "lang": "en",
+    "nsfw": 0,
+    "sources": [
+      {
+        "id": 8875918538894472758,
+        "name": "AniWatch",
+        "lang": "en",
+        "baseUrl": "https://aniwatch.to"
+      }
+    ]
+  },
+  {
+    "name": "Meiyou: KickAssAnime",
+    "pkg": "kickassanime",
+    "plugin": "meiyou-kickassanime-v1.0.0.plugin",
+    "version": "1.0.0",
+    "lang": "en",
+    "nsfw": 0,
+    "sources": [
+      {
+        "id": 2081771513481539599,
+        "name": "KickAssAnime",
+        "lang": "en",
+        "baseUrl": "https://kickassanimes.io"
+      }
+    ]
+  }
+]
