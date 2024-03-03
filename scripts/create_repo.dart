@@ -3,26 +3,33 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:meiyou_extensions_lib/models.dart';
+import 'package:meiyou_extensions_lib/utils.dart';
 
 import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
 void main(List<String> args) async {
   final name = args[0];
+  final mainPath =
+      StringUtils.substringBeforeLast(Directory.current.path, 'scripts');
 
-  final repoFolderPath =
-      Directory(getRepoPath() + Platform.pathSeparator + 'repo')..createSync();
-
-  final iconDir =
-      Directory(repoFolderPath.absolute.path + Platform.pathSeparator + 'icon')
-        ..createSync();
-
-  final pluginDir = Directory(
-      repoFolderPath.absolute.path + Platform.pathSeparator + 'plugin')
+  final repoFolderPath = Directory(mainPath + Platform.pathSeparator + 'repo')
     ..createSync();
 
-  print(Directory.current.path);
-  final mainDir = Directory(Directory.current.path + Platform.pathSeparator + name);
+  final iconDir =
+      Directory(repoFolderPath.path + Platform.pathSeparator + 'icon')
+        ..createSync();
+
+  final pluginDir =
+      Directory(repoFolderPath.path + Platform.pathSeparator + 'plugin')
+        ..createSync();
+
+  final mainDir = Directory(
+    StringUtils.substringBeforeLast(Directory.current.path, 'scripts') +
+        'src' +
+        Platform.pathSeparator +
+        name,
+  );
 
   final List<AvailableExtension> extensions = [];
 
@@ -39,9 +46,9 @@ void main(List<String> args) async {
     }
   }
 
-  File('${repoFolderPath.absolute.path}${Platform.pathSeparator}$name-index.json')
+  File('${repoFolderPath.path}${Platform.pathSeparator}$name-index.json')
       .writeAsStringSync(extensions.toJsonEncode(true));
-  File('${repoFolderPath.absolute.path}${Platform.pathSeparator}$name-index.min.json')
+  File('${repoFolderPath.path}${Platform.pathSeparator}$name-index.min.json')
       .writeAsStringSync(extensions.toJsonEncode());
 }
 
@@ -59,13 +66,13 @@ void readLanguageFolder(
         list.add(readResults.info);
 
         print('Copying icon for source: ${entity.name}');
-        File(iconDirectory.absolute.path +
+        File(iconDirectory.path +
                 Platform.pathSeparator +
                 readResults.info.iconUrl)
             .writeAsBytesSync(readResults.iconBytes);
 
         print('Creating plugin for source: ${entity.name}');
-        File(pluginDirectory.absolute.path +
+        File(pluginDirectory.path +
                 Platform.pathSeparator +
                 readResults.info.pluginName)
             .writeAsBytesSync(readResults.program.write());
