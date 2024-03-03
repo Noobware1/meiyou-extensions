@@ -3,7 +3,7 @@ name: Build Plugins
 on:
   push:
     branches:
-      - wip
+      - master
 
 jobs:
   build:
@@ -28,19 +28,13 @@ jobs:
           rm -rf ./*
           git add -A .
           git commit -m "feat: clear repo branch"
-          git checkout wip
-          ls -la
+          git checkout master
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
 
       - name: Install dependencies
         run: dart pub get
-
-      - name: IDK
-        run: |
-          cd src
-          ls -la
 
       - name: Build Manga Plugins
         run: |
@@ -61,8 +55,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-
-          ls -la
 
           git checkout repo
 
