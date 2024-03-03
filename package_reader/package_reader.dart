@@ -7,6 +7,7 @@ import 'package:meiyou_extensions_lib/extensions_lib.dart';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
 import 'package:yaml/yaml.dart';
+// import '../scripts/utils.dart';
 import '../scripts/utils.dart';
 import 'helpers.dart';
 
@@ -33,13 +34,12 @@ class PackageReader {
 
   String get _packageName => _info!.pkgName;
 
-  late final _libPath =
-      _packageFolder.absolute.path + Platform.pathSeparator + 'lib';
+  late final _libPath = _packageFolder.path + Platform.pathSeparator + 'lib';
 
   late final _pubspecPath =
-      _packageFolder.absolute.path + Platform.pathSeparator + 'pubspec.yaml';
+      _packageFolder.path + Platform.pathSeparator + 'pubspec.yaml';
 
-  late final _iconPath = _packageFolder.absolute.path +
+  late final _iconPath = _packageFolder.path +
       Platform.pathSeparator +
       'icon' +
       Platform.pathSeparator +
@@ -80,10 +80,11 @@ class PackageReader {
 
   void _addExtensionImports() {
     final Map<String, String> files = {};
-    final lib =
-        getRepoPath() + Platform.pathSeparator + 'lib' + Platform.pathSeparator;
+    final lib = '..' + Platform.pathSeparator + 'lib' + Platform.pathSeparator;
     for (var import in _extensionsImports) {
-      files[import] = (lib + import).toFile().readAsStringSync();
+      files[import] = (lib + import.replaceAll('/', Platform.pathSeparator))
+          .toFile()
+          .readAsStringSync();
     }
 
     if (files.isNotEmpty) {

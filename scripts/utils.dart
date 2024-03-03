@@ -1,17 +1,9 @@
 import 'dart:io';
 
 extension IoExtensions on String {
-  String fixPath() {
-    return this.replaceAll('/', Platform.pathSeparator);
-  }
+  Directory toDirectory() => Directory(this);
 
-  Directory toDirectory() {
-    return Directory(fixPath());
-  }
-
-  File toFile() {
-    return File(fixPath());
-  }
+  File toFile() => File(this);
 }
 
 extension DirectoryUtils on Directory {

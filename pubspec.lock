@@ -119,18 +119,18 @@ packages:
     description:
       path: "."
       ref: fixes
-      resolved-ref: "5e57768a9f13d5bf33743b245b33eef704ded5b8"
+      resolved-ref: "72eb4cd41fa94aea3d18b373891e31a65974a162"
       url: "https://github.com/Noobware1/dart_eval.git"
     source: git
-    version: "0.7.7"
+    version: "0.7.8"
   dart_style:
     dependency: transitive
     description:
       name: dart_style
-      sha256: "25b4624c231844a7a70a3817a729a6190a751ef1c07ded256e126a3b72261444"
+      sha256: "99e066ce75c89d6b29903d788a7bb9369cf754f7b24bf70bf4b6d6d6b26853b9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.5"
+    version: "2.3.6"
   directed_graph:
     dependency: transitive
     description:

@@ -11,6 +11,8 @@ part 'source_templates/pub_spec.dart';
 
 void main(List<String> args) {
   var path = args[0].toLowerCase();
+
+  
   final segs = args[0].split('/');
   if (segs.length < 3) {
     throw Exception(
