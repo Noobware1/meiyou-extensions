@@ -22,7 +22,8 @@ void main(List<String> args) async {
     ..createSync();
 
   final mainDir =
-      Directory(getSourceFolderPath() + Platform.pathSeparator + name).absolute;
+      Directory(getSourceFolderPath() + Platform.pathSeparator + name)
+        ..createSync(recursive: true);
 
   final List<AvailableExtension> extensions = [];
 
