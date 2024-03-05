@@ -219,7 +219,6 @@ class KickAssAnime extends HttpSource {
         orElse: () => locales.first);
 
     final List<Episode> episodes = [];
-    print(episodeListRequest(url, 1, lang).url);
     final first =
         await getEpisodeRsponse(episodeListRequest(url, 1, lang), url);
 
@@ -247,7 +246,6 @@ class KickAssAnime extends HttpSource {
 
   @override
   List<ExtractorLink> linksParse(Response response) {
-    print(response.request.url);
     final hosterSelection = this.preferences.getStringList(
         Preferences.PREF_HOSTER_KEY, Preferences.PREF_HOSTER_DEFAULT)!;
 

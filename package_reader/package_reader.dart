@@ -15,10 +15,12 @@ class ReadResult {
   final AvailableExtension info;
   final Program program;
   final Uint8List iconBytes;
+  final List<CatalogueSource> sources;
   final Map<String, Map<String, String>> packages;
 
   ReadResult({
     required this.program,
+    required this.sources,
     required this.iconBytes,
     required this.info,
     required this.packages,
@@ -62,11 +64,11 @@ class PackageReader {
     _addExtensionImports();
 
     final program = ExtensionComplier().compile(_packages);
-
-    _info!.sources.addAll(getSources(
+    final sources = getSources(
       _info!.pkgName,
       program,
-    ));
+    );
+    _info!.sources.addAll(sources.map((e) => e.toAvailableSource()));
 
     final iconBytes = _getIconBytes();
 
@@ -75,6 +77,7 @@ class PackageReader {
       packages: _packages,
       program: program,
       iconBytes: iconBytes,
+      sources: sources,
     );
   }
 
@@ -151,5 +154,16 @@ extension on File {
     seg = seg.sublist(seg.indexOf(sourceName) + 2);
 
     return seg.join('/');
+  }
+}
+
+extension on Source {
+  AvailableSource toAvailableSource() {
+    return AvailableSource(
+      id: id,
+      name: name,
+      lang: lang,
+      baseUrl: this is HttpSource ? (this as HttpSource).baseUrl : '',
+    );
   }
 }

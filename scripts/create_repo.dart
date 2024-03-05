@@ -2,12 +2,16 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:meiyou_extensions_lib/extensions_lib.dart';
 import 'package:meiyou_extensions_lib/models.dart';
+import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
 import 'package:archive/archive.dart';
+import '../package_reader/helpers.dart';
 import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
+const _repoUrl = "https://github.com/Noobware1/meiyou-extensions/repo";
 void main(List<String> args) async {
   final name = args[0];
   final mainPath =
@@ -73,11 +77,36 @@ void readLanguageFolder(
 
         print('Creating plugin for source: ${entity.name}');
 
+        final info = InstalledExtension(
+          name: readResults.info.name,
+          pkgName: readResults.info.pkgName,
+          versionName: readResults.info.versionName,
+          lang: readResults.info.lang,
+          isNsfw: readResults.info.isNsfw,
+          repoUrl: _repoUrl,
+          isOnline: readResults.sources.any((source) => source is HttpSource),
+          sources: readResults.sources.map((source) {
+            return ExtensionSource(
+              id: source.id,
+              name: source.name,
+              lang: source.lang,
+              isUsedLast: false,
+              supportsHomepage: source.supportsHomePage,
+            );
+          }).toList(),
+          hasUpdate: false,
+          icon: const [],
+          evc: const [],
+        );
+
         final evc = readResults.program.write();
         Archive plugin = Archive();
         plugin.addFile(ArchiveFile('code.evc', evc.length, evc));
         plugin.addFile(ArchiveFile(
             'icon.png', readResults.iconBytes.length, readResults.iconBytes));
+        plugin.addFile(
+            ArchiveFile.string('info.json', jsonEncode(info.toJson())));
+
         File(pluginDirectory.path +
                 Platform.pathSeparator +
                 readResults.info.pluginName)

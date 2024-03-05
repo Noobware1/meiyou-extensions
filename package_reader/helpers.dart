@@ -4,31 +4,20 @@ import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/preference.dart';
 
-extension on Source {
-  AvailableSource toAvailableSource() {
-    return AvailableSource(
-      id: id,
-      name: name,
-      lang: lang,
-      baseUrl: this is HttpSource ? (this as HttpSource).baseUrl : '',
-    );
-  }
-}
 
-List<AvailableSource> getSources(String pakage, Program program) {
+List<CatalogueSource> getSources(String pakage, Program program) {
   final network = NetworkHelper(MockNetworkPrefrences());
   final $instance = ExtensionLoader.ofProgram(program).getSource(
     'package:$pakage/main.dart',
-    'getSource',
     network,
   );
   if ($instance is SourceFactory) {
     return $instance
         .getSources(network)
-        .map((source) => source.toAvailableSource())
+        .map((source) => source as CatalogueSource)
         .toList();
-  } else if ($instance is Source) {
-    return [$instance.toAvailableSource()];
+  } else if ($instance is CatalogueSource) {
+    return [$instance];
   } else {
     throw Exception('Invalid source type');
   }
@@ -36,8 +25,8 @@ List<AvailableSource> getSources(String pakage, Program program) {
 
 class MockNetworkPrefrences implements NetworkPreferences {
   @override
-  Preference<String> defaultUserAgent() =>
-      MockPreference('default_useragent', '');
+  Preference<String> defaultUserAgent() => MockPreference('default_useragent',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0');
 
   @override
   Preference<int> dohProvider() => MockPreference('doh', -1);

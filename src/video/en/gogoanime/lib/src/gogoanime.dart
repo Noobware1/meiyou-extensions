@@ -27,7 +27,7 @@ class GogoAnime extends ParsedHttpSource {
     return url;
   }
 
-  final ajaxUrl = 'https://ajax.gogo-load.com';
+  final ajaxUrl = 'https://ajax.gogocdn.net';
 
   @override
   final String name = 'GogoAnime';
@@ -174,10 +174,9 @@ class GogoAnime extends ParsedHttpSource {
         .client
         .newCall(mediaDetailsRequest(searchResponse))
         .execute()
-        .then((response) => response.body.document);
+        .then((response) => (response as Response).body.document);
 
     final mediaDetails = mediaDetailsFromDocument(document);
-
     mediaDetails.copyFromSearchResponse(searchResponse);
 
     final id = document
@@ -191,7 +190,7 @@ class GogoAnime extends ParsedHttpSource {
         .client
         .newCall(episodeListRequest(epEnd, id))
         .execute()
-        .then((response) => response.body.document);
+        .then((response) => (response as Response).body.document);
 
     mediaDetails.mediaItem = mediaItemFromDocument(document);
     return mediaDetails;
@@ -245,12 +244,64 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
+  Future<List<ExtractorLink>> getLinks(String url) {
+    return this.client.newCall(linksRequest(url)).execute().then((response) {
+      response as Response;
+      final elements = response.body.document.select(linksListSelector());
+      final links = ListUtils.mapList(elements, (e) => linkFromElement(e));
+      return sortLinks(links);
+    });
+  }
+
+  List<ExtractorLink> sortLinks(List<ExtractorLink> links) {
+    final server = this.preferences.getString(
+        Preferences.PREF_SERVER_KEY, Preferences.PREF_SERVER_DEFAULT);
+
+    return links
+      ..sort((a, b) {
+        a as ExtractorLink;
+        b as ExtractorLink;
+        if (a.name == server) {
+          return 1;
+        } else if (b.name == server) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+  }
+
+  @override
   Future<Media?> getMedia(ExtractorLink link) async {
+    final Video? video;
     if (link.url.contains('/streaming.php?') ||
         link.url.contains('/embedplus?')) {
-      return GogoCDNExtractor(this.client).extract(link);
+      video = await GogoCDNExtractor(this.client).extract(link);
+    } else {
+      video = null;
     }
-    return null;
+
+    if (video != null) {
+      video.videoSources = sortVideoSources(video.videoSources);
+    }
+
+    return video;
+  }
+
+  List<VideoSource> sortVideoSources(List<VideoSource> sources) {
+    // final qualityStr = this
+    //     .preferences
+    //     .getString("PREF_QUALITY_KEY", Preferences.PREF_QUALITY_KEY)!;
+    // final quality = VideoQuality.getFromString(qualityStr);
+    return sources;
+    // ..sort((a, b) {
+    //   a as VideoSource;
+    //   // b as VideoSource;
+    //   if (a.quality != null) {
+    //     return a.quality!.compareTo(quality);
+    //   }
+    //   return 0;
+    // });
   }
 
   // ============================== Search ===============================
@@ -314,6 +365,8 @@ class GogoAnime extends ParsedHttpSource {
     throw UnsupportedError('Not Used');
   }
 
+  // ============================== Preferences ===================================
+
   @override
   List<PreferenceData> setupPreferences() {
     return [
@@ -324,13 +377,6 @@ class GogoAnime extends ParsedHttpSource {
         dialogTitle: Preferences.PREF_DOMAIN_TITLE,
         dialogMessage: Preferences.PREF_DOMAIN_DIALOG_MESSAGE,
         summary: Preferences.PREF_DOMAIN_SUMMARY,
-        // onPreferenceChange: (_, newValue) {
-        //   String value = (newValue as String).trim();
-        //   if (value.isEmpty) {
-        //     value = Preferences.PREF_DOMAIN_DEFAULT;
-        //   }
-        //   this.preferences.setString(Preferences.PREF_DOMAIN_KEY, value);
-        // },
       ),
       ListPreference(
         key: Preferences.PREF_QUALITY_KEY,
@@ -340,10 +386,6 @@ class GogoAnime extends ParsedHttpSource {
         dialogTitle: '',
         dialogMessage: '',
         summary: '',
-        // onPreferenceChange: (_, index) {
-        //   final selected = Preferences.PREF_QUALITY_VALUES[index];
-        //   preferences.setString(Preferences.PREF_QUALITY_KEY, selected);
-        // },
       ),
       ListPreference(
         key: Preferences.PREF_SERVER_KEY,
@@ -353,10 +395,6 @@ class GogoAnime extends ParsedHttpSource {
         dialogTitle: '',
         dialogMessage: '',
         summary: '',
-        // onPreferenceChange: (_, index) {
-        //   final selected = Preferences.HOSTERS[index];
-        //   preferences.setString(Preferences.PREF_SERVER_KEY, selected);
-        // },
       ),
       MultiSelectListPreference(
         key: Preferences.PREF_HOSTER_KEY,
@@ -367,9 +405,6 @@ class GogoAnime extends ParsedHttpSource {
         dialogTitle: '',
         summary: '',
         defaultSelected: Preferences.PREF_HOSTER_DEFAULT,
-        // onPreferenceChange: (_, values) {
-        //   this.preferences.setStringList(Preferences.PREF_HOSTER_KEY, values);
-        // },
       )
     ];
   }

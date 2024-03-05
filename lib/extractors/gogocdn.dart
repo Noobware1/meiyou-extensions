@@ -22,7 +22,7 @@ class GogoCDNExtractor {
         .client
         .newCall(GET(extractorLink.url))
         .execute()
-        .then((value) => value.body.document);
+        .then((response) => (response as Response).body.document);
 
     final iv = StringUtils.substringAfter(
         document.selectFirst("div.wrapper")!.className, ' container-');
@@ -56,23 +56,21 @@ class GogoCDNExtractor {
           ),
         )
         .execute()
-        .then((value) => (value.body as ResponseBody)
-            .json((json) => json['data']) as String);
+        .then((res) => (res.body as ResponseBody).json((json) => json['data']));
 
     final decrypted =
         json.decode(cryptoHandler(encryptedData, iv, decryptionKey, false));
 
     final List<VideoSource> list = [];
-    for (var e in decrypted['source'] as List) {
+    for (var e in (decrypted['source'] as List)) {
       list.add(toVideoSource(e, false));
     }
 
-    if (decrypted['source_bk'] != null) {
-      for (var e in decrypted['source_bk'] as List) {
+    if (decrypted['source_bk'] != null && decrypted['source_bk'] is List) {
+      for (var e in (decrypted['source_bk'] as List)) {
         list.add(toVideoSource(e, true));
       }
     }
-
     return Video(
         videoSources: list,
         headers: Headers.fromMap({'Referer': 'https://$host'}));
@@ -101,7 +99,6 @@ class GogoCDNExtractor {
     final fileLabel = StringUtils.valueToString(j['label']).toLowerCase();
 
     final url = j['file'];
-
     if (fileLabel == 'hls p' || fileLabel == 'auto p') {
       return VideoSource(
         url: url,
@@ -113,7 +110,7 @@ class GogoCDNExtractor {
       return VideoSource(
         url: url,
         quality: VideoQuality.getFromString(fileLabel),
-        format: VideoFormat.other,
+        format: VideoFormat.mp4,
         isBackup: backup,
       );
     }

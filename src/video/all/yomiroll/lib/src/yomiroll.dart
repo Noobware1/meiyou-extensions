@@ -68,13 +68,12 @@ class Yomiroll extends HttpSource {
             images, images.length - 4, (index) => images.first)?['source']
         as String?;
     final title = json['title'];
-    final type = json['type'].toString() == 'movie'
-        ? ShowType.AnimeMovie
-        : ShowType.Anime;
+    final type =
+        (json['type'] == 'movie') ? ShowType.AnimeMovie : ShowType.Anime;
 
     final metaData = json['series_metadata'] ?? json['movie_metadata'];
 
-    final genres = runCatching(() {
+    final List<String>? genres = runCatching(() {
       return ListUtils.mapList(
           metaData['tenant_categories'], (genre) => genre.toString());
     }).getOrNull();
@@ -111,7 +110,7 @@ class Yomiroll extends HttpSource {
     return SearchResponse(
       title: title,
       url: jsonEncode({'id': json['id'], 'type': json['type'].toString()}),
-      poster: poster ?? '',
+      poster: poster!,
       type: type,
       description: description,
       generes: genres,
@@ -157,57 +156,8 @@ class Yomiroll extends HttpSource {
   @override
   Future<MediaDetails> getMediaDetails(SearchResponse searchResponse) async {
     final media = MediaDetails()..copyFromSearchResponse(searchResponse);
-    media.status = await fetchStatusByTitle(media.name);
+    // media.status = await fetchStatusByTitle(media.name);
     return media;
-  }
-
-  Future<ShowStatus> fetchStatusByTitle(String title) async {
-    final query = """
-            query {
-            	Media(
-                  search: "$title",
-                  sort: STATUS_DESC,
-                  status_not_in: [NOT_YET_RELEASED],
-                  format_not_in: [SPECIAL, MOVIE],
-                  isAdult: false,
-                  type: ANIME
-                ) {
-                  id
-                  idMal
-                  title {
-                    romaji
-                    native
-                    english
-                  }
-                  status
-                }
-            }
-        """
-        .trim();
-
-    final requestBody = FormBody.Builder().add("query", query).build();
-
-    final status = await this
-        .noTokenClient
-        .newCall(
-          POST("https://graphql.anilist.co", null, requestBody),
-        )
-        .execute()
-        .then((value) {
-      value as Response;
-      return value.body.json((json) {
-        return json['data']?['Media']?['status'] as String?;
-      });
-    });
-
-    if (status == "FINISHED") {
-      return ShowStatus.Completed;
-    }
-    if (status == "RELEASING") {
-      return ShowStatus.Ongoing;
-    } else {
-      return ShowStatus.Unknown;
-    }
   }
 
   @override
