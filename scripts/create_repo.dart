@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
-
+import 'package:archive/archive.dart';
 import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
@@ -72,10 +72,16 @@ void readLanguageFolder(
             .writeAsBytesSync(readResults.iconBytes);
 
         print('Creating plugin for source: ${entity.name}');
+
+        final evc = readResults.program.write();
+        Archive plugin = Archive();
+        plugin.addFile(ArchiveFile('code.evc', evc.length, evc));
+        plugin.addFile(ArchiveFile(
+            'icon.png', readResults.iconBytes.length, readResults.iconBytes));
         File(pluginDirectory.path +
                 Platform.pathSeparator +
                 readResults.info.pluginName)
-            .writeAsBytesSync(readResults.program.write());
+            .writeAsBytesSync(ZipEncoder().encode(plugin)!);
 
         print('Successfully created entry for source: ${entity.name}');
       } catch (e, s) {

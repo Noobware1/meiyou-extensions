@@ -21,6 +21,6 @@ String getRepoPath() {
       File.fromUri(Platform.script).absolute.path.split(Platform.pathSeparator);
 
   return path
-      .sublist(0, path.indexOf('meiyou_extensions_repo') + 1)
+      .sublist(0, path.indexOf('meiyou-extensions') + 1)
       .join(Platform.pathSeparator);
 }
