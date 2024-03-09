@@ -9,20 +9,20 @@ import 'package:okhttp/okhttp.dart';
 import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
-class AniWatch extends ParsedHttpSource {
-  AniWatch(NetworkHelper network) : super(network);
+class HiAnime extends ParsedHttpSource {
+  HiAnime(NetworkHelper network) : super(network);
 
   @override
   int get id => 8875918538894472758;
 
   @override
-  final String name = "AniWatch";
+  final String name = "hianime";
 
   @override
   final String lang = 'en';
 
   @override
-  final String baseUrl = 'https://aniwatch.to';
+  final String baseUrl = 'https://hianime.to';
 
   Headers get docHeaders => this
       .headers
@@ -43,7 +43,7 @@ class AniWatch extends ParsedHttpSource {
         'Latest Episodes': '${this.baseUrl}/recently-updated',
         'Top Airing': '${this.baseUrl}/top-airing',
         'Most Popular': '${this.baseUrl}/most-popular',
-        'New on Aniwatch': '${this.baseUrl}/recently-added',
+        'New on hianime': '${this.baseUrl}/recently-added',
       });
 
   @override

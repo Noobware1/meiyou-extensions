@@ -1,5 +1,5 @@
-name: aniwatch
-sourceName: AniWatch
+name: hianime
+sourceName: HiAnime
 description: No description
 lang: en
 version: 1.0.0
@@ -28,4 +28,3 @@ dependencies:
 
 dev_dependencies:
   lints: ^2.1.0
-
