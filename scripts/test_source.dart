@@ -29,8 +29,7 @@ void main(List<String> args) async {
   // final info = results.info;
 
   final source = ExtensionLoader.ofProgram(results.program).loadCatalogueSource(
-      'package:${results.info.pkgName}/main.dart',
-      NetworkHelper(MockNetworkPrefrences()));
+      results.info.pkgName, NetworkHelper(MockNetworkPrefrences()));
 
   // print(await source.getSearch(1, 'astra', FilterList([])));
 

@@ -280,7 +280,7 @@ packages:
     description:
       path: "."
       ref: models
-      resolved-ref: "0d5b6be33f839191a5f3841f207c00a244c1805d"
+      resolved-ref: ca5ff187dd2ea118e813e71a5fdd712e290e474a
       url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"
@@ -530,10 +530,10 @@ packages:
     dependency: transitive
     description:
       name: web
-      sha256: "1d9158c616048c38f712a6646e317a3426da10e884447626167240d45209cbad"
+      sha256: "97da13628db363c635202ad97068d47c5b8aa555808e7a9411963c533b449b27"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.1"
   web_socket_channel:
     dependency: transitive
     description:

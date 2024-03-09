@@ -4,11 +4,10 @@ import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/preference.dart';
 
-
-List<CatalogueSource> getSources(String pakage, Program program) {
+List<CatalogueSource> getSources(String package, Program program) {
   final network = NetworkHelper(MockNetworkPrefrences());
   final $instance = ExtensionLoader.ofProgram(program).getSource(
-    'package:$pakage/main.dart',
+    package,
     network,
   );
   if ($instance is SourceFactory) {
