@@ -111,7 +111,7 @@ class PackageReader {
       versionName: version,
       isNsfw: nsfw == 1,
       lang: lang,
-      pluginName: 'meiyou-$pkg-v$version.plugin',
+      pluginName: '$pkg-v$version.plugin',
       iconUrl: '$pkg.png',
       sources: List.empty(growable: true),
       repoUrl: '',
@@ -133,7 +133,7 @@ class PackageReader {
                     }))
                 .nonNulls,
           );
-          _packages[_packageName]![entity.pathInPackage(_packageName)] = code;
+          _packages[_packageName]![entity.pathInPackage()] = code;
         }
       } else if (entity is Directory) {
         _read(entity);
@@ -149,9 +149,9 @@ class PackageReader {
 }
 
 extension on File {
-  String pathInPackage(String sourceName) {
+  String pathInPackage() {
     var seg = uri.pathSegments.where((e) => e.isNotEmpty).toList();
-    seg = seg.sublist(seg.indexOf(sourceName) + 2);
+    seg = seg.sublist(seg.lastIndexOf('lib') + 1);
 
     return seg.join('/');
   }
