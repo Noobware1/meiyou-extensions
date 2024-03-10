@@ -10,7 +10,7 @@ import 'package:okhttp/interceptor.dart';
 import 'package:okhttp/okhttp.dart';
 import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
-import 'package:yomiroll/src/access_token_interceptor.dart';
+import 'package:meiyou_video_extensions_all_yomiroll/src/access_token_interceptor.dart';
 
 class Yomiroll extends HttpSource {
   Yomiroll(NetworkHelper networkHelper) : super(networkHelper);

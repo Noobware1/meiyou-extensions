@@ -112,7 +112,7 @@ class PackageReader {
       isNsfw: nsfw == 1,
       lang: lang,
       pluginName: 'meiyou-$pkg-v$version.plugin',
-      iconUrl: '$pkg-v$version.png',
+      iconUrl: '$pkg.png',
       sources: List.empty(growable: true),
       repoUrl: '',
     );

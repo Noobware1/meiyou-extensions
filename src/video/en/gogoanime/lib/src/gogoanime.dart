@@ -1,6 +1,6 @@
 // ignore_for_file: unnecessary_cast
 
-import 'package:gogoanime/src/preferences.dart';
+import 'package:meiyou_video_extensions_en_gogoanime/src/preferences.dart';
 import 'package:meiyou_extensions_lib/html_extensions.dart';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';

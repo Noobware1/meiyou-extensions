@@ -9,7 +9,7 @@ import 'package:okhttp/interceptor.dart';
 import 'package:okhttp/okhttp.dart';
 import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
-import 'package:yomiroll/src/models.dart';
+import 'package:meiyou_video_extensions_all_yomiroll/src/models.dart';
 
 class AccessTokenInterceptor {
   final String crUrl;
@@ -44,7 +44,8 @@ class AccessTokenInterceptor {
     if (!force && token != null) {
       return AccessToken.decode(token);
     } else {
-      final bool useLocalToken = this.preferences.getBool(PREF_USE_LOCAL_Token, false)!;
+      final bool useLocalToken =
+          this.preferences.getBool(PREF_USE_LOCAL_Token, false)!;
       if (!useLocalToken) {
         return refreshAccessToken();
       } else {

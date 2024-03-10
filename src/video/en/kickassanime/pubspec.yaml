@@ -1,4 +1,4 @@
-name: kickassanime
+name: meiyou_video_extensions_en_kickassanime
 sourceName: KickAssAnime
 description: No description
 lang: en
@@ -28,4 +28,3 @@ dependencies:
 
 dev_dependencies:
   lints: ^2.1.0
-
