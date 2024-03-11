@@ -7,14 +7,14 @@ import 'package:meiyou_extensions_lib/utils.dart';
 import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
-const _repoUrl = "https://github.com/Noobware1/meiyou-extensions/repo";
 void main(List<String> args) async {
   final name = args[0];
   final mainPath =
       StringUtils.substringBeforeLast(Directory.current.path, 'scripts');
 
-  final repoFolderPath = Directory(mainPath + Platform.pathSeparator + 'repo')
-    ..createSync();
+  final repoFolderPath =
+      Directory(mainPath + 'repo' + Platform.pathSeparator + name)
+        ..createSync(recursive: true);
 
   final iconDir =
       Directory(repoFolderPath.path + Platform.pathSeparator + 'icon')
@@ -46,9 +46,9 @@ void main(List<String> args) async {
     }
   }
 
-  File('${repoFolderPath.path}${Platform.pathSeparator}$name-index.json')
+  File('${repoFolderPath.path}${Platform.pathSeparator}index.json')
       .writeAsStringSync(extensions.toJsonEncode(true));
-  File('${repoFolderPath.path}${Platform.pathSeparator}$name-index.min.json')
+  File('${repoFolderPath.path}${Platform.pathSeparator}index.min.json')
       .writeAsStringSync(extensions.toJsonEncode());
 }
 

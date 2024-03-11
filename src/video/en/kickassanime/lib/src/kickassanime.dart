@@ -2,8 +2,8 @@
 
 import 'dart:convert';
 
-import 'package:meiyou_video_extensions_en_kickassanime/src/kickassanime_extractor.dart';
-import 'package:meiyou_video_extensions_en_kickassanime/src/preferences.dart';
+import 'package:kickassanime/src/kickassanime_extractor.dart';
+import 'package:kickassanime/src/preferences.dart';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/okhttp_extensions.dart';
