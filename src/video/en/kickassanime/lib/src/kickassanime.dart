@@ -27,7 +27,7 @@ class KickAssAnime extends HttpSource {
   @override
   String get baseUrl => this
       .preferences
-      .getString(Preferences.PREF_DOMAIN_KEY, Preferences.PREF_DOMAIN_DEFAULT)!;
+      .getString(Preferences.pref_domain_key, Preferences.pref_domain_default)!;
 
   String get apiUrl => '${this.baseUrl}/api/show';
 
@@ -81,7 +81,7 @@ class KickAssAnime extends HttpSource {
 
   List<SearchResponse> searchListFromJson(dynamic json) {
     final useEnglish = this.preferences.getBool(
-        Preferences.PREF_USE_ENGLISH_KEY,
+        Preferences.pref_use_english_key,
         Preferences.PREF_USE_ENGLISH_DEFAULT)!;
 
     return ListUtils.mapList(json['result'] as List, (json) {
@@ -123,7 +123,7 @@ class KickAssAnime extends HttpSource {
       RequestBodyType.JSON,
     );
 
-    return POST("$baseUrl/api/fsearch", newHeaders, body);
+    return POST("$baseUrl/api/fsearch", headers: newHeaders, body: body);
   }
 
   @override
@@ -214,7 +214,7 @@ class KickAssAnime extends HttpSource {
     final List<String> locales =
         ListUtils.mapList(decoded['locales'], (e) => e.toString());
     final prefLang = this.preferences.getString(
-        Preferences.PREF_AUDIO_LANG_KEY, Preferences.PREF_AUDIO_LANG_DEFAULT)!;
+        Preferences.pref_audio_lang_key, Preferences.pref_audio_lang_default)!;
     final lang = locales.firstWhere((element) => element == prefLang,
         orElse: () => locales.first);
 
@@ -246,8 +246,8 @@ class KickAssAnime extends HttpSource {
 
   @override
   List<ExtractorLink> linksParse(Response response) {
-    final hosterSelection = this.preferences.getStringList(
-        Preferences.PREF_HOSTER_KEY, Preferences.PREF_HOSTER_DEFAULT)!;
+    final hosterselection = this.preferences.getStringList(
+        Preferences.pref_hoster_key, Preferences.pref_hoster_default)!;
 
     return response.body.json((json) {
       final List<ExtractorLink> links = [];
@@ -255,7 +255,7 @@ class KickAssAnime extends HttpSource {
 
       for (var server in servers) {
         final String name = server['name'];
-        if (hosterSelection.contains(name)) {
+        if (hosterselection.contains(name)) {
           links.add(ExtractorLink(
             name: name,
             url: server['src'],

@@ -14,12 +14,12 @@ import 'package:yomiroll/src/models.dart';
 class AccessTokenInterceptor {
   final String crUrl;
   final SharedPreferences preferences;
-  final String PREF_USE_LOCAL_Token;
+  final String pref_use_local_token;
 
   AccessTokenInterceptor({
     required this.crUrl,
     required this.preferences,
-    required this.PREF_USE_LOCAL_Token,
+    required this.pref_use_local_token,
   });
 
   Future<Response> intercept(Chain chain) async {
@@ -40,12 +40,12 @@ class AccessTokenInterceptor {
 
   Future<AccessToken> getAccessToken([bool force = false]) async {
     final String? token =
-        this.preferences.getString(AccessTokenInterceptor._TOKEN_PREF_KEY);
+        this.preferences.getString(AccessTokenInterceptor._token_pref_key);
     if (!force && token != null) {
       return AccessToken.decode(token);
     } else {
       final bool useLocalToken =
-          this.preferences.getBool(PREF_USE_LOCAL_Token, false)!;
+          this.preferences.getBool(pref_use_local_token, false)!;
       if (!useLocalToken) {
         return refreshAccessToken();
       } else {
@@ -55,7 +55,7 @@ class AccessTokenInterceptor {
   }
 
   void removeToken() {
-    this.preferences.remove(AccessTokenInterceptor._TOKEN_PREF_KEY);
+    this.preferences.remove(AccessTokenInterceptor._token_pref_key);
   }
 
   Future<AccessToken> refreshAccessToken([bool useProxy = true]) async {
@@ -99,7 +99,7 @@ class AccessTokenInterceptor {
 
     this
         .preferences
-        .setString(AccessTokenInterceptor._TOKEN_PREF_KEY, allTokens.encode());
+        .setString(AccessTokenInterceptor._token_pref_key, allTokens.encode());
     return allTokens;
   }
 
@@ -130,25 +130,31 @@ class AccessTokenInterceptor {
           GET("https://raw.githubusercontent.com/Samfun75/File-host/main/aniyomi/refreshToken.txt"),
         )
         .execute()
-        .then((response) => (response as Response)
-            .body
-            .string
-            .replaceFirst(RegExp("[\n\r]"), ""));
+        .then(
+          (response) => (response as Response)
+              .body
+              .string
+              .replaceFirst(RegExp("[\n\r]"), ""),
+        );
 
     final headers = Headers.Builder()
         .add("Content-Type", "application/x-www-form-urlencoded")
-        .add(
-          "Authorization",
-          "Basic b2VkYXJteHN0bGgxanZhd2ltbnE6OWxFaHZIWkpEMzJqdVY1ZFc5Vk9TNTdkb3BkSnBnbzE=",
-        )
+        .add("Authorization",
+            "Basic b2VkYXJteHN0bGgxanZhd2ltbnE6OWxFaHZIWkpEMzJqdVY1ZFc5Vk9TNTdkb3BkSnBnbzE=")
         .build();
+
     final postBody = FormBody.Builder()
         .add("grant_type", "refresh_token")
         .add("refresh_token", refreshToken)
         .add("scope", "offline_access")
         .build();
-    return POST("${this.crUrl}/auth/v1/token", headers, postBody);
+
+    return POST(
+      "${this.crUrl}/auth/v1/token",
+      headers: headers,
+      body: postBody,
+    );
   }
 
-  static const String _TOKEN_PREF_KEY = "access_token_data";
+  static const String _token_pref_key = "access_token_data";
 }

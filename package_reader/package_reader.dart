@@ -107,7 +107,7 @@ class PackageReader {
 
     _info = AvailableExtension(
       pkgName: pkg,
-      name: 'Meiyou: $name',
+      name: name,
       versionName: version,
       isNsfw: nsfw == 1,
       lang: lang,

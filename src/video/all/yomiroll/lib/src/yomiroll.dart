@@ -39,14 +39,14 @@ class Yomiroll extends HttpSource {
         (chain) => AccessTokenInterceptor(
           crUrl: this.crUrl,
           preferences: this.preferences,
-          PREF_USE_LOCAL_Token: Yomiroll.PREF_USE_LOCAL_TOKEN_KEY,
+          pref_use_local_token: Yomiroll.pref_use_local_token_key,
         ).intercept(chain),
       ))
       .build();
 
   OkHttpClient get noTokenClient => super.client;
 
-  static const String PREF_USE_LOCAL_TOKEN_KEY = "preferred_local_Token";
+  static const String pref_use_local_token_key = "preferred_local_Token";
 
   @override
   Iterable<HomePageData> get homePageList => HomePageData.fromMap({

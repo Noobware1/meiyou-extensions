@@ -20,9 +20,9 @@ class GogoAnime extends ParsedHttpSource {
   @override
   String get baseUrl {
     final url = this.preferences.getString(
-        Preferences.PREF_DOMAIN_KEY, Preferences.PREF_DOMAIN_DEFAULT)!;
+        Preferences.pref_domain_key, Preferences.pref_domain_default)!;
     if (url.trim().isEmpty) {
-      return Preferences.PREF_DOMAIN_DEFAULT;
+      return Preferences.pref_domain_default;
     }
     return url;
   }
@@ -34,6 +34,9 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   String get lang => 'en';
+
+  @override
+  int get id => 7055547649318749672;
 
   @override
   HeadersBuilder headersBuilder() {
@@ -62,7 +65,7 @@ class GogoAnime extends ParsedHttpSource {
     if (request.name == 'Latest Episodes') {
       url += '&type=2';
     }
-    return GET(url, this.headers);
+    return GET(url, headers: this.headers);
   }
 
   @override
@@ -132,7 +135,7 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   Request mediaDetailsRequest(SearchResponse searchResponse) {
-    return GET(searchResponse.url, this.headers);
+    return GET(searchResponse.url, headers: this.headers);
   }
 
   @override
@@ -211,7 +214,7 @@ class GogoAnime extends ParsedHttpSource {
   Request episodeListRequest(String epEnd, String id) {
     return GET(
       '${this.ajaxUrl}/ajax/load-list-episode?ep_start=0&ep_end=$epEnd&id=$id',
-      this.headers,
+      headers: this.headers,
     );
   }
 
@@ -229,7 +232,7 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   Request linksRequest(String url) {
-    return GET(url, this.headers);
+    return GET(url, headers: this.headers);
   }
 
   @override
@@ -255,7 +258,7 @@ class GogoAnime extends ParsedHttpSource {
 
   List<ExtractorLink> sortLinks(List<ExtractorLink> links) {
     final server = this.preferences.getString(
-        Preferences.PREF_SERVER_KEY, Preferences.PREF_SERVER_DEFAULT);
+        Preferences.pref_server_key, Preferences.pref_server_default);
 
     return links
       ..sort((a, b) {
@@ -291,7 +294,7 @@ class GogoAnime extends ParsedHttpSource {
   List<VideoSource> sortVideoSources(List<VideoSource> sources) {
     // final qualityStr = this
     //     .preferences
-    //     .getString("PREF_QUALITY_KEY", Preferences.PREF_QUALITY_KEY)!;
+    //     .getString("pref_quality_key", Preferences.pref_quality_key)!;
     // final quality = VideoQuality.getFromString(qualityStr);
     return sources;
     // ..sort((a, b) {
@@ -310,7 +313,8 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   Request searchRequest(int page, String query, FilterList filters) {
-    return GET('${this.baseUrl}/search.html?keyword=$query', this.headers);
+    return GET('${this.baseUrl}/search.html?keyword=$query',
+        headers: this.headers);
   }
 
   @override
@@ -371,40 +375,34 @@ class GogoAnime extends ParsedHttpSource {
   List<PreferenceData> setupPreferences() {
     return [
       EditTextPreference(
-        key: Preferences.PREF_DOMAIN_KEY,
-        title: Preferences.PREF_DOMAIN_TITLE,
-        value: Preferences.PREF_DOMAIN_DEFAULT,
-        dialogTitle: Preferences.PREF_DOMAIN_TITLE,
+        key: Preferences.pref_domain_key,
+        title: Preferences.pref_domain_title,
+        value: Preferences.pref_domain_default,
+        dialogTitle: Preferences.pref_domain_title,
         dialogMessage: Preferences.PREF_DOMAIN_DIALOG_MESSAGE,
-        summary: Preferences.PREF_DOMAIN_SUMMARY,
+        summary: Preferences.pref_domain_summary,
       ),
       ListPreference(
-        key: Preferences.PREF_QUALITY_KEY,
-        title: Preferences.PREF_QUALITY_TITLE,
-        entries: Preferences.PREF_QUALITY_ENTRIES,
-        entryValues: Preferences.PREF_QUALITY_VALUES,
-        dialogTitle: '',
-        dialogMessage: '',
+        key: Preferences.pref_quality_key,
+        title: Preferences.pref_quality_title,
+        entries: Preferences.pref_quality_entries,
+        entryValues: Preferences.pref_quality_values,
         summary: '',
       ),
       ListPreference(
-        key: Preferences.PREF_SERVER_KEY,
-        title: Preferences.PREF_SERVER_TITLE,
-        entries: Preferences.HOSTERS,
-        entryValues: Preferences.HOSTERS,
-        dialogTitle: '',
-        dialogMessage: '',
+        key: Preferences.pref_server_key,
+        title: Preferences.pref_server_title,
+        entries: Preferences.hosters,
+        entryValues: Preferences.hosters,
         summary: '',
       ),
       MultiSelectListPreference(
-        key: Preferences.PREF_HOSTER_KEY,
-        title: Preferences.PREF_HOSTER_TITLE,
-        entries: Preferences.HOSTERS,
-        entryValues: Preferences.HOSTERS_NAMES,
-        dialogMessage: '',
-        dialogTitle: '',
+        key: Preferences.pref_hoster_key,
+        title: Preferences.pref_hoster_title,
+        entries: Preferences.hosters,
+        entryValues: Preferences.hosters_names,
         summary: '',
-        defaultSelected: Preferences.PREF_HOSTER_DEFAULT,
+        defaultSelected: Preferences.pref_hoster_default,
       )
     ];
   }

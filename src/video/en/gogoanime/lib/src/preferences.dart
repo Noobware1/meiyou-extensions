@@ -1,5 +1,5 @@
 class Preferences {
-  static const List<String> HOSTERS = [
+  static const List<String> hosters = [
     "Gogo server",
     "Vidstreaming",
     "Doodstream",
@@ -8,7 +8,7 @@ class Preferences {
     "FileLions",
   ];
 
-  static const List<String> HOSTERS_NAMES = [
+  static const List<String> hosters_names = [
     "vidcdn",
     "anime",
     "doodstream",
@@ -17,30 +17,30 @@ class Preferences {
     "filelions",
   ];
 
-  static const PREF_DOMAIN_KEY = "preferred_domain_name";
-  static const PREF_DOMAIN_TITLE = "Override BaseUrl";
-  static const PREF_DOMAIN_DEFAULT = "https://anitaku.to";
-  static const PREF_DOMAIN_SUMMARY =
+  static const pref_domain_key = "preferred_domain_name";
+  static const pref_domain_title = "Override BaseUrl";
+  static const pref_domain_default = "https://anitaku.to";
+  static const pref_domain_summary =
       "For temporary uses. Updating the extension will erase this setting.";
-  static const PREF_DOMAIN_DIALOG_MESSAGE = "Default: $PREF_DOMAIN_DEFAULT";
+  static const PREF_DOMAIN_DIALOG_MESSAGE = "Default: $pref_domain_default";
 
-  static const String PREF_QUALITY_KEY = "preferred_quality";
-  static const String PREF_QUALITY_TITLE = "Preferred quality";
-  static const String PREF_QUALITY_DEFAULT = "1080";
+  static const String pref_quality_key = "preferred_quality";
+  static const String pref_quality_title = "Preferred quality";
+  static const String pref_quality_default = "1080";
 
-  static const List<String> PREF_QUALITY_ENTRIES = [
+  static const List<String> pref_quality_entries = [
     "1080p",
     "720p",
     "480p",
     "360p"
   ];
-  static const List<String> PREF_QUALITY_VALUES = ["1080", "720", "480", "360"];
+  static const List<String> pref_quality_values = ["1080", "720", "480", "360"];
 
-  static const String PREF_SERVER_KEY = "preferred_server";
-  static const String PREF_SERVER_TITLE = "Preferred server";
-  static const String PREF_SERVER_DEFAULT = "Gogostream";
+  static const String pref_server_key = "preferred_server";
+  static const String pref_server_title = "Preferred server";
+  static const String pref_server_default = "Gogostream";
 
-  static const String PREF_HOSTER_KEY = "hoster_selection";
-  static const String PREF_HOSTER_TITLE = "Enable/Disable Hosts";
-  static const List<String> PREF_HOSTER_DEFAULT = Preferences.HOSTERS_NAMES;
+  static const String pref_hoster_key = "hoster_selection";
+  static const String pref_hoster_title = "Enable/Disable Hosts";
+  static const List<String> pref_hoster_default = Preferences.hosters_names;
 }

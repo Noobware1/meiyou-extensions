@@ -35,7 +35,7 @@ class Anilist {
 
     final status = await client
         .newCall(
-          POST("https://graphql.anilist.co", null, requestBody),
+          POST("https://graphql.anilist.co", body: requestBody),
         )
         .execute()
         .then((value) {

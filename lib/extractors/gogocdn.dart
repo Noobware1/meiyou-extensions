@@ -52,7 +52,7 @@ class GogoCDNExtractor {
         .newCall(
           GET(
             "$host/encrypt-ajax.php?id=$encryptedId&$decryptedAjaxParams&alias=$id",
-            headers,
+            headers: headers,
           ),
         )
         .execute()

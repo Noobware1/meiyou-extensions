@@ -22,7 +22,7 @@ dependencies:
   meiyou_extensions_lib:
     git:
       url: https://github.com/Noobware1/meiyou_extensions_lib.git
-      ref: models
+      ref: master
 
 dev_dependencies:
   lints: ^2.1.0

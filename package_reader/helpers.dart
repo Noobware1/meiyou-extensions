@@ -65,4 +65,10 @@ class MockPreference<T> implements Preference<T> {
   void set(value) {
     // TODO: implement set
   }
+  
+  @override
+  Stream<T> changes() {
+    // TODO: implement changes
+    throw UnimplementedError();
+  }
 }

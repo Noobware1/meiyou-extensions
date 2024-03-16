@@ -16,7 +16,7 @@ class HiAnime extends ParsedHttpSource {
   int get id => 8875918538894472758;
 
   @override
-  final String name = "hianime";
+  final String name = 'HiAnime';
 
   @override
   final String lang = 'en';
@@ -88,7 +88,7 @@ class HiAnime extends ParsedHttpSource {
     if (request.name != 'Trending') {
       url += '?page=$page';
     }
-    return GET(url, docHeaders);
+    return GET(url, headers: docHeaders);
   }
 
   @override
@@ -99,7 +99,7 @@ class HiAnime extends ParsedHttpSource {
 
   @override
   Request searchRequest(int page, String query, FilterList filters) {
-    return GET('$baseUrl/search?q=$query&page=$page', docHeaders);
+    return GET('$baseUrl/search?q=$query&page=$page', headers: docHeaders);
   }
 
   @override

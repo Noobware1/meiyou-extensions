@@ -30,7 +30,7 @@ class MegaCloud {
         .client
         .newCall(GET(
           getUrl(serverUrl),
-          getHeaders(serverUrl),
+          headers: getHeaders(serverUrl),
         ))
         .execute()
         .then((response) {

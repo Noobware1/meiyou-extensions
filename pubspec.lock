@@ -279,8 +279,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: models
-      resolved-ref: ca5ff187dd2ea118e813e71a5fdd712e290e474a
+      ref: master
+      resolved-ref: "6ecca172471a54b6384e6d2b522b1638d25ed1ce"
       url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"
@@ -322,7 +322,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: dcd2b5eae8bceb7a4321367497f0fa05a65432b4
+      resolved-ref: "45cd449ef0d94e0002229ab856fb18e2130bfc0d"
       url: "https://github.com/Noobware1/okhttp.git"
     source: git
     version: "1.0.0"
