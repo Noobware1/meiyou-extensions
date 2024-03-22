@@ -6,7 +6,7 @@ import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
 class Anilist {
-  static Future<ShowStatus> fetchStatusByTitle(
+  static Future<Status> fetchStatusByTitle(
       OkHttpClient client, String title) async {
     final query = """
             query {
@@ -47,12 +47,12 @@ class Anilist {
     });
 
     if (status == "FINISHED") {
-      return ShowStatus.Completed;
+      return Status.Completed;
     }
     if (status == "RELEASING") {
-      return ShowStatus.Ongoing;
+      return Status.Ongoing;
     } else {
-      return ShowStatus.Unknown;
+      return Status.Unknown;
     }
   }
 }

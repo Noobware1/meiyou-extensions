@@ -17,10 +17,10 @@ class GogoCDNExtractor {
 
   final OkHttpClient client;
 
-  Future<Video> extract(ExtractorLink extractorLink) async {
+  Future<Video> extract(ContentDataLink link) async {
     final Document document = await this
         .client
-        .newCall(GET(extractorLink.url))
+        .newCall(GET(link.data))
         .execute()
         .then((response) => (response as Response).body.document);
 
@@ -38,7 +38,7 @@ class GogoCDNExtractor {
       false,
     );
 
-    final httpUrl = Uri.parse(extractorLink.url);
+    final httpUrl = Uri.parse(link.data);
     final host = "https://${httpUrl.host}";
 
     final id = httpUrl.queryParameters["id"]!;
@@ -72,8 +72,7 @@ class GogoCDNExtractor {
       }
     }
     return Video(
-        videoSources: list,
-        headers: Headers.fromMap({'Referer': 'https://$host'}));
+        sources: list, headers: Headers.fromMap({'Referer': 'https://$host'}));
   }
 
   String cryptoHandler(String text, String iv, String secretKey, encrypt) {
@@ -91,7 +90,7 @@ class GogoCDNExtractor {
           .encrypt(text, secretKey, options: options)
           .toString();
     }
-    return CryptoDart.enc.UTF8
+    return CryptoDart.enc.Utf8
         .stringify(CryptoDart.AES.decrypt(text, secretKey, options: options));
   }
 
@@ -100,16 +99,14 @@ class GogoCDNExtractor {
 
     final url = j['file'];
     if (fileLabel == 'hls p' || fileLabel == 'auto p') {
-      return VideoSource(
+      return VideoSource.hls(
         url: url,
-        quality: VideoQuality.hlsMaster,
-        format: VideoFormat.hls,
         isBackup: backup,
       );
     } else {
       return VideoSource(
         url: url,
-        quality: VideoQuality.getFromString(fileLabel),
+        quality: Quality.getFromString(fileLabel),
         format: VideoFormat.mp4,
         isBackup: backup,
       );

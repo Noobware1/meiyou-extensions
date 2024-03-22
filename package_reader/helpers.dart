@@ -4,15 +4,19 @@ import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/preference.dart';
 
+import '../scripts/utils.dart';
+
+ void overrideLib() {
+  ExtensionlibOverrides.sharedPreferencesDir = getRepoPath();
+
+  ExtensionlibOverrides.networkHelper = NetworkHelper(MockNetworkPreferences());
+}
+
 List<CatalogueSource> getSources(String package, Program program) {
-  final network = NetworkHelper(MockNetworkPrefrences());
-  final $instance = ExtensionLoader.ofProgram(program).getSource(
-    package,
-    network,
-  );
+  final $instance = ExtensionLoader.ofProgram(program).getSource(package);
   if ($instance is SourceFactory) {
     return $instance
-        .getSources(network)
+        .getSources()
         .map((source) => source as CatalogueSource)
         .toList();
   } else if ($instance is CatalogueSource) {
@@ -22,7 +26,7 @@ List<CatalogueSource> getSources(String package, Program program) {
   }
 }
 
-class MockNetworkPrefrences implements NetworkPreferences {
+class MockNetworkPreferences implements NetworkPreferences {
   @override
   Preference<String> defaultUserAgent() => MockPreference('default_useragent',
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0');
@@ -65,7 +69,7 @@ class MockPreference<T> implements Preference<T> {
   void set(value) {
     // TODO: implement set
   }
-  
+
   @override
   Stream<T> changes() {
     // TODO: implement changes

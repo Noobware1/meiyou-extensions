@@ -15,7 +15,16 @@ import 'package:okhttp/response.dart';
 import 'package:meiyou_extensions/extractors/gogocdn.dart';
 
 class GogoAnime extends ParsedHttpSource {
-  GogoAnime(NetworkHelper networkHelper) : super(networkHelper);
+  GogoAnime();
+
+  @override
+  int get id => 7055547649318749672;
+
+  @override
+  final String name = 'GogoAnime';
+
+  @override
+  String get lang => 'en';
 
   @override
   String get baseUrl {
@@ -30,15 +39,6 @@ class GogoAnime extends ParsedHttpSource {
   final ajaxUrl = 'https://ajax.gogocdn.net';
 
   @override
-  final String name = 'GogoAnime';
-
-  @override
-  String get lang => 'en';
-
-  @override
-  int get id => 7055547649318749672;
-
-  @override
   HeadersBuilder headersBuilder() {
     return super
         .headersBuilder()
@@ -48,16 +48,38 @@ class GogoAnime extends ParsedHttpSource {
 
   // ============================== HomePage ===================================
   @override
-  Iterable<HomePageData> get homePageList => HomePageData.fromMap({
-        'Popular Ongoing':
-            '${this.ajaxUrl}/ajax/page-recent-release-ongoing.html',
-        'Latest Episodes': '${this.ajaxUrl}/ajax/page-recent-release.html',
-        'Popular Anime': '${this.baseUrl}/popular.html',
-      });
+  List<HomePageRequest> homePageRequests() {
+    return [
+      HomePageRequest(
+          name: 'Popular Ongoing',
+          data: '${this.ajaxUrl}/ajax/page-recent-release-ongoing.html'),
+      HomePageRequest(
+          name: 'Latest Episodes',
+          data: '${this.ajaxUrl}/ajax/page-recent-release.html'),
+      HomePageRequest(
+          name: 'Popular Anime', data: '${this.baseUrl}/popular.html'),
+    ];
+  }
 
   @override
-  String? homePageHasNextPageSelector(int page, HomePageRequest request) =>
-      null;
+  HomePage homePageParse(int page, HomePageRequest request, Response response) {
+    final document = response.body.document;
+    final data = homePageDataParse(page, request, response);
+
+    final bool hasNextPage;
+
+    final hasNextPageSelector = homePageNextPageSelector(page, request);
+    if (hasNextPageSelector != null) {
+      hasNextPage = document.selectFirst(hasNextPageSelector) != null;
+    } else {
+      hasNextPage = false;
+    }
+
+    return HomePage.fromData(
+      data: data,
+      hasNextPage: hasNextPage,
+    );
+  }
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
@@ -69,119 +91,152 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  String homePageListDataSelector(int page, HomePageRequest request) {
-    if (request.name == 'Popular Ongoing') {
-      return ".added_series_body.popular > ul > li";
-    } else if (request.name == 'Latest Episodes') {
-      return '.last_episodes.loaddub > .items > li';
-    } else {
-      return popularAnimeSelector();
-    }
+  String homePageDataSelector(int page, HomePageRequest request) {
+    throw UnsupportedError('Not Used');
   }
 
-  String popularAnimeSelector() => "div > ul.items > li";
+  String popularAnimeItemSelector() => "div > ul.items > li";
 
   @override
-  SearchResponse homePageListDataFromElement(
-      int page, HomePageRequest request, Element element) {
-    if (request.name == 'Popular Ongoing') {
-      return parsePopularOngoing(element);
-    } else if (request.name == 'Latest Episodes') {
-      return parseLatest(element);
+  String? homePageNextPageSelector(int page, HomePageRequest request) {
+    if (request.name == 'Popular Anime') {
+      return 'ul.pagination-list li:last-child:not(.selected)';
     } else {
-      final a = element.selectFirst('p.name > a')!;
-      return SearchResponse(
-        title: a.text,
-        url: this.baseUrl + a.attr('href')!,
-        poster: element.selectFirst('div.img > a > img')!.attr('src')!,
-        type: ShowType.Anime,
-      );
+      return null;
     }
   }
 
-  SearchResponse parseLatest(Element element) {
-    final a = element.selectFirst(' p.name > a')!;
-    return SearchResponse(
-      title: a.text,
-      url: this.baseUrl + a.attr('href')!,
-      poster: element.selectFirst('.img > a > img')?.attr('src') ?? '',
-      type: ShowType.Anime,
-      current: StringUtils.toIntOrNull(
-        StringUtils.substringAfter(
-                element.selectFirst('p.episode')?.text ?? '', 'Episode')
-            .trim(),
-      ),
+  HomePageData homePageDataParse(
+      int page, HomePageRequest request, Response response) {
+    return HomePageData.withRequest(
+      request,
+      homePageDataEntriesFromElement(request, response.body.document),
     );
   }
 
-  SearchResponse parsePopularOngoing(Element element) {
-    final a = element.selectFirst('a')!;
-    final img = RegExp(r"""background:\surl\(['|"](.*)['|"]\)""")
-        .firstMatch(a.selectFirst('div')!.attr('style')!)
-        ?.group(1);
+  @override
+  HomePageData homePageDataFromElement(
+      int page, HomePageRequest request, Element element) {
+    throw UnsupportedError('Not used');
+  }
 
-    return SearchResponse(
-        title: element.select('a')[1].text.trim(),
+  List<ContentItem> homePageDataEntriesFromElement(
+      HomePageRequest request, Document document) {
+    if (request.name == 'Popular Ongoing') {
+      return popularOngoingEntriesParse(document);
+    } else if (request.name == 'Latest Episodes') {
+      return latestEpisodesEntriesParse(document);
+    } else {
+      return popularEntriesParse(document);
+    }
+  }
+
+  List<ContentItem> latestEpisodesEntriesParse(Document document) {
+    return ListUtils.mapList(
+        document.select('.last_episodes.loaddub > .items > li'), (element) {
+      element as Element;
+      final a = element.selectFirst(' p.name > a')!;
+      return ContentItem(
+        title: a.text,
         url: this.baseUrl + a.attr('href')!,
-        generes: getGeneres(element.select('.genres > a')),
-        poster: img!,
-        type: ShowType.Anime);
+        poster: element.selectFirst('.img > a > img')?.attr('src') ?? '',
+        category: ContentCategory.Anime,
+        currentCount: StringUtils.toIntOrNull(
+          StringUtils.substringAfter(
+                  element.selectFirst('p.episode')?.text ?? '', 'Episode')
+              .trim(),
+        ),
+      );
+    });
+  }
+
+  List<ContentItem> popularOngoingEntriesParse(Document document) {
+    return ListUtils.mapList(
+        document.select('.added_series_body.popular > ul > li'), (element) {
+      element as Element;
+      final a = element.selectFirst('a')!;
+      final img = RegExp(r"""background:\surl\(['|"](.*)['|"]\)""")
+          .firstMatch(a.selectFirst('div')!.attr('style')!)
+          ?.group(1);
+
+      return ContentItem(
+          title: element.select('a')[1].text.trim(),
+          url: this.baseUrl + a.attr('href')!,
+          generes: getGeneres(element.select('.genres > a')),
+          poster: img!,
+          category: ContentCategory.Anime);
+    });
+  }
+
+  List<ContentItem> popularEntriesParse(Document document) {
+    return ListUtils.mapList(document.select(popularAnimeItemSelector()),
+        (element) {
+      element as Element;
+      final a = element.selectFirst('p.name > a')!;
+      return ContentItem(
+        title: a.text,
+        url: this.baseUrl + a.attr('href')!,
+        poster: element.selectFirst('div.img > a > img')!.attr('src')!,
+        category: ContentCategory.Anime,
+      );
+    });
   }
 
   @override
-  FilterList getFilterList() {
-    return FilterList([HeaderFilter('idk')]);
+  Request infoPageRequest(ContentItem contentItem) {
+    return GET(contentItem.url, headers: this.headers);
   }
 
   @override
-  Request mediaDetailsRequest(SearchResponse searchResponse) {
-    return GET(searchResponse.url, headers: this.headers);
-  }
-
-  @override
-  MediaDetails mediaDetailsFromDocument(Document document) {
-    final media = MediaDetails();
-
+  Future<InfoPage> infoPageFromDocument(
+      ContentItem contentItem, Document document) async {
     final body = document.selectFirst('div.anime_info_body_bg');
 
-    media.posterImage = body!.selectFirst('img')!.attr('src');
-
+    String? posterImage = body!.selectFirst('img')!.attr('src');
+    String? description;
+    ContentCategory? category;
+    List<String>? genres;
+    DateTime? startDate;
+    Status? status;
+    List<String>? otherTitles;
     for (var e in body.select('p.type')) {
       final header = e.selectFirst('span')!.text.trim();
 
       if (header == 'Plot Summary:') {
-        media.description = e.text.replaceFirst('Plot Summary:', '').trim();
+        description = e.text.replaceFirst('Plot Summary:', '').trim();
       } else if (header == 'Type:') {
-        media.type = getType(e.selectFirst('a')!.attr('title')!);
+        category = getCategory(e.selectFirst('a')!.attr('title')!);
       } else if (header == 'Genre:') {
-        media.genres = ListUtils.mapList(e.select('a'), (e) {
+        genres = ListUtils.mapList(e.select('a'), (e) {
           e as Element;
           return e.attr('title')!;
         });
       } else if (header == 'Released:') {
-        media.startDate = AppUtils.toDateTime(
+        startDate = AppUtils.toDateTime(
             StringUtils.toInt(e.text.replaceFirst('Released:', '').trim()));
       } else if (header == 'Status:') {
-        media.status = getStatus(e.text.replaceFirst('Status:', ''));
+        status = getStatus(e.text.replaceFirst('Status:', ''));
       } else if (header == 'Other name:') {
-        media.otherTitles =
-            e.text.replaceFirst('Other name:', '').trim().split(';');
+        otherTitles = e.text.replaceFirst('Other name:', '').trim().split(';');
       }
     }
-    return media;
+
+    final Anime content = await getAnime(document);
+
+    return InfoPage.withItem(
+      contentItem,
+      posterImage: posterImage,
+      description: description,
+      category: category,
+      genres: genres,
+      startDate: startDate,
+      status: status,
+      otherTitles: otherTitles,
+      content: content,
+    );
   }
 
-  @override
-  Future<MediaDetails> getMediaDetails(SearchResponse searchResponse) async {
-    Document document = await this
-        .client
-        .newCall(mediaDetailsRequest(searchResponse))
-        .execute()
-        .then((response) => (response as Response).body.document);
-
-    final mediaDetails = mediaDetailsFromDocument(document);
-    mediaDetails.copyFromSearchResponse(searchResponse);
-
+  Future<Anime> getAnime(Document document) async {
     final id = document
         .selectFirst('.anime_info_episodes_next > #movie_id')!
         .attr('value')!;
@@ -189,18 +244,11 @@ class GogoAnime extends ParsedHttpSource {
     final epEnd =
         document.select('ul#episode_page > li > a').last.attr('ep_end')!;
 
-    document = await this
-        .client
-        .newCall(episodeListRequest(epEnd, id))
-        .execute()
-        .then((response) => (response as Response).body.document);
-
-    mediaDetails.mediaItem = mediaItemFromDocument(document);
-    return mediaDetails;
+    return this.client.newCall(animeRequest(epEnd, id)).execute().then(
+        (response) => animeFromDocument((response as Response).body.document));
   }
 
-  @override
-  MediaItem? mediaItemFromDocument(Document document) {
+  Anime animeFromDocument(Document document) {
     final List<Episode> episodes = [];
     final elements = document.select(episodeListSelector());
 
@@ -208,10 +256,10 @@ class GogoAnime extends ParsedHttpSource {
       episodes.add(episodeFromElement(elements[i]));
     }
 
-    return Anime(episodes: episodes);
+    return Anime(episodes);
   }
 
-  Request episodeListRequest(String epEnd, String id) {
+  Request animeRequest(String epEnd, String id) {
     return GET(
       '${this.ajaxUrl}/ajax/load-list-episode?ep_start=0&ep_end=$epEnd&id=$id',
       headers: this.headers,
@@ -223,7 +271,7 @@ class GogoAnime extends ParsedHttpSource {
   Episode episodeFromElement(Element element) {
     return Episode(
       data: this.baseUrl + element.attr('href')!.trim(),
-      episode: StringUtils.toNum(
+      number: StringUtils.toNum(
           element.selectFirst('div.name')!.text.replaceFirst('EP ', '')),
     );
   }
@@ -231,61 +279,51 @@ class GogoAnime extends ParsedHttpSource {
   // ============================== LoadLinks ===================================
 
   @override
-  Request linksRequest(String url) {
-    return GET(url, headers: this.headers);
-  }
+  Request contentDataLinksRequest(String url) =>
+      GET(url, headers: this.headers);
 
   @override
-  String linksListSelector() => '.anime_muti_link > ul > li > a';
+  String contentDataLinkSelector(String url) =>
+      '.anime_muti_link > ul > li > a';
 
   @override
-  ExtractorLink linkFromElement(Element element) {
-    return ExtractorLink(
+  ContentDataLink contentDataLinkFromElement(String url, Element element) {
+    return ContentDataLink(
       name: element.text.replaceFirst('Choose this server', '').trim(),
-      url: AppUtils.httpify(element.attr('data-video')!),
+      data: AppUtils.httpify(element.attr('data-video')!),
     );
   }
 
-  @override
-  Future<List<ExtractorLink>> getLinks(String url) {
-    return this.client.newCall(linksRequest(url)).execute().then((response) {
-      response as Response;
-      final elements = response.body.document.select(linksListSelector());
-      final links = ListUtils.mapList(elements, (e) => linkFromElement(e));
-      return sortLinks(links);
-    });
-  }
+  // List<ExtractorLink> sortLinks(List<ExtractorLink> links) {
+  //   final server = this.preferences.getString(
+  //       Preferences.pref_server_key, Preferences.pref_server_default);
 
-  List<ExtractorLink> sortLinks(List<ExtractorLink> links) {
-    final server = this.preferences.getString(
-        Preferences.pref_server_key, Preferences.pref_server_default);
-
-    return links
-      ..sort((a, b) {
-        a as ExtractorLink;
-        b as ExtractorLink;
-        if (a.name == server) {
-          return 1;
-        } else if (b.name == server) {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
-  }
+  //   return links
+  //     ..sort((a, b) {
+  //       a as ExtractorLink;
+  //       b as ExtractorLink;
+  //       if (a.name == server) {
+  //         return 1;
+  //       } else if (b.name == server) {
+  //         return -1;
+  //       } else {
+  //         return 0;
+  //       }
+  //     });
+  // }
 
   @override
-  Future<Media?> getMedia(ExtractorLink link) async {
-    final Video? video;
-    if (link.url.contains('/streaming.php?') ||
-        link.url.contains('/embedplus?')) {
+  Future<ContentData?> getContentData(ContentDataLink link) async {
+    Video? video;
+    if (link.data.contains('/streaming.php?') ||
+        link.data.contains('/embedplus?')) {
       video = await GogoCDNExtractor(this.client).extract(link);
     } else {
       video = null;
     }
 
     if (video != null) {
-      video.videoSources = sortVideoSources(video.videoSources);
+      video = video.copyWith(sources: sortVideoSources(video.sources));
     }
 
     return video;
@@ -309,21 +347,34 @@ class GogoAnime extends ParsedHttpSource {
 
   // ============================== Search ===============================
   @override
-  String searchListSelector() => this.popularAnimeSelector();
+  FilterList getFilterList() {
+    return FilterList([HeaderFilter('idk')]);
+  }
 
   @override
-  Request searchRequest(int page, String query, FilterList filters) {
+  Request searchPageRequest(int page, String query, FilterList filters) {
     return GET('${this.baseUrl}/search.html?keyword=$query',
         headers: this.headers);
   }
 
   @override
-  SearchResponse searchResponseFromElement(Element element) {
-    return SearchResponse(
+  String searchPageItemSelector(int page, String query, FilterList filters) =>
+      popularAnimeItemSelector();
+
+  @override
+  String? searchPageNextPageSelector(
+      int page, String query, FilterList filters) {
+    throw UnimplementedError();
+  }
+
+  @override
+  ContentItem searchPageItemFromElement(
+      int page, String query, FilterList filters, Element element) {
+    return ContentItem(
       title: element.selectFirst('p.name > a')!.text,
       url: this.baseUrl + element.selectFirst('div.img > a')!.attr('href')!,
       poster: element.selectFirst('div.img > a > img')!.attr('src')!,
-      type: ShowType.Anime,
+      category: ContentCategory.Anime,
     );
   }
 
@@ -335,38 +386,22 @@ class GogoAnime extends ParsedHttpSource {
     });
   }
 
-  ShowType getType(String t) {
+  ContentCategory getCategory(String t) {
     if (t.contains("OVA") || t.contains("Special")) {
-      return ShowType.Ova;
+      return ContentCategory.Ova;
     } else if (t.contains("Movie")) {
-      return ShowType.AnimeMovie;
+      return ContentCategory.AnimeMovie;
     } else {
-      return ShowType.Anime;
+      return ContentCategory.Anime;
     }
   }
 
-  ShowStatus getStatus(String t) {
+  Status getStatus(String t) {
     if (t == 'Ongoing') {
-      return ShowStatus.Ongoing;
+      return Status.Ongoing;
     } else {
-      return ShowStatus.Completed;
+      return Status.Completed;
     }
-  }
-
-  // ============================== Not Used ===================================
-  @override
-  Request? mediaRequest(ExtractorLink link) {
-    throw UnsupportedError('Not Used');
-  }
-
-  @override
-  Media? mediaFromDocument(Document document) {
-    throw UnsupportedError('Not Used');
-  }
-
-  @override
-  Request? mediaItemRequest(SearchResponse searchResponse, Response response) {
-    throw UnsupportedError('Not Used');
   }
 
   // ============================== Preferences ===================================

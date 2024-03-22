@@ -22,9 +22,9 @@ class KickAssAnimeExtractor {
     "vid": "e13d38099bf562e8b9851a652d2043d3",
   };
 
-  Future<Video> extract(ExtractorLink link) async {
+  Future<Video> extract(ContentDataLink link) async {
     final String shortName = (link.extra!['shortName'] as String).toLowerCase();
-    final uri = Uri.parse(link.url);
+    final uri = Uri.parse(link.data);
     final String key = keysMap[shortName]!;
     final source = await this
         .client
@@ -36,7 +36,7 @@ class KickAssAnimeExtractor {
     });
 
     final decrypted = SourceDecrypted.decode(
-        CryptoDart.enc.UTF8.stringify(CryptoDart.AES.decrypt(
+        CryptoDart.enc.Utf8.stringify(CryptoDart.AES.decrypt(
       source[0],
       key,
       options: CipherOptions(
@@ -57,7 +57,7 @@ class KickAssAnimeExtractor {
     }
 
     return Video(
-      videoSources: videosSources,
+      sources: videosSources,
       subtitles: decrypted.subtitles,
       headers: getVideoHeaders(this.headers, uri.host),
     );
@@ -104,8 +104,8 @@ class KickAssAnimeExtractor {
     final encodedCid = StringUtils.substringBefore(
         StringUtils.substringAfter(html, "cid: '"), "'");
 
-    final cid = CryptoDart.enc.UTF8
-        .stringify(CryptoDart.enc.HEX.parse(encodedCid))
+    final cid = CryptoDart.enc.Utf8
+        .stringify(CryptoDart.enc.Hex.parse(encodedCid))
         .split('|');
 
     final route = cid[1].replaceFirst("player.php", "source.php");
@@ -181,7 +181,7 @@ class SourceDecrypted {
     if (AppUtils.isNotNull(url)) {
       return VideoSource(
           format: (isHLS) ? VideoFormat.hls : VideoFormat.dash,
-          quality: (isHLS) ? VideoQuality.hlsMaster : VideoQuality.unknown,
+          quality: (isHLS) ? Quality.hlsMaster : Quality.unknown,
           url: AppUtils.httpify(url.toString()));
     }
     return null;

@@ -24,8 +24,8 @@ class MegaCloud {
     return '$baseUrl/$embed/ajax/$e/getSources?id=$id';
   }
 
-  Future<Video> getVideoFromLink(ExtractorLink extractorLink) async {
-    final serverUrl = extractorLink.url;
+  Future<Video> getVideoFromLink(ContentDataLink link) async {
+    final serverUrl = link.data;
     final _EncryptedResponse response = await this
         .client
         .newCall(GET(
@@ -60,7 +60,7 @@ class MegaCloud {
 
         currentIndex += index[1];
       }
-      final decrypted = CryptoDart.enc.UTF8.stringify(
+      final decrypted = CryptoDart.enc.Utf8.stringify(
         CryptoDart.AES.decrypt(sourcesArray.join(''), extractedKey),
       );
 
@@ -72,7 +72,7 @@ class MegaCloud {
     response.tracks?.removeWhere((sub) => sub.language == 'thumbnails');
 
     return Video(
-      videoSources: videoSources,
+      sources: videoSources,
       subtitles: response.tracks,
     );
   }
@@ -94,13 +94,9 @@ class MegaCloud {
   }
 
   VideoSource toVideoSource(dynamic e) {
-    return VideoSource(
+    return VideoSource.hls(
       url: e['file'] as String,
-      quality: VideoQuality.hlsMaster,
-      format: getVideoFormat(
-        e['type'] as String,
-      ),
-    );
+    ).copyWith(format: getVideoFormat(e['type']));
   }
 
   VideoFormat getVideoFormat(String type) {

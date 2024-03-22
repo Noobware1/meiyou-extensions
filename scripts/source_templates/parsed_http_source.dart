@@ -6,14 +6,14 @@ import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:$sourceName/src/$sourceName.dart';
 
-ParsedHttpSource getSource(NetworkHelper network) {
-  return ${StringUtils.capitalize(sourceName)}(network);
+ParsedHttpSource getSource() {
+  return ${StringUtils.capitalize(sourceName)}();
 }
 ''';
 }
 
 String parsedHttpSourceTemplate(String sourceName) {
-  return '''  
+  return '''
 // ignore_for_file: unnecessary_this, unnecessary_cast 
 
 import 'package:meiyou_extensions_lib/models.dart';
@@ -24,125 +24,96 @@ import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
 class ${StringUtils.capitalize(sourceName)} extends ParsedHttpSource {
-  ${StringUtils.capitalize(sourceName)}(NetworkHelper network) : super(network);
+  ${StringUtils.capitalize(sourceName)}();
+
+ @override
+  int get id => throw UnimplementedError();
 
   @override
-  String get name => "$sourceName";
+  String get name => throw UnimplementedError();
 
   @override
-  // TODO: implement lang
-  String get lang => throw UnimplementedError();
-
-  @override
-  // TODO: implement baseUrl
   String get baseUrl => throw UnimplementedError();
 
   @override
-  // TODO: implement homePageList
-  Iterable<HomePageData> get homePageList => throw UnimplementedError();
-
-  @override
-  String? homePageHasNextPageSelector(int page, HomePageRequest request) {
-    // TODO: implement homePageHasNextPageSelector
-    throw UnimplementedError();
-  }
-
-  @override
-  SearchResponse homePageListDataFromElement(
-      int page, HomePageRequest request, Element element) {
-    // TODO: implement homePageListDataFromElement
-    throw UnimplementedError();
-  }
-
-  @override
-  String homePageListDataSelector(int page, HomePageRequest request) {
-    // TODO: implement homePageListDataSelector
+  List<HomePageRequest> homePageRequests() {
     throw UnimplementedError();
   }
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
-    // TODO: implement homePageRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  String homePageDataSelector(int page, HomePageRequest request) {
+    throw UnimplementedError();
+  }
+
+  @override
+  String? homePageNextPageSelector(int page, HomePageRequest request) {
+    throw UnimplementedError();
+  }
+
+  @override
+  HomePageData homePageDataFromElement(
+      int page, HomePageRequest request, Element element) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Request infoPageRequest(ContentItem contentItem) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<InfoPage> infoPageFromDocument(Document document) {
     throw UnimplementedError();
   }
 
   @override
   FilterList getFilterList() {
-    // TODO: implement getFilterList
     throw UnimplementedError();
   }
 
   @override
-  String searchListSelector() {
-    // TODO: implement searchListSelector
+  Request searchPageRequest(int page, String query, FilterList filters) {
     throw UnimplementedError();
   }
 
   @override
-  Request searchRequest(int page, String query, FilterList filters) {
-    // TODO: implement searchRequest
+  String searchPageItemSelector(int page, String query, FilterList filters) {
     throw UnimplementedError();
   }
 
   @override
-  SearchResponse searchResponseFromElement(Element element) {
-    // TODO: implement searchResponseFromElement
+  String? searchPageNextPageSelector(
+      int page, String query, FilterList filters) {
     throw UnimplementedError();
   }
 
   @override
-  MediaDetails mediaDetailsFromDocument(Document document) {
-    // TODO: implement mediaDetailsFromDocument
+  ContentItem searchPageItemFromElement(
+      int page, String query, FilterList filters, Element element) {
     throw UnimplementedError();
   }
 
   @override
-  Request mediaDetailsRequest(SearchResponse searchResponse) {
-    // TODO: implement mediaDetailsRequest
+  Request contentDataLinksRequest(String url) {
     throw UnimplementedError();
   }
 
   @override
-  Media? mediaFromDocument(Document document) {
-    // TODO: implement mediaFromDocument
+  String contentDataLinkSelector(String url) {
     throw UnimplementedError();
   }
 
   @override
-  MediaItem? mediaItemFromDocument(Document document) {
-    // TODO: implement mediaItemFromDocument
+  ContentDataLink contentDataLinkFromElement(String url, Element element) {
     throw UnimplementedError();
   }
 
-  @override
-  Request? mediaItemRequest(SearchResponse searchResponse, Response response) {
-    // TODO: implement mediaItemRequest
-    throw UnimplementedError();
-  }
 
-  @override
-  ExtractorLink linkFromElement(Element element) {
-    // TODO: implement linkFromElement
-    throw UnimplementedError();
-  }
-
-  @override
-  String linksListSelector() {
-    // TODO: implement linksListSelector
-    throw UnimplementedError();
-  }
-
-  @override
-  Request linksRequest(String url) {
-    // TODO: implement linksRequest
-    throw UnimplementedError();
-  }
-
-  @override
-  Request? mediaRequest(ExtractorLink link) {
-    // TODO: implement mediaRequest
-    throw UnimplementedError();
-  }
 }
 
 ''';

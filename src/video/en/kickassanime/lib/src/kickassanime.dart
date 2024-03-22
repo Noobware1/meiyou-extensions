@@ -1,7 +1,5 @@
 // ignore_for_file: unnecessary_this, unnecessary_cast
 
-import 'dart:convert';
-
 import 'package:kickassanime/src/kickassanime_extractor.dart';
 import 'package:kickassanime/src/preferences.dart';
 import 'package:meiyou_extensions_lib/models.dart';
@@ -13,7 +11,7 @@ import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
 class KickAssAnime extends HttpSource {
-  KickAssAnime(NetworkHelper network) : super(network);
+  KickAssAnime();
 
   @override
   int get id => 2081771513481539599;
@@ -32,12 +30,17 @@ class KickAssAnime extends HttpSource {
   String get apiUrl => '${this.baseUrl}/api/show';
 
   @override
-  Iterable<HomePageData> get homePageList => HomePageData.fromMap({
-        'Popular': '${this.apiUrl}/popular',
-        'Latest Sub': '${this.apiUrl}/recent?type=sub',
-        'Latest Dub': '${this.apiUrl}/recent?type=dub',
-        'Latest Donghua': '${this.apiUrl}/recent?type=chinese',
-      });
+  List<HomePageRequest> homePageRequests() {
+    return [
+      HomePageRequest(name: 'Popular', data: '${this.apiUrl}/popular'),
+      HomePageRequest(
+          name: 'Latest Sub', data: '${this.apiUrl}/recent?type=sub'),
+      HomePageRequest(
+          name: 'Latest Dub', data: '${this.apiUrl}/recent?type=dub'),
+      HomePageRequest(
+          name: 'Latest Donghua', data: '${this.apiUrl}/recent?type=chinese'),
+    ];
+  }
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
@@ -64,22 +67,14 @@ class KickAssAnime extends HttpSource {
       hasNext = json['hadNext'] as bool;
     }
 
-    return HomePage(
-      data: HomePageList(name: request.name, data: searchListFromJson(json)),
-      page: page,
+    return HomePage.fromRequest(
+      reqeust: request,
+      items: contentItemsFromJson(json),
       hasNextPage: hasNext,
     );
   }
 
-  @override
-  FilterList getFilterList() => FilterList([]);
-
-  @override
-  List<SearchResponse> searchParse(Response response) {
-    return response.body.json((json) => searchListFromJson(json));
-  }
-
-  List<SearchResponse> searchListFromJson(dynamic json) {
+  List<ContentItem> contentItemsFromJson(dynamic json) {
     final useEnglish = this.preferences.getBool(
         Preferences.pref_use_english_key,
         Preferences.PREF_USE_ENGLISH_DEFAULT)!;
@@ -88,96 +83,71 @@ class KickAssAnime extends HttpSource {
       final List<String>? genres = runCatching(
         () => ListUtils.mapList(json['genres'], (it) => it.toString()),
       ).getOrNull();
-
+      
       final String title;
       final String? englishTitle = json['title_en'];
-      if (englishTitle != null && englishTitle.isNotEmpty && useEnglish) {
+      if (useEnglish && englishTitle != null && englishTitle.isNotEmpty) {
         title = englishTitle;
       } else {
         title = json['title'];
       }
-      return SearchResponse(
+      print(title);
+
+      return ContentItem(
         title: title,
         url: json['slug'],
         description: json['synopsis'],
-        current: StringUtils.toIntOrNull(json['episode_number'].toString()),
-        poster: '${this.baseUrl}${Poster.fromJson(json["poster"])!.poster}',
-        type: getType(json['type']),
+        // currentCount:
+        //     StringUtils.toIntOrNull(json['episode_number'].toString()),
+        poster: '${this.baseUrl}${Poster.fromJson(json['poster'])!.poster}',
+        category: getCategory(json['type']),
         generes: genres,
       );
     });
   }
 
   @override
-  Request searchRequest(int page, String query, FilterList filters) {
-    final newHeaders = this
-        .headers
-        .newBuilder()
-        .add("Accept", "application/json, text/plain, */*")
-        .add("Host", Uri.parse(this.baseUrl).host)
-        .add("Referer", "${this.baseUrl}/anime")
-        .build();
-
-    final body = RequestBody.fromMap(
-      {"query": query, "page": page},
-      RequestBodyType.JSON,
-    );
-
-    return POST("$baseUrl/api/fsearch", headers: newHeaders, body: body);
-  }
+  Request infoPageRequest(ContentItem contentItem) =>
+      GET('${this.apiUrl}/${contentItem.url}');
 
   @override
-  MediaDetails mediaDetailsParse(Response response) {
+  Future<InfoPage> infoPageParse(
+      ContentItem contentItem, Response response) async {
     return response.body.json((json) {
-      final MediaDetails media = MediaDetails();
-
-      final Map<String, dynamic> data = {
-        'url': json['slug'] as String,
-        'locales': json['locales'] as List,
-      };
-      media.url = jsonEncode(data);
-
-      media.startDate =
+      final startDate =
           DateTime.tryParse(StringUtils.valueToString(json['start_date']));
-      media.endDate =
-          DateTime.tryParse(StringUtils.valueToString(json['end_date']));
 
-      final String? banner = Poster.fromJson(json["banner"])?.banner;
+      String? banner = Poster.fromJson(json["banner"])?.banner;
       if (banner != null) {
-        media.bannerImage = this.baseUrl + banner;
+        banner = this.baseUrl + banner;
       }
 
-      media.status = getShowStatus(json['status']);
+      final status = getStatus(json['status']);
 
-      media.duration = Duration(
+      final duration = Duration(
         milliseconds: StringUtils.toInt(json['episode_duration'].toString()),
       );
-      final otherTitle = json['title_original'] as String?;
-      if (otherTitle != null) {
-        media.otherTitles = [otherTitle];
+      List<String>? otherTitles;
+      final originalTitle = json['title_original'] as String?;
+      if (originalTitle != null) {
+        otherTitles = [originalTitle];
       }
 
-      return media;
+      return InfoPage.withItem(
+        contentItem,
+        bannerImage: banner,
+        startDate: startDate,
+        otherTitles: otherTitles,
+        status: status,
+        duration: duration,
+        content: Anime.lazy(() {
+          final String slug = json['slug'];
+          final List<String> locales = json['locales'];
+
+          return getAnime(slug, locales);
+        }),
+      );
     });
-  }
-
-  @override
-  Request mediaDetailsRequest(SearchResponse searchResponse) =>
-      GET('${this.apiUrl}/${searchResponse.url}');
-
-  @override
-  Future<MediaDetails> getMediaDetails(SearchResponse searchResponse) async {
-    final request = mediaDetailsRequest(searchResponse);
-    final MediaDetails mediaDetails = await this
-        .client
-        .newCall(request)
-        .execute()
-        .then((response) => mediaDetailsParse(response));
-
-    mediaDetails.mediaItem = await getAnime(mediaDetails.url);
-    mediaDetails.copyFromSearchResponse(searchResponse);
-
-    return mediaDetails;
   }
 
   Request episodeListRequest(String url, int page, String lang) =>
@@ -189,11 +159,10 @@ class KickAssAnime extends HttpSource {
       final episodes = ListUtils.mapList(json['result'] as List, (json) {
         final int number = json['episode_number'];
         return Episode(
-          episode: number,
+          number: number,
           name: json['title'],
           data: '$url/ep-$number-${json['slug'].toString()}',
-          posterImage:
-              this.baseUrl + Poster.fromJson(json['thumbnail'])!.thumbnail,
+          image: this.baseUrl + Poster.fromJson(json['thumbnail'])!.thumbnail,
         );
       });
 
@@ -208,11 +177,7 @@ class KickAssAnime extends HttpSource {
     });
   }
 
-  Future<Anime> getAnime(String data) async {
-    final decoded = jsonDecode(data);
-    final String url = decoded['url'];
-    final List<String> locales =
-        ListUtils.mapList(decoded['locales'], (e) => e.toString());
+  Future<Anime> getAnime(String url, List<String> locales) async {
     final prefLang = this.preferences.getString(
         Preferences.pref_audio_lang_key, Preferences.pref_audio_lang_default)!;
     final lang = locales.firstWhere((element) => element == prefLang,
@@ -231,34 +196,57 @@ class KickAssAnime extends HttpSource {
       episodes.addAll(episodeResponse.episodes);
     }
 
-    return Anime(episodes: episodes);
+    return Anime(episodes);
   }
 
   @override
-  MediaItem? mediaItemParse(SearchResponse searchResponse, Response response) {
-    throw UnsupportedError('Not Used');
+  FilterList getFilterList() => FilterList([]);
+
+  @override
+  Request searchPageRequest(int page, String query, FilterList filters) {
+    final newHeaders = this
+        .headers
+        .newBuilder()
+        .add("Accept", "application/json, text/plain, */*")
+        .add("Host", Uri.parse(this.baseUrl).host)
+        .add("Referer", "${this.baseUrl}/anime")
+        .build();
+
+    final body = RequestBody.fromMap(
+      {"query": query, "page": page},
+      RequestBodyType.JSON,
+    );
+
+    return POST("$baseUrl/api/fsearch", headers: newHeaders, body: body);
   }
 
   @override
-  Request? mediaItemRequest(SearchResponse searchResponse, Response response) {
-    throw UnsupportedError('Not Used');
+  SearchPage searchPageParse(
+      int page, String query, FilterList filters, Response response) {
+    return response.body.json((json) {
+      return SearchPage(hasNextPage: false, items: contentItemsFromJson(json));
+    });
   }
 
   @override
-  List<ExtractorLink> linksParse(Response response) {
+  Request contentDataLinksRequest(String url) =>
+      GET('${this.apiUrl}/${url.replaceFirst("/ep-", "/episode/ep-")}');
+
+  @override
+  List<ContentDataLink> contentDataLinksParse(String url, Response response) {
     final hosterselection = this.preferences.getStringList(
         Preferences.pref_hoster_key, Preferences.pref_hoster_default)!;
 
     return response.body.json((json) {
-      final List<ExtractorLink> links = [];
+      final List<ContentDataLink> links = [];
       final List<dynamic> servers = json['servers'];
 
       for (var server in servers) {
         final String name = server['name'];
         if (hosterselection.contains(name)) {
-          links.add(ExtractorLink(
+          links.add(ContentDataLink(
             name: name,
-            url: server['src'],
+            data: server['src'],
             extra: {'shortName': server['shortName'].toString()},
           ));
         }
@@ -269,45 +257,29 @@ class KickAssAnime extends HttpSource {
   }
 
   @override
-  Request linksRequest(String url) =>
-      GET('${this.apiUrl}/${url.replaceFirst("/ep-", "/episode/ep-")}');
-
-  @override
-  Future<Video> getMedia(ExtractorLink link) {
+  Future<ContentData?> getContentData(ContentDataLink link) {
     return KickAssAnimeExtractor(this.client, this.headers).extract(link);
   }
 
-  @override
-  Media? mediaParse(Response response) {
-    throw UnsupportedError('Not Used');
-  }
-
-  @override
-  Request? mediaRequest(ExtractorLink link) {
-    throw UnsupportedError('Not Used');
-  }
-
-  // utils
-
-  ShowType getType(String str) {
+  ContentCategory getCategory(String str) {
     if (str == 'tv') {
-      return ShowType.Anime;
+      return ContentCategory.Anime;
     } else if (str == 'ona') {
-      return ShowType.Ona;
+      return ContentCategory.Ona;
     } else if (str == 'movie') {
-      return ShowType.AnimeMovie;
+      return ContentCategory.AnimeMovie;
     } else {
-      return ShowType.Anime;
+      return ContentCategory.Anime;
     }
   }
 
-  ShowStatus getShowStatus(String str) {
+  Status getStatus(String str) {
     if (str == 'currently_airing') {
-      return ShowStatus.Ongoing;
+      return Status.Ongoing;
     } else if (str == 'finished_airing') {
-      return ShowStatus.Completed;
+      return Status.Completed;
     } else {
-      return ShowStatus.Unknown;
+      return Status.Unknown;
     }
   }
 }

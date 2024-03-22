@@ -10,10 +10,12 @@ import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
 void main(List<String> args) async {
+  // ignore: prefer_interpolation_to_compose_strings
   final prefsDir = (Directory.current.path + Platform.pathSeparator + 'prefs')
       .toDirectory()
     ..createSync();
-  SharedPreferences.initialize(prefsDir.path);
+
+  ExtensionlibOverrides.sharedPreferencesDir = prefsDir.path;
 
   var path = args[0].toLowerCase().replaceAll('/', Platform.pathSeparator);
   final segs = args[0].split('/');
@@ -28,30 +30,11 @@ void main(List<String> args) async {
 
   // final info = results.info;
 
-  final source = ExtensionLoader.ofProgram(results.program).loadCatalogueSource(
-      results.info.pkgName, NetworkHelper(MockNetworkPrefrences()));
+  final source = ExtensionLoader.ofProgram(results.program)
+      .loadCatalogueSource(results.info.pkgName);
 
-  // print(await source.getSearch(1, 'astra', FilterList([])));
+  // print(await source.getHomePage(1, source.homePageRequests().first));
+  print(await source.getSearchPage(1, 'one piece', FilterList([])));
 
-  print(await source.getMediaDetails(
-    SearchResponse(
-        title: "ASTRA LOST IN SPACE",
-        url: """{"id":"GMEHMEWZM","type":"series"}""",
-        poster:
-            "https://www.crunchyroll.com/imgsrv/display/thumbnail/960x1440/catalog/crunchyroll/e1e7a80baf33f97172a732732cb9caaf.jpe",
-        type: ShowType.Anime,
-        description:
-            """Eight high school students and a kid are flown out to Planet Camp, tasked with surviving on their own for a few days. But shortly after arriving, an ominous glowing orb warps them to an unknown quadrant of space, nearly 5,012 light years away.
-null
-Language: Sub Dubnull
-Maturity Ratings: TV-14
-null
-Audio: en-US , ja-JP
-null
-Subs: en-US , fr-FR , es-419 , pt-BR , ar-SA""",
-        generes: ["Sci-Fi"],
-        rating: null,
-        current: 12,
-        total: null),
-  ));
+  // print(await source.getInfoPage());
 }

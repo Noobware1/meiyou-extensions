@@ -5,12 +5,14 @@ import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 
 import 'package:html/dom.dart';
+import 'package:meiyou_extensions_lib/okhttp_extensions.dart';
+import 'package:meiyou_extensions_lib/utils.dart';
 import 'package:okhttp/okhttp.dart';
 import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
 class HiAnime extends ParsedHttpSource {
-  HiAnime(NetworkHelper network) : super(network);
+  HiAnime();
 
   @override
   int get id => 8875918538894472758;
@@ -38,48 +40,18 @@ class HiAnime extends ParsedHttpSource {
       "English";
 
   @override
-  Iterable<HomePageData> get homePageList => HomePageData.fromMap({
-        'Trending': '${this.baseUrl}/home',
-        'Latest Episodes': '${this.baseUrl}/recently-updated',
-        'Top Airing': '${this.baseUrl}/top-airing',
-        'Most Popular': '${this.baseUrl}/most-popular',
-        'New on hianime': '${this.baseUrl}/recently-added',
-      });
-
-  @override
-  String? homePageHasNextPageSelector(int page, HomePageRequest request) {
-    if (request.name != 'Trending') {
-      return 'li.page-item a[title=Next]';
-    }
-    return null;
-  }
-
-  @override
-  String homePageListDataSelector(int page, HomePageRequest request) {
-    return (request.name == 'Trending')
-        ? '.deslide-item'
-        : searchListSelector();
-  }
-
-  @override
-  SearchResponse homePageListDataFromElement(
-      int page, HomePageRequest request, Element element) {
-    if (request.name == 'Trending') {
-      final content = element.selectFirst('.deslide-item-content')!;
-
-      return SearchResponse(
-        title: content.selectFirst('div.desi-head-title.dynamic-name')!.text,
-        url: content
-            .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')!
-            .attr('href')!,
-        poster: element
-            .selectFirst('.deslide-cover > div > img')!
-            .attr('data-src')!,
-        type: getType(content.selectFirst('.sc-detail > div')!.text),
-        description: content.selectFirst('.desi-description')!.text.trim(),
-      );
-    }
-    return searchResponseFromElement(element);
+  List<HomePageRequest> homePageRequests() {
+    return [
+      HomePageRequest(name: 'Trending', data: '${this.baseUrl}/home'),
+      HomePageRequest(
+          name: 'Latest Episodes', data: '${this.baseUrl}/recently-updated'),
+      HomePageRequest(name: 'Top Airing', data: '${this.baseUrl}/top-airing'),
+      HomePageRequest(
+          name: 'Most Popular', data: '${this.baseUrl}/most-popular'),
+      HomePageRequest(
+          name: 'New on HiAnime',
+          data: '${this.baseUrl}/${this.baseUrl}/recently-added'),
+    ];
   }
 
   @override
@@ -92,18 +64,92 @@ class HiAnime extends ParsedHttpSource {
   }
 
   @override
-  FilterList getFilterList() => FilterList([]);
+  HomePage homePageParse(int page, HomePageRequest request, Response response) {
+    final document = response.body.document;
+    final items = homePageItemsFromDocument(request, document);
 
-  @override
-  String searchListSelector() => 'div.flw-item';
+    bool hasNextPage = false;
 
-  @override
-  Request searchRequest(int page, String query, FilterList filters) {
-    return GET('$baseUrl/search?q=$query&page=$page', headers: docHeaders);
+    final hasNextPageSelector = homePageNextPageSelector(page, request);
+    if (hasNextPageSelector != null) {
+      hasNextPage = document.selectFirst(hasNextPageSelector) != null;
+    }
+
+    return HomePage.fromRequest(
+      reqeust: request,
+      items: items,
+      hasNextPage: hasNextPage,
+    );
+  }
+
+  List<ContentItem> homePageItemsFromDocument(
+      HomePageRequest request, Document document) {
+    if (request.name == 'Trending') {
+      return trendingItemsFromDocument(document);
+    } else {
+      return [];
+    }
+  }
+
+  List<ContentItem> trendingItemsFromDocument(Document document) {
+    return ListUtils.mapList(document.select('li.page-item a[title=Next]'),
+        (element) {
+      element as Element;
+      final content = element.selectFirst('.deslide-item-content')!;
+
+      return ContentItem(
+        title: content.selectFirst('div.desi-head-title.dynamic-name')!.text,
+        url: content
+            .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')!
+            .attr('href')!,
+        poster: element
+            .selectFirst('.deslide-cover > div > img')!
+            .attr('data-src')!,
+        category: getCategory(content.selectFirst('.sc-detail > div')!.text),
+        description: content.selectFirst('.desi-description')!.text.trim(),
+      );
+    });
   }
 
   @override
-  SearchResponse searchResponseFromElement(Element element) {
+  String? homePageNextPageSelector(int page, HomePageRequest request) {
+    return (request.name == 'Trending') ? '.deslide-item' : null;
+  }
+
+  String contentItemSelector() => 'div.flw-item';
+
+  @override
+  Request infoPageRequest(ContentItem contentItem) {
+    // TODO: implement infoPageRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<InfoPage> infoPageFromDocument(
+      ContentItem contentItem, Document document) {
+    // TODO: implement infoPageFromDocument
+    throw UnimplementedError();
+  }
+
+  @override
+  FilterList getFilterList() => FilterList([HeaderFilter('idk')]);
+
+  @override
+  Request searchPageRequest(int page, String query, FilterList filters) =>
+      GET('$baseUrl/search?q=$query&page=$page', headers: docHeaders);
+
+  @override
+  String searchPageItemSelector(int page, String query, FilterList filters) =>
+      contentItemSelector();
+
+  @override
+  String? searchPageNextPageSelector(
+          int page, String query, FilterList filters) =>
+      null;
+
+  @override
+  ContentItem searchPageItemFromElement(
+      int page, String query, FilterList filters, Element element) {
     final details = element.selectFirst('div.film-detail > a')!;
     final url = details.attr('href')!;
     final String title;
@@ -114,80 +160,59 @@ class HiAnime extends ParsedHttpSource {
     }
     final poster =
         element.selectFirst('div.film-poster > img')!.attr('data-src')!;
-    final type = getType(element
+    final category = getCategory(element
         .selectFirst('div.film-detail > div.fd-infor > span.fdi-item')!
         .text);
-    return SearchResponse(
+    return ContentItem(
       title: title,
       url: url,
       poster: poster,
-      type: type,
+      category: category,
     );
   }
 
-  ShowType getType(String t) {
-    if (t.contains("OVA") || t.contains("Special")) {
-      return ShowType.Ova;
-    } else if (t.contains("Movie")) {
-      return ShowType.AnimeMovie;
-    } else if (t.contains("ONA")) {
-      return ShowType.Ona;
+  @override
+  Request contentDataLinksRequest(String url) {
+    // TODO: implement contentDataLinksRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  String contentDataLinkSelector(String url) {
+    // TODO: implement contentDataLinkSelector
+    throw UnimplementedError();
+  }
+
+  @override
+  ContentDataLink contentDataLinkFromElement(String url, Element element) {
+    // TODO: implement contentDataLinkFromElement
+    throw UnimplementedError();
+  }
+
+  ContentCategory getCategory(String c) {
+    if (c.contains("OVA") || c.contains("Special")) {
+      return ContentCategory.Ova;
+    } else if (c.contains("Movie")) {
+      return ContentCategory.AnimeMovie;
+    } else if (c.contains("ONA")) {
+      return ContentCategory.Ona;
     } else {
-      return ShowType.Anime;
+      return ContentCategory.Anime;
     }
   }
 
+  // not used
+
   @override
-  MediaDetails mediaDetailsFromDocument(Document document) {
-    // TODO: implement mediaDetailsFromDocument
+  HomePageData homePageDataFromElement(
+      int page, HomePageRequest request, Element element) {
+    // TODO: implement homePageDataFromElement
     throw UnimplementedError();
   }
 
   @override
-  Request mediaDetailsRequest(SearchResponse searchResponse) {
-    // TODO: implement mediaDetailsRequest
-    throw UnimplementedError();
-  }
-
-  @override
-  Media? mediaFromDocument(Document document) {
-    // TODO: implement mediaFromDocument
-    throw UnimplementedError();
-  }
-
-  @override
-  MediaItem? mediaItemFromDocument(Document document) {
-    // TODO: implement mediaItemFromDocument
-    throw UnimplementedError();
-  }
-
-  @override
-  Request? mediaItemRequest(SearchResponse searchResponse, Response response) {
-    // TODO: implement mediaItemRequest
-    throw UnimplementedError();
-  }
-
-  @override
-  ExtractorLink linkFromElement(Element element) {
-    // TODO: implement linkFromElement
-    throw UnimplementedError();
-  }
-
-  @override
-  String linksListSelector() {
-    // TODO: implement linksListSelector
-    throw UnimplementedError();
-  }
-
-  @override
-  Request linksRequest(String url) {
-    // TODO: implement linksRequest
-    throw UnimplementedError();
-  }
-
-  @override
-  Request? mediaRequest(ExtractorLink link) {
-    // TODO: implement mediaRequest
+  String homePageDataSelector(int page, HomePageRequest request) {
+    // TODO: implement homePageDataSelector
     throw UnimplementedError();
   }
 }
