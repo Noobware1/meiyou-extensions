@@ -32,7 +32,7 @@ class KickAssAnime extends HttpSource {
   @override
   List<HomePageRequest> homePageRequests() {
     return [
-      HomePageRequest(name: 'Popular', data: '${this.apiUrl}/popular'),
+      // HomePageRequest(name: 'Popular', data: '${this.apiUrl}/popular'),
       HomePageRequest(
           name: 'Latest Sub', data: '${this.apiUrl}/recent?type=sub'),
       HomePageRequest(
@@ -83,7 +83,7 @@ class KickAssAnime extends HttpSource {
       final List<String>? genres = runCatching(
         () => ListUtils.mapList(json['genres'], (it) => it.toString()),
       ).getOrNull();
-      
+
       final String title;
       final String? englishTitle = json['title_en'];
       if (useEnglish && englishTitle != null && englishTitle.isNotEmpty) {
@@ -91,7 +91,6 @@ class KickAssAnime extends HttpSource {
       } else {
         title = json['title'];
       }
-      print(title);
 
       return ContentItem(
         title: title,
