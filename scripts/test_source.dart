@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:meiyou_extensions_lib/extensions_lib.dart';
+import 'package:meiyou_extensions_lib/network.dart';
 import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
@@ -9,6 +10,7 @@ void main(List<String> args) async {
       .toDirectory()
     ..createSync();
 
+  ExtensionlibOverrides.networkHelper = NetworkHelper(Prefs());
   ExtensionlibOverrides.sharedPreferencesDir = prefsDir.path;
 
   var path = args[0].toLowerCase().replaceAll('/', Platform.pathSeparator);
@@ -25,7 +27,16 @@ void main(List<String> args) async {
   final source = ExtensionLoader.ofProgram(results.program)
       .loadCatalogueSource(results.info.pkgName);
 
-  print(source);
+  for (var request in source.homePageRequests()) {
+    try {
+      print(await source.getHomePage(1, request));
+    } catch (e, s) {
+      print(e);
+      print(s);
+    }
+    break;
+  }
+  print('done');
 
   prefsDir.deleteSync();
 }

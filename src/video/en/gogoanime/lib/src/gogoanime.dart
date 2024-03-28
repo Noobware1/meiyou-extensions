@@ -50,30 +50,21 @@ class GogoAnime extends ParsedHttpSource {
   @override
   List<HomePageRequest> homePageRequests() {
     return [
-      HomePageRequest(
-          name: 'Popular Ongoing',
-          data: '${this.ajaxUrl}/ajax/page-recent-release-ongoing.html'),
-      HomePageRequest(
-          name: 'Latest Episodes',
-          data: '${this.ajaxUrl}/ajax/page-recent-release.html'),
-      HomePageRequest(
-          name: 'Popular Anime', data: '${this.baseUrl}/popular.html'),
+      HomePageRequest(name: 'Recent Release - Sub', data: '1'),
+      HomePageRequest(name: 'Recent Release - Dub', data: '2'),
+      HomePageRequest(name: 'Recent Release - Chinese', data: '3'),
     ];
   }
 
   @override
   HomePage homePageParse(int page, HomePageRequest request, Response response) {
     final document = response.body.document;
+
     final data = homePageDataParse(page, request, response);
 
-    final bool hasNextPage;
-
     final hasNextPageSelector = homePageNextPageSelector(page, request);
-    if (hasNextPageSelector != null) {
-      hasNextPage = document.selectFirst(hasNextPageSelector) != null;
-    } else {
-      hasNextPage = false;
-    }
+
+    final bool hasNextPage = document.selectFirst(hasNextPageSelector) != null;
 
     return HomePage.fromData(
       data: data,
@@ -83,11 +74,10 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
-    String url = '${request.data}?page=$page';
-    if (request.name == 'Latest Episodes') {
-      url += '&type=2';
-    }
-    return GET(url, headers: this.headers);
+    return GET(
+      '${this.ajaxUrl}/ajax/page-recent-release.html?page=$page&type=${request.data}',
+      headers: this.headers,
+    );
   }
 
   @override
@@ -95,15 +85,11 @@ class GogoAnime extends ParsedHttpSource {
     throw UnsupportedError('Not Used');
   }
 
-  String popularAnimeItemSelector() => "div > ul.items > li";
+  String contentItemSelector() => "div > ul.items > li";
 
   @override
-  String? homePageNextPageSelector(int page, HomePageRequest request) {
-    if (request.name == 'Popular Anime') {
-      return 'ul.pagination-list li:last-child:not(.selected)';
-    } else {
-      return null;
-    }
+  String homePageNextPageSelector(int page, HomePageRequest request) {
+    return 'ul.pagination-list li:last-child:not(.selected)';
   }
 
   HomePageData homePageDataParse(
@@ -122,18 +108,7 @@ class GogoAnime extends ParsedHttpSource {
 
   List<ContentItem> homePageDataEntriesFromElement(
       HomePageRequest request, Document document) {
-    if (request.name == 'Popular Ongoing') {
-      return popularOngoingEntriesParse(document);
-    } else if (request.name == 'Latest Episodes') {
-      return latestEpisodesEntriesParse(document);
-    } else {
-      return popularEntriesParse(document);
-    }
-  }
-
-  List<ContentItem> latestEpisodesEntriesParse(Document document) {
-    return ListUtils.mapList(
-        document.select('.last_episodes.loaddub > .items > li'), (element) {
+    return ListUtils.mapList(document.select(contentItemSelector()), (element) {
       element as Element;
       final a = element.selectFirst(' p.name > a')!;
       return ContentItem(
@@ -146,38 +121,6 @@ class GogoAnime extends ParsedHttpSource {
                   element.selectFirst('p.episode')?.text ?? '', 'Episode')
               .trim(),
         ),
-      );
-    });
-  }
-
-  List<ContentItem> popularOngoingEntriesParse(Document document) {
-    return ListUtils.mapList(
-        document.select('.added_series_body.popular > ul > li'), (element) {
-      element as Element;
-      final a = element.selectFirst('a')!;
-      final img = RegExp(r"""background:\surl\(['|"](.*)['|"]\)""")
-          .firstMatch(a.selectFirst('div')!.attr('style')!)
-          ?.group(1);
-
-      return ContentItem(
-          title: element.select('a')[1].text.trim(),
-          url: this.baseUrl + a.attr('href')!,
-          generes: getGeneres(element.select('.genres > a')),
-          poster: img!,
-          category: ContentCategory.Anime);
-    });
-  }
-
-  List<ContentItem> popularEntriesParse(Document document) {
-    return ListUtils.mapList(document.select(popularAnimeItemSelector()),
-        (element) {
-      element as Element;
-      final a = element.selectFirst('p.name > a')!;
-      return ContentItem(
-        title: a.text,
-        url: this.baseUrl + a.attr('href')!,
-        poster: element.selectFirst('div.img > a > img')!.attr('src')!,
-        category: ContentCategory.Anime,
       );
     });
   }
@@ -359,7 +302,7 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   String searchPageItemSelector(int page, String query, FilterList filters) =>
-      popularAnimeItemSelector();
+      contentItemSelector();
 
   @override
   String? searchPageNextPageSelector(

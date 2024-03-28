@@ -32,7 +32,7 @@ class KickAssAnime extends HttpSource {
   @override
   List<HomePageRequest> homePageRequests() {
     return [
-      // HomePageRequest(name: 'Popular', data: '${this.apiUrl}/popular'),
+      HomePageRequest(name: 'Popular', data: '${this.apiUrl}/popular'),
       HomePageRequest(
           name: 'Latest Sub', data: '${this.apiUrl}/recent?type=sub'),
       HomePageRequest(
@@ -44,18 +44,20 @@ class KickAssAnime extends HttpSource {
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
-    String url = request.data;
-    if (request.name == 'Popular') {
-      url += '?page=$page';
-    } else {
-      url += '&page=$page';
-    }
+    final String url = buildString((it) {
+      it as StringBuffer;
+      it.write(request.data);
+      it.write(request.name == 'Popular' ? '?' : '&');
+      it.write('page=$page');
+    });
+    print(url);
     return GET(url);
   }
 
   @override
   HomePage homePageParse(int page, HomePageRequest request, Response response) {
     final json = response.body.json();
+
     final bool hasNext;
     if (request.name == 'Popular') {
       final int pageCount = json['page_count'];
@@ -85,12 +87,12 @@ class KickAssAnime extends HttpSource {
       ).getOrNull();
 
       final String title;
-      final String? englishTitle = json['title_en'];
-      if (useEnglish && englishTitle != null && englishTitle.isNotEmpty) {
-        title = englishTitle;
-      } else {
-        title = json['title'];
-      }
+      // final String? englishTitle = json['title_en'];
+      // if (useEnglish && englishTitle != null && englishTitle.isNotEmpty) {
+      //   title = englishTitle;
+      // } else {
+      title = json['title'];
+      // }
 
       return ContentItem(
         title: title,
@@ -223,7 +225,9 @@ class KickAssAnime extends HttpSource {
   SearchPage searchPageParse(
       int page, String query, FilterList filters, Response response) {
     return response.body.json((json) {
-      return SearchPage(hasNextPage: false, items: contentItemsFromJson(json));
+      return SearchPage(
+          hasNextPage: json['maxPage'] > page,
+          items: contentItemsFromJson(json));
     });
   }
 
