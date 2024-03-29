@@ -139,6 +139,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.0"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: c2b87cb7756efdf69892005af546c56c0b5037f54d2a88269b4f347a505e3ca2
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.5"
   exception_templates:
     dependency: transitive
     description:
@@ -280,7 +288,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: b1f5fa7047c07210a4fe5a01ddd7e0ff193e6eeb
+      resolved-ref: cb81a974068eca26f1a29fd1b61736581ee8f3d4
       url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"

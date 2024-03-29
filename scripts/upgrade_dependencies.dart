@@ -8,7 +8,7 @@ void main(List<String> args) async {
   print('Upgrading dependencies...');
   final repo = getRepoPath().toDirectory();
   Directory.current = repo;
-  runUpgradeCommand();
+  _runUpgradeCommand();
 
   final folderNames = [
     'novel',
@@ -31,7 +31,7 @@ void main(List<String> args) async {
           print(
               'Upgrading dependencies for $name/${langFolder.name}/${folder.name}');
           Directory.current = folder;
-          runUpgradeCommand();
+          _runUpgradeCommand();
         }
       }
     }
@@ -40,7 +40,7 @@ void main(List<String> args) async {
   print('Dependencies upgraded.');
 }
 
-void runUpgradeCommand() {
+void _runUpgradeCommand() {
   final result = Process.runSync('dart', ['pub', 'upgrade']);
   print(result.stdout);
 }

@@ -111,9 +111,10 @@ class GogoAnime extends ParsedHttpSource {
     return ListUtils.mapList(document.select(contentItemSelector()), (element) {
       element as Element;
       final a = element.selectFirst(' p.name > a')!;
+      final url = StringUtils.substringBeforeLast(a.getHref!, '-episode');
       return ContentItem(
         title: a.text,
-        url: this.baseUrl + a.attr('href')!,
+        url: url,
         poster: element.selectFirst('.img > a > img')?.attr('src') ?? '',
         category: ContentCategory.Anime,
         currentCount: StringUtils.toIntOrNull(
@@ -127,15 +128,17 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   Request infoPageRequest(ContentItem contentItem) {
-    return GET(contentItem.url, headers: this.headers);
+    return GET('${this.baseUrl}/category${contentItem.url}',
+        headers: this.headers);
   }
 
   @override
   Future<InfoPage> infoPageFromDocument(
       ContentItem contentItem, Document document) async {
-    final body = document.selectFirst('div.anime_info_body_bg');
+    final Element body = document.selectFirst('div.anime_info_body_bg')!;
 
-    String? posterImage = body!.selectFirst('img')!.attr('src');
+    String? posterImage = body.selectFirst('img')?.attr('src');
+
     String? description;
     ContentCategory? category;
     List<String>? genres;
@@ -184,8 +187,8 @@ class GogoAnime extends ParsedHttpSource {
         .selectFirst('.anime_info_episodes_next > #movie_id')!
         .attr('value')!;
 
-    final epEnd =
-        document.select('ul#episode_page > li > a').last.attr('ep_end')!;
+    final epEnd = (document.select('ul#episode_page > li > a').last as Element)
+        .attr('ep_end')!;
 
     return this.client.newCall(animeRequest(epEnd, id)).execute().then(
         (response) => animeFromDocument((response as Response).body.document));
@@ -213,7 +216,7 @@ class GogoAnime extends ParsedHttpSource {
 
   Episode episodeFromElement(Element element) {
     return Episode(
-      data: this.baseUrl + element.attr('href')!.trim(),
+      data: element.attr('href')!.trim(),
       number: StringUtils.toNum(
           element.selectFirst('div.name')!.text.replaceFirst('EP ', '')),
     );
@@ -223,7 +226,7 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   Request contentDataLinksRequest(String url) =>
-      GET(url, headers: this.headers);
+      GET(this.baseUrl + url, headers: this.headers);
 
   @override
   String contentDataLinkSelector(String url) =>

@@ -35,7 +35,7 @@ void main(List<String> args) async {
 
   for (var languageDir in mainDir.listSync()) {
     if (languageDir is Directory) {
-      readLanguageFolder(
+      _readLanguageFolder(
         extensions,
         languageDir,
         iconDir,
@@ -52,7 +52,7 @@ void main(List<String> args) async {
       .writeAsStringSync(extensions.toJsonEncode());
 }
 
-void readLanguageFolder(
+void _readLanguageFolder(
   List<AvailableExtension> list,
   Directory directory,
   Directory iconDirectory,
