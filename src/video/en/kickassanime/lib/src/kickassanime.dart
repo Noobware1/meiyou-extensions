@@ -17,10 +17,10 @@ class KickAssAnime extends HttpSource {
   int get id => 2081771513481539599;
 
   @override
-  String get name => 'KickAssAnime';
+  final String name = 'KickAssAnime';
 
   @override
-  String get lang => 'en';
+  final String lang = 'en';
 
   @override
   String get baseUrl => this
@@ -50,41 +50,42 @@ class KickAssAnime extends HttpSource {
       it.write(request.name == 'Popular' ? '?' : '&');
       it.write('page=$page');
     });
-    print(url);
     return GET(url);
   }
 
   @override
   HomePage homePageParse(int page, HomePageRequest request, Response response) {
-    final json = response.body.json();
+    return response.body.json((json) {
+      final bool hasNext;
+      if (request.name == 'Popular') {
+        final int pageCount = json['page_count'];
+        final page = StringUtils.toIntOrNull(
+                response.request.url.queryParameters['page']) ??
+            0;
+        hasNext = pageCount > page;
+      } else {
+        hasNext = json['hadNext'] as bool;
+      }
 
-    final bool hasNext;
-    if (request.name == 'Popular') {
-      final int pageCount = json['page_count'];
-      final page = StringUtils.toIntOrNull(
-              response.request.url.queryParameters['page']) ??
-          0;
-      hasNext = pageCount > page;
-    } else {
-      hasNext = json['hadNext'] as bool;
-    }
-
-    return HomePage.fromRequest(
-      reqeust: request,
-      items: contentItemsFromJson(json),
-      hasNextPage: hasNext,
-    );
+      return HomePage.fromRequest(
+        reqeust: request,
+        items: contentItemsFromJson(json),
+        hasNextPage: hasNext,
+      );
+    });
   }
 
   List<ContentItem> contentItemsFromJson(dynamic json) {
-    final useEnglish = this.preferences.getBool(
-        Preferences.pref_use_english_key,
-        Preferences.PREF_USE_ENGLISH_DEFAULT)!;
-
+    // final useEnglish = this.preferences.getBool(
+    //     Preferences.pref_use_english_key,
+    //     Preferences.PREF_USE_ENGLISH_DEFAULT)!;
     return ListUtils.mapList(json['result'] as List, (json) {
-      final List<String>? genres = runCatching(
-        () => ListUtils.mapList(json['genres'], (it) => it.toString()),
-      ).getOrNull();
+      // List<String>? genres;
+      // try {
+      //   genres = ListUtils.mapList(json['genres'], (it) => it.toString());
+      // } catch (e) {
+      //   genres = null;
+      // }
 
       final String title;
       // final String? englishTitle = json['title_en'];
@@ -102,7 +103,7 @@ class KickAssAnime extends HttpSource {
         //     StringUtils.toIntOrNull(json['episode_number'].toString()),
         poster: '${this.baseUrl}${Poster.fromJson(json['poster'])!.poster}',
         category: getCategory(json['type']),
-        generes: genres,
+        // generes: genres,
       );
     });
   }
