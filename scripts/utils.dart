@@ -5,9 +5,10 @@ import 'package:meiyou_extensions_lib/preference.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
 
 extension IoExtensions on String {
-  Directory toDirectory() => Directory(this);
+  Directory toDirectory() =>
+      Directory(this.replaceAll('/', Platform.pathSeparator));
 
-  File toFile() => File(this);
+  File toFile() => File(this.replaceAll('/', Platform.pathSeparator));
 }
 
 extension DirectoryUtils on Directory {

@@ -181,7 +181,7 @@ class SourceDecrypted {
     if (AppUtils.isNotNull(url)) {
       return VideoSource(
           format: (isHLS) ? VideoFormat.hls : VideoFormat.dash,
-          quality: (isHLS) ? Quality.hlsMaster : Quality.unknown,
+          quality: Quality.auto(),
           url: AppUtils.httpify(url.toString()));
     }
     return null;

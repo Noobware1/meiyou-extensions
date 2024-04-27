@@ -9,17 +9,22 @@ part 'source_templates/http_source.dart';
 part 'source_templates/parsed_http_source.dart';
 part 'source_templates/pub_spec.dart';
 
-void main(List<String> args) {
-  var path = args[0].toLowerCase();
+extension on Directory {
+  String get fixPath => path + Platform.pathSeparator;
+}
 
-  
+void main(List<String> args) async {
+  assert(args.isNotEmpty, 'Please provide a path to create the source');
+  assert(args[0].split('/').length == 3,
+      'The path must be in format <type[video|text|image]>/<language[all|en|etc]>/<name>');
+
+  var path = args[0].toLowerCase().replaceAll('/', Platform.pathSeparator);
+
   final segs = args[0].split('/');
-  if (segs.length < 3) {
-    throw Exception(
-        'The path must be in format <type[video|text|image]>/<language[all|en|etc]>/<name> but got $path');
-  }
 
-  final dir = (getSourceFolderPath() + path.toLowerCase()).toDirectory();
+  final dir =
+      (getSourceFolderPath() + Platform.pathSeparator + path.toLowerCase())
+          .toDirectory();
 
   if (dir.existsSync()) {
     throw Exception(
@@ -27,31 +32,35 @@ void main(List<String> args) {
   }
   print('Creating source ${segs.last}...');
   final createdPath = Scopes.let(
-      (getSourceFolderPath() + segs.sublist(0, 2).join('/')).toDirectory(),
-      (it) {
+      (getSourceFolderPath() +
+              Platform.pathSeparator +
+              segs.sublist(0, 2).join('/'))
+          .toDirectory(), (it) {
     it as Directory;
     if (!it.existsSync()) it.createSync(recursive: true);
     return it.path;
   })!;
 
-  print(createdPath);
+  print('Path: $createdPath');
   try {
-    Process.runSync(
+    final results = await Process.run(
       'dart create',
       ['--no-pub', '-t', 'package', segs.last],
       runInShell: true,
       workingDirectory: createdPath,
     );
+    print(results.stderr);
+    print(results.stdout);
     final sourceName = segs.last;
 
     // delete trash
-    ('${dir.path}example').toDirectory().deleteSync(recursive: true);
-    ('${dir.path}test').toDirectory().deleteSync(recursive: true);
-    ('${dir.path}CHANGELOG.md').toFile().deleteSync();
-    ('${dir.path}README.md').toFile().deleteSync();
-    '${dir.path}lib/src/${sourceName}_base.dart'.toFile().deleteSync();
-    '${dir.path}lib/$sourceName.dart'.toFile().deleteSync();
-    ('${dir.path}analysis_options.yaml').toFile().writeAsStringSync('''
+    ('${dir.fixPath}example').toDirectory().deleteSync(recursive: true);
+    ('${dir.fixPath}test').toDirectory().deleteSync(recursive: true);
+    ('${dir.fixPath}CHANGELOG.md').toFile().deleteSync();
+    ('${dir.fixPath}README.md').toFile().deleteSync();
+    '${dir.fixPath}lib/src/${sourceName}_base.dart'.toFile().deleteSync();
+    '${dir.fixPath}lib/$sourceName.dart'.toFile().deleteSync();
+    ('${dir.fixPath}analysis_options.yaml').toFile().writeAsStringSync('''
 
 include: package:lints/recommended.yaml
 
@@ -65,11 +74,11 @@ linter:
     final sourceType =
         StringUtils.toIntOrNull(ListUtils.getOrNull(args, 2)) ?? 0;
 
-    ('${dir.path}pubspec.yaml')
+    ('${dir.fixPath}pubspec.yaml')
         .toFile()
         .writeAsStringSync(pubSpecTemplate(segs.last, segs[1]));
 
-    '${dir.path}lib/main.dart'
+    '${dir.fixPath}lib/main.dart'
         .toFile()
         .writeAsStringSync(Scopes.let<int, String>(sourceType, (it) {
           switch (sourceType) {
@@ -86,7 +95,7 @@ linter:
           }
         })!);
 
-    '${dir.path}lib/src/$sourceName.dart'
+    '${dir.fixPath}lib/src/$sourceName.dart'
         .toFile()
         .writeAsStringSync(Scopes.let<int, String>(sourceType, (it) {
           switch (sourceType) {

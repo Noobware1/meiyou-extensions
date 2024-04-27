@@ -34,16 +34,28 @@ void main(List<String> args) async {
   //     .then((value) => value.getOrNull()?.json());
   // print(search);
 
-//   try {
-//     final info = await source.getInfoPage(ContentItem.fromJson(jsonDecode('''
-//   ''')));
+  try {
+    final info = await source.getInfoPage(ContentItem.fromJson(jsonDecode('''
+  {
+          "title": "One Piece",
+          "url": "one-piece-0948",
+          "poster": "https://kickassanimes.io/image/poster/one-piece-2056-hq.webp",
+          "category": 4,
+          "description": "",
+          "generes": null,
+          "rating": null,
+          "currentCount": null,
+          "totalCount": null
+        }
+  ''')));
 
-//     print(info);
-//     print(await (info.content as LazyContent).load());
-//   } catch (e, s) {
-//     print(e);
-//     print(s);
-//   }
+    print(info);
+    File('info.json').writeAsStringSync(
+        (await (info.content as LazyContent).load()).toString());
+  } catch (e, s) {
+    print(e);
+    print(s);
+  }
   // try {
   //   final links = await source.getContentDataLinks("bucchigiri-2-dc59/ep-12-8efeb8");
   //   print(links);
