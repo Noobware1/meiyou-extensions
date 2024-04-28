@@ -95,6 +95,7 @@ class GogoCDNExtractor {
   }
 
   VideoSource toVideoSource(dynamic j, bool backup) {
+    print(j);
     final fileLabel = StringUtils.valueToString(j['label']).toLowerCase();
 
     final url = j['file'];
