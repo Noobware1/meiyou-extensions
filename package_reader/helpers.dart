@@ -1,4 +1,5 @@
 import 'package:dart_eval/dart_eval.dart';
+import 'package:dart_eval/dart_eval_bridge.dart';
 import 'package:meiyou_extensions_lib/extensions_lib.dart';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
@@ -6,14 +7,15 @@ import 'package:meiyou_extensions_lib/preference.dart';
 
 import '../scripts/utils.dart';
 
- void overrideLib() {
+void overrideLib() {
   ExtensionlibOverrides.sharedPreferencesDir = getRepoPath();
 
   ExtensionlibOverrides.networkHelper = NetworkHelper(MockNetworkPreferences());
 }
 
 List<CatalogueSource> getSources(String package, Program program) {
-  final $instance = ExtensionLoader.ofProgram(program).getSource(package);
+  final runtime = ExtensionLoader.ofProgram(program);
+  final $instance = runtime.getSource(package);
   if ($instance is SourceFactory) {
     return $instance
         .getSources()

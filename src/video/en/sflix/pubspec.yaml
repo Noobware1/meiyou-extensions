@@ -1,7 +1,7 @@
-name: dopeflix
-sourceName: dopeflix
+name: sflix
+sourceName: sflix
 description: No description
-lang: lib-multisrc
+lang: en
 version: 1.0.0
 nsfw: 0
 publish_to: none

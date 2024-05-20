@@ -9,6 +9,7 @@ import 'package:meiyou_extensions_lib/utils.dart';
 import 'package:yaml/yaml.dart';
 // import '../scripts/utils.dart';
 import '../scripts/utils.dart';
+import 'extension_lib.dart';
 import 'helpers.dart';
 
 class ReadResult {
@@ -34,6 +35,8 @@ class PackageReader {
 
   final Map<String, Map<String, String>> _packages = {};
 
+  final Set<String> _extensionLibFilesRefs = {};
+
   String get _packageName => _info!.pkgName;
 
   late final _libPath = _packageFolder.path + Platform.pathSeparator + 'lib';
@@ -46,8 +49,6 @@ class PackageReader {
       'icon' +
       Platform.pathSeparator +
       'icon.png';
-
-  final List<String> _extensionsImports = [];
 
   AvailableExtension? _info;
 
@@ -82,17 +83,29 @@ class PackageReader {
   }
 
   void _addExtensionImports() {
-    final Map<String, String> files = {};
-    final lib = '..' + Platform.pathSeparator + 'lib' + Platform.pathSeparator;
-    for (var import in _extensionsImports) {
-      files[import] = (lib + import.replaceAll('/', Platform.pathSeparator))
-          .toFile()
-          .readAsStringSync();
+    if (_extensionLibFilesRefs.isEmpty) return;
+    final files = <String, String>{};
+    final allExtensionLibFiles = getAllExtensionLibFiles();
+
+    for (var code in allExtensionLibFiles.values) {
+      _extensionLibFilesRefs.addAll(_getMeiyouExtensionImports(code));
     }
 
-    if (files.isNotEmpty) {
-      _packages['meiyou_extensions'] = files;
+    for (var import in _extensionLibFilesRefs) {
+      if (files.containsKey(import)) continue;
+      final code = allExtensionLibFiles[import]!;
+      files[import] = code;
     }
+
+    _packages['meiyou_extensions'] = files;
+  }
+
+  Iterable<String> _getMeiyouExtensionImports(String code) {
+    return _meiyouExtensionRegex.allMatches(code).map((e) {
+      final value = e.group(1);
+      if (value == null) return null;
+      return value.substring(0, value.length - 1);
+    }).nonNulls;
   }
 
   void _readYaml(String file) {
@@ -119,24 +132,13 @@ class PackageReader {
   }
 
   void _read(Directory folder) {
-    for (var entity in folder.listSync()) {
-      if (entity is File && entity.name.endsWith('.dart')) {
+    for (var entity in folder.listSync(recursive: true).whereType<File>()) {
+      if (entity.name.endsWith('.dart')) {
         final code = entity.readAsStringSync();
+        if (code.isEmpty) continue;
 
-        if (code.isNotEmpty) {
-          _extensionsImports.addAll(
-            _meiyouExtensionRegex
-                .allMatches(code)
-                .map((e) => Scopes.let(e.group(1), (it) {
-                      if (it == null) return null;
-                      return it.substring(0, it.length - 1);
-                    }))
-                .nonNulls,
-          );
-          _packages[_packageName]![entity.pathInPackage()] = code;
-        }
-      } else if (entity is Directory) {
-        _read(entity);
+        _extensionLibFilesRefs.addAll(_getMeiyouExtensionImports(code));
+        _packages[_packageName]![entity.pathInPackage()] = code;
       } else {
         continue;
       }
