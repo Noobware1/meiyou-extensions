@@ -7,7 +7,7 @@ import 'package:meiyou_extensions_lib/utils.dart';
 import '../scripts/utils.dart';
 
 Map<String, String> getAllExtensionLibFiles() {
-  final lib = '${getRepoPath()}/lib'.toDirectory();
+  final lib = Directory('${getRepoPath()}${Platform.pathSeparator}lib');
   final libraries = <String, String>{};
 
   for (var entity in lib.listSync(recursive: true).whereType<File>()) {

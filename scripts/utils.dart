@@ -22,12 +22,9 @@ extension FileUtils on File {
 String getSourceFolderPath() => '${getRepoPath()}${Platform.pathSeparator}src';
 
 String getRepoPath() {
-  var path =
-      File.fromUri(Platform.script).absolute.path.split(Platform.pathSeparator);
-
-  return path
-      .sublist(0, path.indexOf('meiyou-extensions') + 1)
-      .join(Platform.pathSeparator);
+  final path = Directory.current.path.split(Platform.pathSeparator);
+  final i = path.indexOf('meiyou-extensions');
+  return path.sublist(0, i + 1).join(Platform.pathSeparator);
 }
 
 class Prefs implements NetworkPreferences {
