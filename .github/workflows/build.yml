@@ -49,9 +49,6 @@ jobs:
 
       - name: Build Video Plugins
         run: |
-          cd lib
-          ls
-          cd .. 
           cd scripts
           dart run create_repo.dart video
 
