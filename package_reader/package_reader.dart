@@ -88,7 +88,6 @@ class PackageReader {
     }
 
     for (var import in _extensionLibFilesRefs) {
-      print(allExtensionLibFiles.keys);
       if (files.containsKey(import)) continue;
       final code = allExtensionLibFiles[import]!;
       files[import] = code;
