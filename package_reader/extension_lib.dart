@@ -8,7 +8,6 @@ import '../scripts/utils.dart';
 import 'package:path/path.dart' as p;
 
 Map<String, String> getAllExtensionLibFiles() {
-  Directory(getRepoPath()).listSync().forEach(print);
   final lib = Directory(p.join(getRepoPath(), 'lib'));
   final libraries = <String, String>{};
 

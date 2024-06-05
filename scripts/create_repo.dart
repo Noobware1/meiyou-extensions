@@ -9,6 +9,11 @@ import 'utils.dart';
 import 'package:path/path.dart' as p;
 
 void main(List<String> args) async {
+  Directory(getRepoPath())
+      .listSync()
+      .whereType<Directory>()
+      .forEach((d) => print(d.path));
+
   final name = args[0];
   final mainPath = () {
     final split = p.split(Directory.current.path);
