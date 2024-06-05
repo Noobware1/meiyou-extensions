@@ -44,7 +44,7 @@ void main(List<String> args) async {
 
   stdout.writeln('Loading Source...');
 
-  final results = PackageReader(directory.path).read();
+  final results = PackageReader(directory).read();
 
   final source = ExtensionLoader.ofProgram(results.program)
       .loadCatalogueSource(results.info.pkgName);

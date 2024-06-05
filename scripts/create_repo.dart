@@ -8,7 +8,7 @@ import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
 void main(List<String> args) async {
-  final name = 'video';
+  final name = args[0];
   final mainPath =
       StringUtils.substringBeforeLast(Directory.current.path, 'scripts');
 
@@ -58,47 +58,42 @@ void _readLanguageFolder(
   Directory pluginDirectory,
 ) {
   print('Current language folder: ${directory.name}');
-  for (var entity in directory.listSync()) {
-    if (entity is Directory) {
-      try {
-        final readResults = PackageReader(entity.path).read();
-        list.add(readResults.info);
+  for (var entity in directory.listSync().whereType<Directory>()) {
+    try {
+      final readResults = PackageReader(entity).read();
+      list.add(readResults.info);
 
-        print('Copying icon for source: ${entity.name}');
-        File(iconDirectory.path +
-                Platform.pathSeparator +
-                readResults.info.iconUrl)
-            .writeAsBytesSync(readResults.iconBytes);
+      print('Copying icon for source: ${entity.name}');
+      File(iconDirectory.path +
+              Platform.pathSeparator +
+              readResults.info.iconUrl)
+          .writeAsBytesSync(readResults.iconBytes);
 
-        print('Creating plugin for source: ${entity.name}');
+      print('Creating plugin for source: ${entity.name}');
 
-        final Plugin plugin = Plugin(
-          code: readResults.program.write(),
-          icon: readResults.iconBytes,
-          metadata: PluginMetaData(
-            name: readResults.info.name,
-            pkgName: readResults.info.pkgName,
-            versionName: readResults.info.versionName,
-            lang: readResults.info.lang,
-            // repoUrl: _repoUrl,
-            isNsfw: readResults.info.isNsfw,
-            isOnline: readResults.sources.any((source) => source is HttpSource),
-          ),
-        );
+      final Plugin plugin = Plugin(
+        code: readResults.program.write(),
+        icon: readResults.iconBytes,
+        metadata: PluginMetaData(
+          name: readResults.info.name,
+          pkgName: readResults.info.pkgName,
+          versionName: readResults.info.versionName,
+          lang: readResults.info.lang,
+          isNsfw: readResults.info.isNsfw,
+          isOnline: readResults.sources.any((source) => source is HttpSource),
+        ),
+      );
 
-        File(pluginDirectory.path +
-                Platform.pathSeparator +
-                readResults.info.pluginName)
-            .writeAsBytesSync(plugin.encode());
+      File(pluginDirectory.path +
+              Platform.pathSeparator +
+              readResults.info.pluginName)
+          .writeAsBytesSync(plugin.encode());
 
-        print('Successfully created entry for source: ${entity.name}');
-      } catch (e, s) {
-        print('Error while creating entry for: ${entity.name}');
-        print('Error: $e');
-        print('Stacktrace: $s');
-      }
-    } else {
-      continue;
+      print('Successfully created entry for source: ${entity.name}');
+    } catch (e, s) {
+      print('Error while creating entry for: ${entity.name}');
+      print('Error: $e');
+      print('Stacktrace: $s');
     }
   }
 }

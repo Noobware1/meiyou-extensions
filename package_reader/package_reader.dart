@@ -31,7 +31,7 @@ class ReadResult {
 class PackageReader {
   final Directory _packageFolder;
 
-  PackageReader(String path) : _packageFolder = path.toDirectory();
+  PackageReader(Directory dir) : _packageFolder = dir;
 
   final Map<String, Map<String, String>> _packages = {};
 
