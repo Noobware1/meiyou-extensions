@@ -23,7 +23,7 @@ String getSourceFolderPath() => p.join(getRepoPath(), 'src');
 
 String getRepoPath() {
   final path = p.split(Directory.current.path);
-  final index = path.indexOf('meiyou-extensions');
+  final index = path.lastIndexOf('meiyou-extensions');
   return p.joinAll(path.sublist(0, index + 1));
 }
 

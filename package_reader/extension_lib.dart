@@ -14,7 +14,7 @@ Map<String, String> getAllExtensionLibFiles() {
   for (var entity in lib.listSync(recursive: true).whereType<File>()) {
     final path = () {
       final split = p.split(entity.path);
-      final index = split.indexOf('meiyou-extensions');
+      final index = split.lastIndexOf('meiyou-extensions');
       return split.sublist(index + 2).join('/');
     }();
     libraries[path] = entity.readAsStringSync();
