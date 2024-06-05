@@ -8,9 +8,15 @@ import '../package_reader/package_reader.dart';
 import 'utils.dart';
 
 void main(List<String> args) async {
-  final name = args[0];
+  final name = 'video';
   final mainPath =
       StringUtils.substringBeforeLast(Directory.current.path, 'scripts');
+
+  final mainDir = Directory(mainPath +
+      Platform.pathSeparator +
+      'src' +
+      Platform.pathSeparator +
+      name);
 
   final repoFolderPath =
       Directory(mainPath + 'repo' + Platform.pathSeparator + name)
@@ -23,13 +29,6 @@ void main(List<String> args) async {
   final pluginDir =
       Directory(repoFolderPath.path + Platform.pathSeparator + 'plugin')
         ..createSync();
-
-  final mainDir = Directory(
-    StringUtils.substringBeforeLast(Directory.current.path, 'scripts') +
-        'src' +
-        Platform.pathSeparator +
-        name,
-  );
 
   final List<AvailableExtension> extensions = [];
 
