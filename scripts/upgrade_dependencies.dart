@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:meiyou_extensions_lib/utils.dart';
-
+import 'package:path/path.dart' as p;
 import 'utils.dart';
 
 void main(List<String> args) async {
@@ -17,9 +17,7 @@ void main(List<String> args) async {
   ];
 
   for (var name in folderNames) {
-    final mainFolder =
-        '${repo.path}${Platform.pathSeparator}src${Platform.pathSeparator}$name'
-            .toDirectory();
+    final mainFolder = Directory(p.join(repo.path, 'src', name));
 
     for (var langFolder in mainFolder.listSync().whereType<Directory>()) {
       for (var folder in langFolder.listSync().whereType<Directory>()) {

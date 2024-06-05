@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/preference.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
+import 'package:path/path.dart' as p;
 
 extension IoExtensions on String {
-  Directory toDirectory() =>
-      Directory(this.replaceAll('/', Platform.pathSeparator));
+  Directory toDirectory() => Directory(this);
 
-  File toFile() => File(this.replaceAll('/', Platform.pathSeparator));
+  File toFile() => File(this);
 }
 
 extension DirectoryUtils on Directory {
@@ -19,12 +19,12 @@ extension FileUtils on File {
   String get name => uri.pathSegments.where((e) => e.isNotEmpty).last;
 }
 
-String getSourceFolderPath() => '${getRepoPath()}${Platform.pathSeparator}src';
+String getSourceFolderPath() => p.join(getRepoPath(), 'src');
 
 String getRepoPath() {
-  final path = Directory.current.path.split(Platform.pathSeparator);
-  final i = path.indexOf('meiyou-extensions');
-  return path.sublist(0, i + 1).join(Platform.pathSeparator);
+  final path = p.split(Directory.current.path);
+  final index = path.indexOf('meiyou-extensions');
+  return p.joinAll(path.sublist(0, index + 1));
 }
 
 class Prefs implements NetworkPreferences {

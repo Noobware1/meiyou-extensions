@@ -5,16 +5,18 @@ import 'dart:io';
 import 'package:meiyou_extensions_lib/utils.dart';
 
 import '../scripts/utils.dart';
+import 'package:path/path.dart' as p;
 
 Map<String, String> getAllExtensionLibFiles() {
-  final lib = Directory('${getRepoPath()}${Platform.pathSeparator}lib');
+  final lib = Directory(p.join(getRepoPath(), 'lib'));
   final libraries = <String, String>{};
 
   for (var entity in lib.listSync(recursive: true).whereType<File>()) {
-    final path = StringUtils.substringAfter(
-            entity.path, lib.path + Platform.pathSeparator)
-        .split(Platform.pathSeparator)
-        .join('/');
+    final path = () {
+      final split = p.split(entity.path);
+      final index = split.indexOf('meiyou-extensions');
+      return split.sublist(index + 2).join('/');
+    }();
     libraries[path] = entity.readAsStringSync();
   }
   return libraries;

@@ -7,6 +7,7 @@ import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
 import '../package_reader/package_reader.dart';
 import 'utils.dart';
+import 'package:path/path.dart' as p;
 
 void main(List<String> args) async {
   stdout.writeln('Test Source');
@@ -30,13 +31,12 @@ void main(List<String> args) async {
   final sourceName = stdin.readLineAndCheckForExit().toLowerCase();
 
   final directory =
-      '$srcPath/$sourceCategory/$sourceLanguage/$sourceName'.toDirectory();
+      p.join(srcPath, sourceCategory, sourceLanguage, sourceName).toDirectory();
 
   stdout.writeln('Selected Path: ${directory.path}');
 
   // ignore: prefer_interpolation_to_compose_strings
-  final prefsDir = (Directory.current.path + Platform.pathSeparator + 'prefs')
-      .toDirectory()
+  final prefsDir = p.join(Directory.current.path, 'prefs').toDirectory()
     ..createSync();
 
   ExtensionlibOverrides.networkHelper = NetworkHelper(Prefs());

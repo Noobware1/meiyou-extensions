@@ -11,6 +11,7 @@ import 'package:yaml/yaml.dart';
 import '../scripts/utils.dart';
 import 'extension_lib.dart';
 import 'helpers.dart';
+import 'package:path/path.dart' as p;
 
 class ReadResult {
   final AvailableExtension info;
@@ -39,16 +40,11 @@ class PackageReader {
 
   String get _packageName => _info!.pkgName;
 
-  late final _libPath = _packageFolder.path + Platform.pathSeparator + 'lib';
+  late final _libPath = p.join(_packageFolder.path, 'lib');
 
-  late final _pubspecPath =
-      _packageFolder.path + Platform.pathSeparator + 'pubspec.yaml';
+  late final _pubspecPath = p.join(_packageFolder.path, 'pubspec.yaml');
 
-  late final _iconPath = _packageFolder.path +
-      Platform.pathSeparator +
-      'icon' +
-      Platform.pathSeparator +
-      'icon.png';
+  late final _iconPath = p.join(_packageFolder.path, 'icon', 'icon.png');
 
   AvailableExtension? _info;
 
@@ -92,6 +88,7 @@ class PackageReader {
     }
 
     for (var import in _extensionLibFilesRefs) {
+      print(allExtensionLibFiles.keys);
       if (files.containsKey(import)) continue;
       final code = allExtensionLibFiles[import]!;
       files[import] = code;

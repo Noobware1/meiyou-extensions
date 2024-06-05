@@ -6,48 +6,40 @@ import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
 import '../package_reader/package_reader.dart';
 import 'utils.dart';
+import 'package:path/path.dart' as p;
 
 void main(List<String> args) async {
   final name = args[0];
-  final mainPath =
-      StringUtils.substringBeforeLast(Directory.current.path, 'scripts');
+  final mainPath = () {
+    final split = p.split(Directory.current.path);
+    final index = split.lastIndexOf('scripts');
+    return p.joinAll(split.sublist(0, index));
+  }();
 
-  final mainDir = Directory(mainPath +
-      Platform.pathSeparator +
-      'src' +
-      Platform.pathSeparator +
-      name);
+  final mainDir = Directory(p.join(mainPath, 'src', name));
 
-  final repoFolderPath =
-      Directory(mainPath + 'repo' + Platform.pathSeparator + name)
-        ..createSync(recursive: true);
+  final repoFolderPath = Directory(p.join(mainPath, 'repo', name))
+    ..createSync(recursive: true);
 
-  final iconDir =
-      Directory(repoFolderPath.path + Platform.pathSeparator + 'icon')
-        ..createSync();
+  final iconDir = Directory(p.join(repoFolderPath.path, 'icon'))..createSync();
 
-  final pluginDir =
-      Directory(repoFolderPath.path + Platform.pathSeparator + 'plugin')
-        ..createSync();
+  final pluginDir = Directory(p.join(repoFolderPath.path, 'plugin'))
+    ..createSync();
 
   final List<AvailableExtension> extensions = [];
 
-  for (var languageDir in mainDir.listSync()) {
-    if (languageDir is Directory) {
-      _readLanguageFolder(
-        extensions,
-        languageDir,
-        iconDir,
-        pluginDir,
-      );
-    } else {
-      continue;
-    }
+  for (var languageDir in mainDir.listSync().whereType<Directory>()) {
+    _readLanguageFolder(
+      extensions,
+      languageDir,
+      iconDir,
+      pluginDir,
+    );
   }
 
-  File('${repoFolderPath.path}${Platform.pathSeparator}index.json')
+  File(p.join(repoFolderPath.path, 'index.json'))
       .writeAsStringSync(extensions.toJsonEncode(true));
-  File('${repoFolderPath.path}${Platform.pathSeparator}index.min.json')
+  File(p.join(repoFolderPath.path, 'index.min.json'))
       .writeAsStringSync(extensions.toJsonEncode());
 }
 
@@ -58,18 +50,16 @@ void _readLanguageFolder(
   Directory pluginDirectory,
 ) {
   print('Current language folder: ${directory.name}');
-  for (var entity in directory.listSync().whereType<Directory>()) {
+  for (var dir in directory.listSync().whereType<Directory>()) {
     try {
-      final readResults = PackageReader(entity).read();
+      final readResults = PackageReader(dir).read();
       list.add(readResults.info);
 
-      print('Copying icon for source: ${entity.name}');
-      File(iconDirectory.path +
-              Platform.pathSeparator +
-              readResults.info.iconUrl)
+      print('Copying icon for source: ${dir.name}');
+      File(p.join(iconDirectory.path, readResults.info.iconUrl))
           .writeAsBytesSync(readResults.iconBytes);
 
-      print('Creating plugin for source: ${entity.name}');
+      print('Creating plugin for source: ${dir.name}');
 
       final Plugin plugin = Plugin(
         code: readResults.program.write(),
@@ -84,14 +74,12 @@ void _readLanguageFolder(
         ),
       );
 
-      File(pluginDirectory.path +
-              Platform.pathSeparator +
-              readResults.info.pluginName)
+      File(p.join(pluginDirectory.path, readResults.info.pluginName))
           .writeAsBytesSync(plugin.encode());
 
-      print('Successfully created entry for source: ${entity.name}');
+      print('Successfully created entry for source: ${dir.name}');
     } catch (e, s) {
-      print('Error while creating entry for: ${entity.name}');
+      print('Error while creating entry for: ${dir.name}');
       print('Error: $e');
       print('Stacktrace: $s');
     }

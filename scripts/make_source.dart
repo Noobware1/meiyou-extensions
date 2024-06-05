@@ -3,15 +3,12 @@ import 'dart:io';
 import 'package:meiyou_extensions_lib/utils.dart';
 
 import 'utils.dart';
+import 'package:path/path.dart' as p;
 part 'source_templates/source.dart';
 part 'source_templates/catalogue_source.dart';
 part 'source_templates/http_source.dart';
 part 'source_templates/parsed_http_source.dart';
 part 'source_templates/pub_spec.dart';
-
-extension on Directory {
-  String get fixPath => path + Platform.pathSeparator;
-}
 
 void main(List<String> args) async {
   assert(args.isNotEmpty, 'Please provide a path to create the source');
@@ -22,9 +19,7 @@ void main(List<String> args) async {
 
   final segs = args[0].split('/');
 
-  final dir =
-      (getSourceFolderPath() + Platform.pathSeparator + path.toLowerCase())
-          .toDirectory();
+  final dir = Directory(p.join(getSourceFolderPath(), path.toLowerCase()));
 
   if (dir.existsSync()) {
     throw Exception(
@@ -32,10 +27,8 @@ void main(List<String> args) async {
   }
   print('Creating source ${segs.last}...');
   final createdPath = Scopes.let(
-      (getSourceFolderPath() +
-              Platform.pathSeparator +
-              segs.sublist(0, 2).join('/'))
-          .toDirectory(), (it) {
+      Directory(p.joinAll([getSourceFolderPath(), ...segs.sublist(0, 2)])),
+      (it) {
     it as Directory;
     if (!it.existsSync()) it.createSync(recursive: true);
     return it.path;
@@ -54,13 +47,16 @@ void main(List<String> args) async {
     final sourceName = segs.last;
 
     // delete trash
-    ('${dir.fixPath}example').toDirectory().deleteSync(recursive: true);
-    ('${dir.fixPath}test').toDirectory().deleteSync(recursive: true);
-    ('${dir.fixPath}CHANGELOG.md').toFile().deleteSync();
-    ('${dir.fixPath}README.md').toFile().deleteSync();
-    '${dir.fixPath}lib/src/${sourceName}_base.dart'.toFile().deleteSync();
-    '${dir.fixPath}lib/$sourceName.dart'.toFile().deleteSync();
-    ('${dir.fixPath}analysis_options.yaml').toFile().writeAsStringSync('''
+    (p.join(dir.path, 'example')).toDirectory().deleteSync(recursive: true);
+    (p.join(dir.path, 'test')).toDirectory().deleteSync(recursive: true);
+    (p.join(dir.path, 'CHANGELOG.md')).toFile().deleteSync();
+    (p.join(dir.path, 'README.md')).toFile().deleteSync();
+    p
+        .join(dir.path, 'lib', 'src', '${sourceName}_base.dart')
+        .toFile()
+        .deleteSync();
+    p.join(dir.path, 'lib', '$sourceName.dart').toFile().deleteSync();
+    (p.join(dir.path, 'analysis_options.yaml')).toFile().writeAsStringSync('''
 
 include: package:lints/recommended.yaml
 
@@ -74,11 +70,12 @@ linter:
     final sourceType =
         StringUtils.toIntOrNull(ListUtils.getOrNull(args, 2)) ?? 0;
 
-    ('${dir.fixPath}pubspec.yaml')
+    (p.join(dir.path, 'pubspec.yaml'))
         .toFile()
         .writeAsStringSync(pubSpecTemplate(segs.last, segs[1]));
 
-    '${dir.fixPath}lib/main.dart'
+    p
+        .join(dir.path, 'lib', 'main.dart')
         .toFile()
         .writeAsStringSync(Scopes.let<int, String>(sourceType, (it) {
           switch (sourceType) {
@@ -95,7 +92,8 @@ linter:
           }
         })!);
 
-    '${dir.fixPath}lib/src/$sourceName.dart'
+    p
+        .join(dir.path, 'lib', 'src', '$sourceName.dart')
         .toFile()
         .writeAsStringSync(Scopes.let<int, String>(sourceType, (it) {
           switch (sourceType) {
