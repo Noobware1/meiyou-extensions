@@ -14,22 +14,17 @@ import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
 abstract class Dopeflix extends ParsedHttpSource {
-  Dopeflix({
-    required this.name,
-    required this.lang,
-    required this.domainList,
-    required this.defaultDomain,
-  });
+  Dopeflix();
 
   @override
-  final String name;
+  abstract final String name;
 
   @override
-  final String lang;
+  abstract final String lang;
 
-  final List<String> domainList;
+  abstract final List<String> domainList;
 
-  final String defaultDomain;
+  abstract final String defaultDomain;
 
   @override
   String get baseUrl => this
@@ -49,7 +44,7 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 
   @override
-  HomePage homePageParse(int page, HomePageRequest request, Response response) {
+  HomePage homePageParse(HomePageRequest request, Response response) {
     final document = response.body.document;
 
     final banner = ListUtils.mapList(
@@ -140,28 +135,21 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 
   @override
-  String homePageDataSelector(int page, HomePageRequest request) {
+  String homePageDataSelector(HomePageRequest request) {
     throw UnsupportedError('Not Used');
   }
 
   @override
-  String homePageNextPageSelector(int page, HomePageRequest request) {
+  String homePageNextPageSelector(HomePageRequest request) {
     throw UnsupportedError('Not Used');
   }
 
   @override
-  HomePageData homePageDataFromElement(
-      int page, HomePageRequest request, Element element) {
-    throw UnsupportedError('Not used');
-  }
+  Request infoPageRequest(String url) =>
+      GET('${this.baseUrl}/${url}', headers: this.headers);
 
   @override
-  Request infoPageRequest(ContentItem contentItem) =>
-      GET('${this.baseUrl}/${contentItem.url}', headers: this.headers);
-
-  @override
-  Future<InfoPage> infoPageFromDocument(
-      ContentItem contentItem, Document document) async {
+  Future<InfoPage> infoPageFromDocument(Document document) async {
     final rating = StringUtils.toDoubleOrNull(StringUtils.substringAfter(
         document.selectFirst('.imdb)')!.text, 'IMDB: '));
 
@@ -200,15 +188,14 @@ abstract class Dopeflix extends ParsedHttpSource {
         document.select('div.flw-item > div.film-poster'),
         (e) => contentItemFromElement(e));
 
-    final Content content;
-    if (contentItem.category == ContentCategory.Movie) {
-      content = getMovie(contentItem.url);
-    } else {
-      content = await getSeries(contentItem.url);
-    }
+    // final Content content;
+    // if (contentItem.category == ContentCategory.Movie) {
+    //   content = getMovie(contentItem.url);
+    // } else {
+    //   content = await getSeries(contentItem.url);
+    // }
 
-    return InfoPage.withItem(
-      contentItem,
+    return InfoPage(
       genres: genres,
       startDate: startDate,
       rating: rating,
@@ -216,7 +203,7 @@ abstract class Dopeflix extends ParsedHttpSource {
       characters: cast,
       duration: duration,
       recommendations: recommendations,
-      content: content,
+      // content: content,
     );
   }
 
@@ -281,7 +268,7 @@ abstract class Dopeflix extends ParsedHttpSource {
       GET(this.baseUrl + url, headers: this.headers);
 
   @override
-  String contentDataLinkSelector(String url) => 'ul.ulclear.fss-list > li > a';
+  String contentDataLinkSelector() => 'ul.ulclear.fss-list > li > a';
 
   @override
   Future<List<ContentDataLink>> getContentDataLinks(String url) async {
@@ -289,7 +276,7 @@ abstract class Dopeflix extends ParsedHttpSource {
         await client.newCall(contentDataLinksRequest(url)).execute();
 
     final document = response.body.document;
-    final servers = document.select(contentDataLinkSelector(url));
+    final servers = document.select(contentDataLinkSelector());
     final episodeReferer =
         Headers.fromMap({"Referer": response.request.headers["referer"]!});
 
@@ -314,7 +301,7 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 
   @override
-  ContentDataLink contentDataLinkFromElement(String url, Element element) {
+  ContentDataLink contentDataLinkFromElement(Element element) {
     throw UnsupportedError('Not used');
   }
 
@@ -379,18 +366,15 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 
   @override
-  String searchPageItemSelector(int page, String query, FilterList filters) =>
-      ''; // contentItemSelector();
+  String searchPageItemSelector() => ''; // contentItemSelector();
 
   @override
-  String? searchPageNextPageSelector(
-      int page, String query, FilterList filters) {
+  String? searchPageNextPageSelector() {
     throw UnimplementedError();
   }
 
   @override
-  ContentItem searchPageItemFromElement(
-      int page, String query, FilterList filters, Element element) {
+  ContentItem searchPageItemFromElement(Element element) {
     return ContentItem(
       title: element.selectFirst('p.name > a')!.text,
       url: this.baseUrl + element.selectFirst('div.img > a')!.attr('href')!,

@@ -54,6 +54,11 @@ class PreferenceImpl<T> implements Preference<T> {
   }
 
   @override
+  T getAndSet(T value) {
+    return this.value;
+  }
+
+  @override
   T defaultValue() {
     return value;
   }

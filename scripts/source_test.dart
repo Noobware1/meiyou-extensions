@@ -134,7 +134,7 @@ Future<void> runCommand({
       if (index == 'b') break;
       final item = items.elementAt(int.parse(index));
       try {
-        final res = await source.getInfoPage(item);
+        final res = await source.getInfoPage(item.url);
         if (res.content != null && !res.content!.isLazy) {
           contents.add(res.content!);
         }

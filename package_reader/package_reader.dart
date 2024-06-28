@@ -61,6 +61,8 @@ class PackageReader {
     _addExtensionImports();
 
     final program = ExtensionComplier().compile(_packages);
+    
+
     final sources = getSources(
       _info!.pkgName,
       program,

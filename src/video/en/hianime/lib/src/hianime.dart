@@ -64,69 +64,51 @@ class HiAnime extends ParsedHttpSource {
   }
 
   @override
-  HomePage homePageParse(int page, HomePageRequest request, Response response) {
-    final document = response.body.document;
-    final items = homePageItemsFromDocument(request, document);
-
-    bool hasNextPage = false;
-
-    final hasNextPageSelector = homePageNextPageSelector(page, request);
-    if (hasNextPageSelector != null) {
-      hasNextPage = document.selectFirst(hasNextPageSelector) != null;
+  ContentItem homePageItemFromElement(
+      HomePageRequest request, Element element) {
+    if (request.name == 'Trending') {
+      return trendingItemFromElement(element);
+    } else {
+      return searchPageItemFromElement(element);
     }
+  }
 
-    return HomePage.fromRequest(
-      reqeust: request,
-      items: items,
-      hasNextPage: hasNextPage,
+  @override
+  String homePageItemSelector(HomePageRequest request) {
+    if (request.name == 'Trending') {
+      return 'li.page-item a[title=Next]';
+    } else {
+      return searchPageItemSelector();
+    }
+  }
+
+  ContentItem trendingItemFromElement(Element element) {
+    final content = element.selectFirst('.deslide-item-content')!;
+
+    return ContentItem(
+      title: content.selectFirst('div.desi-head-title.dynamic-name')!.text,
+      url: content
+          .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')!
+          .attr('href')!,
+      poster:
+          element.selectFirst('.deslide-cover > div > img')!.attr('data-src')!,
+      category: getCategory(content.selectFirst('.sc-detail > div')!.text),
+      description: content.selectFirst('.desi-description')!.text.trim(),
     );
   }
 
-  List<ContentItem> homePageItemsFromDocument(
-      HomePageRequest request, Document document) {
-    if (request.name == 'Trending') {
-      return trendingItemsFromDocument(document);
-    } else {
-      return [];
-    }
-  }
-
-  List<ContentItem> trendingItemsFromDocument(Document document) {
-    return ListUtils.mapList(document.select('li.page-item a[title=Next]'),
-        (element) {
-      element as Element;
-      final content = element.selectFirst('.deslide-item-content')!;
-
-      return ContentItem(
-        title: content.selectFirst('div.desi-head-title.dynamic-name')!.text,
-        url: content
-            .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')!
-            .attr('href')!,
-        poster: element
-            .selectFirst('.deslide-cover > div > img')!
-            .attr('data-src')!,
-        category: getCategory(content.selectFirst('.sc-detail > div')!.text),
-        description: content.selectFirst('.desi-description')!.text.trim(),
-      );
-    });
-  }
-
   @override
-  String? homePageNextPageSelector(int page, HomePageRequest request) {
+  String? homePageNextPageSelector(HomePageRequest request) {
     return (request.name == 'Trending') ? '.deslide-item' : null;
   }
 
-  String contentItemSelector() => 'div.flw-item';
-
   @override
-  Request infoPageRequest(ContentItem contentItem) {
-    // TODO: implement infoPageRequest
+  Request infoPageRequest(String url) {
     throw UnimplementedError();
   }
 
   @override
-  Future<InfoPage> infoPageFromDocument(
-      ContentItem contentItem, Document document) {
+  Future<InfoPage> infoPageFromDocument(Document document) {
     // TODO: implement infoPageFromDocument
     throw UnimplementedError();
   }
@@ -139,17 +121,13 @@ class HiAnime extends ParsedHttpSource {
       GET('$baseUrl/search?q=$query&page=$page', headers: docHeaders);
 
   @override
-  String searchPageItemSelector(int page, String query, FilterList filters) =>
-      contentItemSelector();
+  String searchPageItemSelector() => 'div.flw-item';
 
   @override
-  String? searchPageNextPageSelector(
-          int page, String query, FilterList filters) =>
-      null;
+  String? searchPageNextPageSelector() => null;
 
   @override
-  ContentItem searchPageItemFromElement(
-      int page, String query, FilterList filters, Element element) {
+  ContentItem searchPageItemFromElement(Element element) {
     final details = element.selectFirst('div.film-detail > a')!;
     final url = details.attr('href')!;
     final String title;
@@ -178,13 +156,12 @@ class HiAnime extends ParsedHttpSource {
   }
 
   @override
-  String contentDataLinkSelector(String url) {
-    // TODO: implement contentDataLinkSelector
+  String contentDataLinkSelector() {
     throw UnimplementedError();
   }
 
   @override
-  ContentDataLink contentDataLinkFromElement(String url, Element element) {
+  ContentDataLink contentDataLinkFromElement(Element element) {
     // TODO: implement contentDataLinkFromElement
     throw UnimplementedError();
   }
@@ -199,20 +176,5 @@ class HiAnime extends ParsedHttpSource {
     } else {
       return ContentCategory.Anime;
     }
-  }
-
-  // not used
-
-  @override
-  HomePageData homePageDataFromElement(
-      int page, HomePageRequest request, Element element) {
-    // TODO: implement homePageDataFromElement
-    throw UnimplementedError();
-  }
-
-  @override
-  String homePageDataSelector(int page, HomePageRequest request) {
-    // TODO: implement homePageDataSelector
-    throw UnimplementedError();
   }
 }

@@ -16,6 +16,7 @@ void overrideLib() {
 List<CatalogueSource> getSources(String package, Program program) {
   final runtime = ExtensionLoader.ofProgram(program);
   final $instance = runtime.getSource(package);
+
   if ($instance is SourceFactory) {
     return $instance
         .getSources()
@@ -52,6 +53,11 @@ class MockPreference<T> implements Preference<T> {
   @override
   void delete() {
     // TODO: implement delete
+  }
+
+  @override
+  T getAndSet(T value) {
+    return _value;
   }
 
   @override

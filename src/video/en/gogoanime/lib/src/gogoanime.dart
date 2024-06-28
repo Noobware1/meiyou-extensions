@@ -57,22 +57,6 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  HomePage homePageParse(int page, HomePageRequest request, Response response) {
-    final document = response.body.document;
-
-    final data = homePageDataParse(page, request, response);
-
-    final hasNextPageSelector = homePageNextPageSelector(page, request);
-
-    final bool hasNextPage = document.selectFirst(hasNextPageSelector) != null;
-
-    return HomePage.fromData(
-      data: data,
-      hasNextPage: hasNextPage,
-    );
-  }
-
-  @override
   Request homePageRequest(int page, HomePageRequest request) {
     return GET(
       '${this.ajaxUrl}/ajax/page-recent-release.html?page=$page&type=${request.data}',
@@ -81,62 +65,37 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  String homePageDataSelector(int page, HomePageRequest request) {
-    throw UnsupportedError('Not Used');
-  }
-
-  String contentItemSelector() => "div > ul.items > li";
-
-  @override
-  String homePageNextPageSelector(int page, HomePageRequest request) {
+  String homePageNextPageSelector(HomePageRequest request) {
     return 'ul.pagination-list li:last-child:not(.selected)';
   }
 
-  HomePageData homePageDataParse(
-      int page, HomePageRequest request, Response response) {
-    return HomePageData.withRequest(
-      request,
-      homePageDataEntriesFromElement(request, response.body.document),
+  @override
+  String homePageItemSelector(HomePageRequest request) =>
+      searchPageItemSelector();
+
+  @override
+  ContentItem homePageItemFromElement(
+      HomePageRequest request, Element element) {
+    final a = element.selectFirst(' p.name > a')!;
+    final url = StringUtils.substringBeforeLast(a.getHref!, '-episode');
+    return ContentItem(
+      title: a.text,
+      url: url,
+      poster: element.selectFirst('.img > a > img')?.attr('src') ?? '',
+      category: ContentCategory.Anime,
     );
   }
 
   @override
-  HomePageData homePageDataFromElement(
-      int page, HomePageRequest request, Element element) {
-    throw UnsupportedError('Not used');
-  }
-
-  List<ContentItem> homePageDataEntriesFromElement(
-      HomePageRequest request, Document document) {
-    return ListUtils.mapList(document.select(contentItemSelector()), (element) {
-      element as Element;
-      final a = element.selectFirst(' p.name > a')!;
-      final url = StringUtils.substringBeforeLast(a.getHref!, '-episode');
-      return ContentItem(
-        title: a.text,
-        url: url,
-        poster: element.selectFirst('.img > a > img')?.attr('src') ?? '',
-        category: ContentCategory.Anime,
-        currentCount: StringUtils.toIntOrNull(
-          StringUtils.substringAfter(
-                  element.selectFirst('p.episode')?.text ?? '', 'Episode')
-              .trim(),
-        ),
-      );
-    });
+  Request infoPageRequest(String url) {
+    return GET('${this.baseUrl}/category${url}', headers: this.headers);
   }
 
   @override
-  Request infoPageRequest(ContentItem contentItem) {
-    return GET('${this.baseUrl}/category${contentItem.url}',
-        headers: this.headers);
-  }
-
-  @override
-  Future<InfoPage> infoPageFromDocument(
-      ContentItem contentItem, Document document) async {
+  Future<InfoPage> infoPageFromDocument(Document document) async {
     final Element body = document.selectFirst('div.anime_info_body_bg')!;
-
+    final url = document.selectFirst('head > link[rel=canonical]')!.getHref!;
+    final name = body.selectFirst('h1')!.text;
     String? posterImage = body.selectFirst('img')?.attr('src');
 
     String? description;
@@ -169,11 +128,12 @@ class GogoAnime extends ParsedHttpSource {
 
     final Anime content = await getAnime(document);
 
-    return InfoPage.withItem(
-      contentItem,
+    return InfoPage(
+      name: name,
+      url: url,
       posterImage: posterImage,
       description: description,
-      category: category,
+      category: category ?? ContentCategory.Anime,
       genres: genres,
       startDate: startDate,
       status: status,
@@ -229,11 +189,10 @@ class GogoAnime extends ParsedHttpSource {
       GET(this.baseUrl + url, headers: this.headers);
 
   @override
-  String contentDataLinkSelector(String url) =>
-      '.anime_muti_link > ul > li > a';
+  String contentDataLinkSelector() => '.anime_muti_link > ul > li > a';
 
   @override
-  ContentDataLink contentDataLinkFromElement(String url, Element element) {
+  ContentDataLink contentDataLinkFromElement(Element element) {
     return ContentDataLink(
       name: element.text.replaceFirst('Choose this server', '').trim(),
       data: AppUtils.httpify(element.attr('data-video')!),
@@ -304,18 +263,15 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  String searchPageItemSelector(int page, String query, FilterList filters) =>
-      contentItemSelector();
+  String searchPageItemSelector() => "div > ul.items > li";
 
   @override
-  String? searchPageNextPageSelector(
-      int page, String query, FilterList filters) {
+  String? searchPageNextPageSelector() {
     throw UnimplementedError();
   }
 
   @override
-  ContentItem searchPageItemFromElement(
-      int page, String query, FilterList filters, Element element) {
+  ContentItem searchPageItemFromElement(Element element) {
     return ContentItem(
       title: element.selectFirst('p.name > a')!.text,
       url: this.baseUrl + element.selectFirst('div.img > a')!.attr('href')!,

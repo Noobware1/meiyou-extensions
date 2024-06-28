@@ -54,7 +54,7 @@ class KickAssAnime extends HttpSource {
   }
 
   @override
-  HomePage homePageParse(int page, HomePageRequest request, Response response) {
+  HomePage homePageParse(HomePageRequest request, Response response) {
     return response.body.json((json) {
       final bool hasNext;
       if (request.name == 'Popular') {
@@ -109,37 +109,53 @@ class KickAssAnime extends HttpSource {
   }
 
   @override
-  Request infoPageRequest(ContentItem contentItem) =>
-      GET('${this.apiUrl}/${contentItem.url}');
+  Request infoPageRequest(String url) => GET('${this.apiUrl}/${url}');
 
   @override
-  Future<InfoPage> infoPageParse(
-      ContentItem contentItem, Response response) async {
+  Future<InfoPage> infoPageParse(Response response) async {
     return response.body.json((json) {
       final startDate =
           DateTime.tryParse(StringUtils.valueToString(json['start_date']));
+
+      final name = json['title'] as String;
 
       String? banner = Poster.fromJson(json["banner"])?.banner;
       if (banner != null) {
         banner = this.baseUrl + banner;
       }
+      String? poster = Poster.fromJson(json["poster"])?.poster;
+      if (poster != null) {
+        poster = this.baseUrl + poster;
+      }
 
       final status = getStatus(json['status']);
 
+      final category = getCategory(json['type']);
+
+      final description = json['synopsis'] as String?;
+
       final duration = Duration(
-        milliseconds: StringUtils.toInt(json['episode_duration'].toString()),
+        seconds: StringUtils.toInt(json['episode_duration'].toString()),
       );
+
       List<String>? otherTitles;
       final originalTitle = json['title_original'] as String?;
       if (originalTitle != null) {
         otherTitles = [originalTitle];
       }
 
-      return InfoPage.withItem(
-        contentItem,
+      final genres = ListUtils.mapList(json['genres'], (it) => it.toString());
+
+      return InfoPage(
+        name: name,
+        url: response.request.url.toString(),
+        category: category,
+        description: description,
+        posterImage: poster,
         bannerImage: banner,
         startDate: startDate,
         otherTitles: otherTitles,
+        genres: genres,
         status: status,
         duration: duration,
         content: Anime.lazy(() {
@@ -223,8 +239,10 @@ class KickAssAnime extends HttpSource {
   }
 
   @override
-  SearchPage searchPageParse(
-      int page, String query, FilterList filters, Response response) {
+  SearchPage searchPageParse(Response response) {
+    final page =
+        StringUtils.toIntOrNull(response.request.url.queryParameters['page']) ??
+            1;
     return response.body.json((json) {
       return SearchPage(
           hasNextPage: json['maxPage'] > page,
@@ -237,7 +255,7 @@ class KickAssAnime extends HttpSource {
       GET('${this.apiUrl}/${url.replaceFirst("/ep-", "/episode/ep-")}');
 
   @override
-  List<ContentDataLink> contentDataLinksParse(String url, Response response) {
+  List<ContentDataLink> contentDataLinksParse(Response response) {
     final hosterselection = this.preferences.getStringList(
         Preferences.pref_hoster_key, Preferences.pref_hoster_default)!;
 
