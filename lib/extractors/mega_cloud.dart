@@ -24,7 +24,7 @@ class MegaCloud {
     return '$baseUrl/$embed/ajax/$e/getSources?id=$id';
   }
 
-  Future<Video> getVideoFromLink(ContentDataLink link) async {
+  Future<Video> getVideoFromLink(MediaLink link) async {
     final serverUrl = link.data;
     final _EncryptedResponse response = await this
         .client

@@ -20,34 +20,40 @@ import 'package:meiyou_extensions_lib/models.dart';
 
 class ${StringUtils.capitalize(sourceName)} extends Source {
   @override
+  // TODO: implement id
   int get id => throw UnimplementedError();
- 
-  @override
-  String get name => throw UnimplementedError();
 
+  @override
+  // TODO: implement name
+  String get name => throw UnimplementedError();
 
   @override
   List<HomePageRequest> homePageRequests() {
+    // TODO: implement homePageRequests
     throw UnimplementedError();
   }
 
   @override
   Future<HomePage> getHomePage(int page, HomePageRequest request) {
+    // TODO: implement getHomePage
     throw UnimplementedError();
   }
 
   @override
-  Future<InfoPage> getInfoPage(ContentItem contentItem) {
+  Future<MediaDetails> getMediaDetails(String url) {
+    // TODO: implement getMediaDetails
     throw UnimplementedError();
   }
 
   @override
-  Future<List<ContentDataLink>> getContentDataLinks(String url) {
+  Future<List<MediaLink>> getMediaLinks(String url) {
+    // TODO: implement getMediaLinks
     throw UnimplementedError();
   }
 
   @override
-  Future<ContentData?> getContentData(ContentDataLink link) {
+  Future<Media?> getMedia(MediaLink link) {
+    // TODO: implement getMedia
     throw UnimplementedError();
   }
 }

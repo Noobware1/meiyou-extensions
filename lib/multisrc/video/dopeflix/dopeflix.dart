@@ -39,7 +39,7 @@ abstract class Dopeflix extends ParsedHttpSource {
   @override
   List<HomePageRequest> homePageRequests() {
     return [
-      HomePageRequest(name: 'Home', data: 'home'),
+      HomePageRequest(title: 'Home', data: 'home'),
     ];
   }
 
@@ -54,11 +54,11 @@ abstract class Dopeflix extends ParsedHttpSource {
 
       final title = e.selectFirst('.film-title > a')!;
       final url = title.attr('href')!;
-      return ContentItem(
+      return MediaPreview(
         title: title.text,
         url: url,
         poster: e.selectFirst('.film-poster > img')!.attr('src')!,
-        category: getCategory(url),
+        format: getFormat(url),
         description: e.selectFirst('.sc-desc')!.text,
         rating: StringUtils.toDoubleOrNull(
           e.selectFirst('.sc-detail > div.scd-item:nth-child(1)')!.text,
@@ -83,23 +83,23 @@ abstract class Dopeflix extends ParsedHttpSource {
         (e) => contentItemFromElement(e));
 
     return HomePage(
-      data: [
-        HomePageData(name: 'Banner', items: banner, horizontalImages: false),
+      items: [
+        HomePageData(title: 'Banner', list: banner, horizontalImages: false),
         HomePageData(
-            name: 'Trending Movies',
-            items: trendingMovie,
+            title: 'Trending Movies',
+            list: trendingMovie,
             horizontalImages: false),
         HomePageData(
-            name: 'Trending Series',
-            items: trendingSeries,
+            title: 'Trending Series',
+            list: trendingSeries,
             horizontalImages: false),
         HomePageData(
-            name: 'Latest Movies',
-            items: latestMovies,
+            title: 'Latest Movies',
+            list: latestMovies,
             horizontalImages: false),
         HomePageData(
-            name: 'Latest Series',
-            items: latestSeries,
+            title: 'Latest Series',
+            list: latestSeries,
             horizontalImages: false),
       ],
       hasNextPage: false,
@@ -115,14 +115,14 @@ abstract class Dopeflix extends ParsedHttpSource {
     return 'section.block_area.block_area_home.section-id-01 > .tab-content > div#$name > div > div';
   }
 
-  ContentItem contentItemFromElement(Element element) {
+  MediaPreview contentItemFromElement(Element element) {
     final a = element.selectFirst('a')!;
     final url = a.attr('href')!;
-    return ContentItem(
+    return MediaPreview(
       title: a.attr('title')!,
       poster: element.selectFirst('img')!.attr('data-src')!,
       url: this.baseUrl + url,
-      category: getCategory(url),
+      format: getFormat(url),
     );
   }
 
@@ -135,85 +135,73 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 
   @override
-  String homePageDataSelector(HomePageRequest request) {
+  String homeDataSelector(HomePageRequest request) {
     throw UnsupportedError('Not Used');
   }
 
   @override
-  String homePageNextPageSelector(HomePageRequest request) {
+  String homeNextPageSelector(HomePageRequest request) {
     throw UnsupportedError('Not Used');
   }
 
   @override
-  Request infoPageRequest(String url) =>
+  Request mediaDetailsRequest(String url) =>
       GET('${this.baseUrl}/${url}', headers: this.headers);
 
   @override
-  Future<InfoPage> infoPageFromDocument(Document document) async {
-    final rating = StringUtils.toDoubleOrNull(StringUtils.substringAfter(
-        document.selectFirst('.imdb)')!.text, 'IMDB: '));
+  Future<MediaDetails> mediaDetailsFromDocument(Document document) async {
+    final builder = MediaDetails.builder();
 
-    final description = document
+    builder.score(StringUtils.toDoubleOrNull(StringUtils.substringAfter(
+        document.selectFirst('.imdb)')!.text, 'IMDB: ')));
+
+    builder.description(document
         .selectFirst('.description')!
         .text
         .replaceFirst('Overview:', '')
-        .trim();
+        .trim());
 
     final elements = document.select('.elements > div > div > .row-line');
-
-    List<String>? genres;
-    DateTime? startDate;
-    List<Character>? cast;
-    Duration? duration;
 
     for (var e in elements) {
       final type = e.selectFirst('span.type > strong')!.text.trim();
 
       if (type == 'Genre:') {
-        genres = ListUtils.mapList(
-            e.select('a'), (e) => (e as Element).attr('title')!);
+        builder.genres(ListUtils.mapList(
+            e.select('a'), (e) => (e as Element).attr('title')!));
       } else if (type == 'Released:') {
-        startDate =
-            DateTime.tryParse(e.text.replaceFirst('Released:', '').trim());
+        builder.startDate(
+            DateTime.tryParse(e.text.replaceFirst('Released:', '').trim()));
       } else if (type == 'Casts:') {
-        cast = ListUtils.mapList(
-            e.select('a'), (e) => Character(name: (e as Element).text));
+        builder.characters(ListUtils.mapList(
+            e.select('a'), (e) => Character(name: (e as Element).text)));
       } else if (type == 'Duration:') {
-        duration = AppUtils.tryParseDuration(
-            e.text.replaceFirst('Duration:', '').trim(), 'min');
+        builder.duration(
+            AppUtils.tryParseDuration(e.text.replaceFirst('Duration:', '')));
       }
     }
 
-    final recommendations = ListUtils.mapList(
+    builder.recommendations(ListUtils.mapList(
         document.select('div.flw-item > div.film-poster'),
-        (e) => contentItemFromElement(e));
+        (e) => contentItemFromElement(e)));
 
     // final Content content;
-    // if (contentItem.category == ContentCategory.Movie) {
+    // if (contentItem.format == ContentCategory.Movie) {
     //   content = getMovie(contentItem.url);
     // } else {
     //   content = await getSeries(contentItem.url);
     // }
 
-    return InfoPage(
-      genres: genres,
-      startDate: startDate,
-      rating: rating,
-      description: description,
-      characters: cast,
-      duration: duration,
-      recommendations: recommendations,
-      // content: content,
-    );
+    return builder.build();
   }
 
   Movie getMovie(String id) =>
-      Movie(url: '${this.baseUrl}/ajax/episode/list/$id');
+      Movie(playUrl: '${this.baseUrl}/ajax/episode/list/$id');
 
   Request seriesRequest(String id) =>
       GET('${this.baseUrl}/ajax/season/list/$id', headers: this.headers);
 
-  Future<Series> getSeries(String id) async {
+  Future<TvSeries> getSeries(String id) async {
     final List<SeasonList> results = [];
     final response = await client.newCall(seriesRequest(id)).execute();
     final seasonsList = response.body.document
@@ -222,14 +210,14 @@ abstract class Dopeflix extends ParsedHttpSource {
       results.add(
         SeasonList(
           season: Season(
-            number: num.tryParse(StringUtils.substringAfter(s.text, 'Season ')),
+            number: int.tryParse(StringUtils.substringAfter(s.text, 'Season ')),
           ),
           episodes: await getEpisodes(s.attr('data-id')!),
         ),
       );
     }
 
-    return Series(results);
+    return TvSeries(seasons: results);
   }
 
   Request episodeListRequest(String id) {
@@ -256,7 +244,7 @@ abstract class Dopeflix extends ParsedHttpSource {
     return Episode(
       data: '/ajax/episode/servers/${e.attr('data-id')}',
       image: img,
-      number: num.tryParse(episode ?? ''),
+      number: int.tryParse(episode ?? ''),
       name: details.selectFirst('h3.film-name')!.text.trimLeft().trimRight(),
     );
   }
@@ -264,23 +252,22 @@ abstract class Dopeflix extends ParsedHttpSource {
   // ============================== LoadLinks ===================================
 
   @override
-  Request contentDataLinksRequest(String url) =>
+  Request mediaLinksRequest(String url) =>
       GET(this.baseUrl + url, headers: this.headers);
 
   @override
-  String contentDataLinkSelector() => 'ul.ulclear.fss-list > li > a';
+  String mediaLinkSelector() => 'ul.ulclear.fss-list > li > a';
 
   @override
-  Future<List<ContentDataLink>> getContentDataLinks(String url) async {
-    final response =
-        await client.newCall(contentDataLinksRequest(url)).execute();
+  Future<List<MediaLink>> getMediaLinks(String url) async {
+    final response = await client.newCall(mediaLinksRequest(url)).execute();
 
     final document = response.body.document;
-    final servers = document.select(contentDataLinkSelector());
+    final servers = document.select(mediaLinkSelector());
     final episodeReferer =
         Headers.fromMap({"Referer": response.request.headers["referer"]!});
 
-    final List<ContentDataLink> links = [];
+    final List<MediaLink> links = [];
     for (var s in servers) {
       final String url = await client
           .newCall(GET(
@@ -291,7 +278,7 @@ abstract class Dopeflix extends ParsedHttpSource {
           .then(
               (value) => (value as Response).body.json((json) => json['link']));
 
-      links.add(ContentDataLink(
+      links.add(MediaLink(
         data: url,
         name: s.text.replaceFirst('Server', '').trimLeft().trimRight(),
       ));
@@ -301,7 +288,7 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 
   @override
-  ContentDataLink contentDataLinkFromElement(Element element) {
+  MediaLink mediaLinkFromElement(Element element) {
     throw UnsupportedError('Not used');
   }
 
@@ -326,7 +313,7 @@ abstract class Dopeflix extends ParsedHttpSource {
   DopeFlixExtractor get dopeFlixExtractor => DopeFlixExtractor(this.client);
 
   @override
-  Future<ContentData?> getContentData(ContentDataLink link) async {
+  Future<Media?> getMedia(MediaLink link) async {
     final url = link.data;
     if (url.contains('doki')) {
       return dopeFlixExtractor.extract(link);
@@ -366,20 +353,21 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 
   @override
-  String searchPageItemSelector() => ''; // contentItemSelector();
+  String searchItemSelector() => ''; // contentItemSelector();
 
   @override
-  String? searchPageNextPageSelector() {
+  String? searchNextPageSelector() {
     throw UnimplementedError();
   }
 
   @override
-  ContentItem searchPageItemFromElement(Element element) {
-    return ContentItem(
+  MediaPreview searchItemFromElement(Element element) {
+    final url = element.selectFirst('div.img > a')!.attr('href')!;
+    return MediaPreview(
       title: element.selectFirst('p.name > a')!.text,
-      url: this.baseUrl + element.selectFirst('div.img > a')!.attr('href')!,
+      url: this.baseUrl + url,
       poster: element.selectFirst('div.img > a > img')!.attr('src')!,
-      category: ContentCategory.Anime,
+      format: getFormat(url),
     );
   }
 
@@ -391,11 +379,11 @@ abstract class Dopeflix extends ParsedHttpSource {
     });
   }
 
-  ContentCategory getCategory(String t) {
-    if (t.contains('/movie/')) {
-      return ContentCategory.Movie;
+  MediaFormat getFormat(String url) {
+    if (url.contains('/movie/')) {
+      return MediaFormat.movie;
     }
-    return ContentCategory.TvSeries;
+    return MediaFormat.tvSeries;
   }
 }
 

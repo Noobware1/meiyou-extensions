@@ -3,13 +3,9 @@
 import 'package:meiyou_extensions_lib/html_extensions.dart';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
-
 import 'package:html/dom.dart';
-import 'package:meiyou_extensions_lib/okhttp_extensions.dart';
-import 'package:meiyou_extensions_lib/utils.dart';
 import 'package:okhttp/okhttp.dart';
 import 'package:okhttp/request.dart';
-import 'package:okhttp/response.dart';
 
 class HiAnime extends ParsedHttpSource {
   HiAnime();
@@ -42,14 +38,14 @@ class HiAnime extends ParsedHttpSource {
   @override
   List<HomePageRequest> homePageRequests() {
     return [
-      HomePageRequest(name: 'Trending', data: '${this.baseUrl}/home'),
+      HomePageRequest(title: 'Trending', data: '${this.baseUrl}/home'),
       HomePageRequest(
-          name: 'Latest Episodes', data: '${this.baseUrl}/recently-updated'),
-      HomePageRequest(name: 'Top Airing', data: '${this.baseUrl}/top-airing'),
+          title: 'Latest Episodes', data: '${this.baseUrl}/recently-updated'),
+      HomePageRequest(title: 'Top Airing', data: '${this.baseUrl}/top-airing'),
       HomePageRequest(
-          name: 'Most Popular', data: '${this.baseUrl}/most-popular'),
+          title: 'Most Popular', data: '${this.baseUrl}/most-popular'),
       HomePageRequest(
-          name: 'New on HiAnime',
+          title: 'New on HiAnime',
           data: '${this.baseUrl}/${this.baseUrl}/recently-added'),
     ];
   }
@@ -57,58 +53,53 @@ class HiAnime extends ParsedHttpSource {
   @override
   Request homePageRequest(int page, HomePageRequest request) {
     var url = request.data;
-    if (request.name != 'Trending') {
+    if (request.title != 'Trending') {
       url += '?page=$page';
     }
     return GET(url, headers: docHeaders);
   }
 
   @override
-  ContentItem homePageItemFromElement(
+  MediaPreview homePageItemFromElement(
       HomePageRequest request, Element element) {
-    if (request.name == 'Trending') {
+    if (request.title == 'Trending') {
       return trendingItemFromElement(element);
     } else {
-      return searchPageItemFromElement(element);
+      return searchItemFromElement(element);
     }
   }
 
   @override
   String homePageItemSelector(HomePageRequest request) {
-    if (request.name == 'Trending') {
+    if (request.title == 'Trending') {
       return 'li.page-item a[title=Next]';
     } else {
-      return searchPageItemSelector();
+      return searchItemSelector();
     }
   }
 
-  ContentItem trendingItemFromElement(Element element) {
+  MediaPreview trendingItemFromElement(Element element) {
     final content = element.selectFirst('.deslide-item-content')!;
 
-    return ContentItem(
-      title: content.selectFirst('div.desi-head-title.dynamic-name')!.text,
+    return MediaPreview(
+      title: content.selectFirst('div.desi-head-title.dynamic-title')!.text,
       url: content
           .selectFirst('.desi-buttons > .btn.btn-secondary.btn-radius')!
           .attr('href')!,
       poster:
           element.selectFirst('.deslide-cover > div > img')!.attr('data-src')!,
-      category: getCategory(content.selectFirst('.sc-detail > div')!.text),
+      format: getFormat(content.selectFirst('.sc-detail > div')!.text),
       description: content.selectFirst('.desi-description')!.text.trim(),
     );
   }
 
   @override
-  String? homePageNextPageSelector(HomePageRequest request) {
-    return (request.name == 'Trending') ? '.deslide-item' : null;
+  String? homeNextPageSelector(HomePageRequest request) {
+    return (request.title == 'Trending') ? '.deslide-item' : null;
   }
 
   @override
-  Request infoPageRequest(String url) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<InfoPage> infoPageFromDocument(Document document) {
+  Future<MediaDetails> mediaDetailsFromDocument(Document document) {
     // TODO: implement infoPageFromDocument
     throw UnimplementedError();
   }
@@ -121,13 +112,13 @@ class HiAnime extends ParsedHttpSource {
       GET('$baseUrl/search?q=$query&page=$page', headers: docHeaders);
 
   @override
-  String searchPageItemSelector() => 'div.flw-item';
+  String searchItemSelector() => 'div.flw-item';
 
   @override
-  String? searchPageNextPageSelector() => null;
+  String? searchNextPageSelector() => null;
 
   @override
-  ContentItem searchPageItemFromElement(Element element) {
+  MediaPreview searchItemFromElement(Element element) {
     final details = element.selectFirst('div.film-detail > a')!;
     final url = details.attr('href')!;
     final String title;
@@ -138,43 +129,43 @@ class HiAnime extends ParsedHttpSource {
     }
     final poster =
         element.selectFirst('div.film-poster > img')!.attr('data-src')!;
-    final category = getCategory(element
+    final format = getFormat(element
         .selectFirst('div.film-detail > div.fd-infor > span.fdi-item')!
         .text);
-    return ContentItem(
+    return MediaPreview(
       title: title,
       url: url,
       poster: poster,
-      category: category,
+      format: format,
     );
   }
 
   @override
-  Request contentDataLinksRequest(String url) {
+  Request mediaLinksRequest(String url) {
     // TODO: implement contentDataLinksRequest
     throw UnimplementedError();
   }
 
   @override
-  String contentDataLinkSelector() {
+  String mediaLinkSelector() {
     throw UnimplementedError();
   }
 
   @override
-  ContentDataLink contentDataLinkFromElement(Element element) {
+  MediaLink mediaLinkFromElement(Element element) {
     // TODO: implement contentDataLinkFromElement
     throw UnimplementedError();
   }
 
-  ContentCategory getCategory(String c) {
+  MediaFormat getFormat(String c) {
     if (c.contains("OVA") || c.contains("Special")) {
-      return ContentCategory.Ova;
+      return MediaFormat.ova;
     } else if (c.contains("Movie")) {
-      return ContentCategory.AnimeMovie;
+      return MediaFormat.animeMovie;
     } else if (c.contains("ONA")) {
-      return ContentCategory.Ona;
+      return MediaFormat.ona;
     } else {
-      return ContentCategory.Anime;
+      return MediaFormat.anime;
     }
   }
 }

@@ -50,9 +50,9 @@ class GogoAnime extends ParsedHttpSource {
   @override
   List<HomePageRequest> homePageRequests() {
     return [
-      HomePageRequest(name: 'Recent Release - Sub', data: '1'),
-      HomePageRequest(name: 'Recent Release - Dub', data: '2'),
-      HomePageRequest(name: 'Recent Release - Chinese', data: '3'),
+      HomePageRequest(title: 'Recent Release - Sub', data: '1'),
+      HomePageRequest(title: 'Recent Release - Dub', data: '2'),
+      HomePageRequest(title: 'Recent Release - Chinese', data: '3'),
     ];
   }
 
@@ -65,84 +65,71 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  String homePageNextPageSelector(HomePageRequest request) {
+  String homeNextPageSelector(HomePageRequest request) {
     return 'ul.pagination-list li:last-child:not(.selected)';
   }
 
   @override
-  String homePageItemSelector(HomePageRequest request) =>
-      searchPageItemSelector();
+  String homePageItemSelector(HomePageRequest request) => searchItemSelector();
 
   @override
-  ContentItem homePageItemFromElement(
+  MediaPreview homePageItemFromElement(
       HomePageRequest request, Element element) {
     final a = element.selectFirst(' p.name > a')!;
     final url = StringUtils.substringBeforeLast(a.getHref!, '-episode');
-    return ContentItem(
+    return MediaPreview(
       title: a.text,
       url: url,
       poster: element.selectFirst('.img > a > img')?.attr('src') ?? '',
-      category: ContentCategory.Anime,
+      format: MediaFormat.anime,
     );
   }
 
   @override
-  Request infoPageRequest(String url) {
+  Request mediaDetailsRequest(String url) {
     return GET('${this.baseUrl}/category${url}', headers: this.headers);
   }
 
   @override
-  Future<InfoPage> infoPageFromDocument(Document document) async {
-    final Element body = document.selectFirst('div.anime_info_body_bg')!;
-    final url = document.selectFirst('head > link[rel=canonical]')!.getHref!;
-    final name = body.selectFirst('h1')!.text;
-    String? posterImage = body.selectFirst('img')?.attr('src');
+  Future<MediaDetails> mediaDetailsFromDocument(Document document) async {
+    final builder = MediaDetails.builder();
 
-    String? description;
-    ContentCategory? category;
-    List<String>? genres;
-    DateTime? startDate;
-    Status? status;
-    List<String>? otherTitles;
+    final Element body = document.selectFirst('div.anime_info_body_bg')!;
+
+    builder
+        .url(document.selectFirst('head > link[rel=canonical]')!.getHref!)
+        .poster(body.selectFirst('img')!.attr('src')!)
+        .title(body.selectFirst('h1')!.text);
+
     for (var e in body.select('p.type')) {
       final header = e.selectFirst('span')!.text.trim();
 
       if (header == 'Plot Summary:') {
-        description = e.text.replaceFirst('Plot Summary:', '').trim();
+        builder.description(e.text.replaceFirst('Plot Summary:', '').trim());
       } else if (header == 'Type:') {
-        category = getCategory(e.selectFirst('a')!.attr('title')!);
+        builder.format(getFormat(e.selectFirst('a')!.attr('title')!));
       } else if (header == 'Genre:') {
-        genres = ListUtils.mapList(e.select('a'), (e) {
+        builder.genres(ListUtils.mapList(e.select('a'), (e) {
           e as Element;
           return e.attr('title')!;
-        });
+        }));
       } else if (header == 'Released:') {
-        startDate = AppUtils.toDateTime(
-            StringUtils.toInt(e.text.replaceFirst('Released:', '').trim()));
+        builder.startDate(AppUtils.toDateTime(
+            StringUtils.toInt(e.text.replaceFirst('Released:', '').trim())));
       } else if (header == 'Status:') {
-        status = getStatus(e.text.replaceFirst('Status:', ''));
+        builder.status(getStatus(e.text.replaceFirst('Status:', '')));
       } else if (header == 'Other name:') {
-        otherTitles = e.text.replaceFirst('Other name:', '').trim().split(';');
+        builder.otherTitles(
+            e.text.replaceFirst('Other name:', '').trim().split(';'));
       }
     }
 
-    final Anime content = await getAnime(document);
+    builder.content(await getContent(document));
 
-    return InfoPage(
-      name: name,
-      url: url,
-      posterImage: posterImage,
-      description: description,
-      category: category ?? ContentCategory.Anime,
-      genres: genres,
-      startDate: startDate,
-      status: status,
-      otherTitles: otherTitles,
-      content: content,
-    );
+    return builder.build();
   }
 
-  Future<Anime> getAnime(Document document) async {
+  Future<EpisodicContent> getContent(Document document) async {
     final id = document
         .selectFirst('.anime_info_episodes_next > #movie_id')!
         .attr('value')!;
@@ -151,10 +138,12 @@ class GogoAnime extends ParsedHttpSource {
         .attr('ep_end')!;
 
     return this.client.newCall(animeRequest(epEnd, id)).execute().then(
-        (response) => animeFromDocument((response as Response).body.document));
+        (response) => EpisodicContent(
+            episodes:
+                episodeListFromDocument((response as Response).body.document)));
   }
 
-  Anime animeFromDocument(Document document) {
+  List<Episode> episodeListFromDocument(Document document) {
     final List<Episode> episodes = [];
     final elements = document.select(episodeListSelector());
 
@@ -162,7 +151,7 @@ class GogoAnime extends ParsedHttpSource {
       episodes.add(episodeFromElement(elements[i]));
     }
 
-    return Anime(episodes);
+    return episodes;
   }
 
   Request animeRequest(String epEnd, String id) {
@@ -177,7 +166,7 @@ class GogoAnime extends ParsedHttpSource {
   Episode episodeFromElement(Element element) {
     return Episode(
       data: element.attr('href')!.trim(),
-      number: StringUtils.toNum(
+      number: StringUtils.toInt(
           element.selectFirst('div.name')!.text.replaceFirst('EP ', '')),
     );
   }
@@ -185,15 +174,15 @@ class GogoAnime extends ParsedHttpSource {
   // ============================== LoadLinks ===================================
 
   @override
-  Request contentDataLinksRequest(String url) =>
+  Request mediaLinksRequest(String url) =>
       GET(this.baseUrl + url, headers: this.headers);
 
   @override
-  String contentDataLinkSelector() => '.anime_muti_link > ul > li > a';
+  String mediaLinkSelector() => '.anime_muti_link > ul > li > a';
 
   @override
-  ContentDataLink contentDataLinkFromElement(Element element) {
-    return ContentDataLink(
+  MediaLink mediaLinkFromElement(Element element) {
+    return MediaLink(
       name: element.text.replaceFirst('Choose this server', '').trim(),
       data: AppUtils.httpify(element.attr('data-video')!),
     );
@@ -218,7 +207,7 @@ class GogoAnime extends ParsedHttpSource {
   // }
 
   @override
-  Future<ContentData?> getContentData(ContentDataLink link) async {
+  Future<Media?> getMedia(MediaLink link) async {
     Video? video;
     if (link.data.contains('/streaming.php?') ||
         link.data.contains('/embedplus?')) {
@@ -263,20 +252,20 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  String searchPageItemSelector() => "div > ul.items > li";
+  String searchItemSelector() => "div > ul.items > li";
 
   @override
-  String? searchPageNextPageSelector() {
-    throw UnimplementedError();
+  String? searchNextPageSelector() {
+    return null;
   }
 
   @override
-  ContentItem searchPageItemFromElement(Element element) {
-    return ContentItem(
+  MediaPreview searchItemFromElement(Element element) {
+    return MediaPreview(
       title: element.selectFirst('p.name > a')!.text,
       url: this.baseUrl + element.selectFirst('div.img > a')!.attr('href')!,
       poster: element.selectFirst('div.img > a > img')!.attr('src')!,
-      category: ContentCategory.Anime,
+      format: MediaFormat.anime,
     );
   }
 
@@ -288,21 +277,21 @@ class GogoAnime extends ParsedHttpSource {
     });
   }
 
-  ContentCategory getCategory(String t) {
+  MediaFormat getFormat(String t) {
     if (t.contains("OVA") || t.contains("Special")) {
-      return ContentCategory.Ova;
+      return MediaFormat.ova;
     } else if (t.contains("Movie")) {
-      return ContentCategory.AnimeMovie;
+      return MediaFormat.animeMovie;
     } else {
-      return ContentCategory.Anime;
+      return MediaFormat.anime;
     }
   }
 
   Status getStatus(String t) {
     if (t == 'Ongoing') {
-      return Status.Ongoing;
+      return Status.ongoing;
     } else {
-      return Status.Completed;
+      return Status.completed;
     }
   }
 

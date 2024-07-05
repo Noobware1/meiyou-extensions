@@ -25,63 +25,65 @@ import 'package:okhttp/response.dart';
 class ${StringUtils.capitalize(sourceName)} extends HttpSource {
   ${StringUtils.capitalize(sourceName)}();
 
-  @override
+    @override
+  // TODO: implement name
   String get name => throw UnimplementedError();
 
   @override
-  String get lang => throw UnimplementedError();
-  
-  @override
+  // TODO: implement baseUrl
   String get baseUrl => throw UnimplementedError();
 
   @override
   List<HomePageRequest> homePageRequests() {
+    // TODO: implement homePageRequests
+    throw UnimplementedError();
+  }
+
+  @override
+  HomePage homePageParse(HomePageRequest request, Response response) {
+    // TODO: implement homePageParse
     throw UnimplementedError();
   }
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
+    // TODO: implement homePageRequest
     throw UnimplementedError();
   }
 
   @override
-  HomePage homePageParse(int page, HomePageRequest request, Response response) {
+  Future<MediaDetails> mediaDetailsParse(Response response) {
+    // TODO: implement mediaDetailsParse
     throw UnimplementedError();
   }
 
   @override
-  Request infoPageRequest(ContentItem contentItem) {
+  List<MediaLink> medialinksParse(Response response) {
+    // TODO: implement medialinksParse
     throw UnimplementedError();
   }
 
   @override
-  Future<InfoPage> infoPageParse(ContentItem contentItem, Response response) {
+  Request mediaLinksRequest(String url) {
+    // TODO: implement mediaLinksRequest
     throw UnimplementedError();
   }
 
   @override
-  FilterList getFilterList() {
-    throw UnimplementedError();
-  }
-
-  @override
-  SearchPage searchPageParse(
-      int page, String query, FilterList filters, Response response) {
+  SearchPage searchPageParse(Response response) {
+    // TODO: implement searchPageParse
     throw UnimplementedError();
   }
 
   @override
   Request searchPageRequest(int page, String query, FilterList filters) {
+    // TODO: implement searchPageRequest
     throw UnimplementedError();
   }
 
   @override
-  Request contentDataLinksRequest(String url) {
-    throw UnimplementedError();
-  }
-
-  @override
-  List<ContentDataLink> contentDataLinksParse(String url, Response response) {
+  FilterList getFilterList() {
+    // TODO: implement getFilterList
     throw UnimplementedError();
   }
 }

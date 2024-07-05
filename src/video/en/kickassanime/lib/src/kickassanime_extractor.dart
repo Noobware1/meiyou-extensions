@@ -22,7 +22,7 @@ class KickAssAnimeExtractor {
     "vid": "e13d38099bf562e8b9851a652d2043d3",
   };
 
-  Future<Video> extract(ContentDataLink link) async {
+  Future<Video> extract(MediaLink link) async {
     final String shortName = (link.extra!['shortName'] as String).toLowerCase();
     final uri = Uri.parse(link.data);
     final String key = keysMap[shortName]!;

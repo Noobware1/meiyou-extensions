@@ -18,7 +18,7 @@ class DopeFlixExtractor {
   static const scriptUrl =
       "https://rabbitstream.net/js/player/prod/e4-player.min.js";
 
-  Future<Video> extract(ContentDataLink link) async {
+  Future<Video> extract(MediaLink link) async {
     final id = StringUtils.substringBefore(
         StringUtils.substringAfter(link.data, '/embed-4/'), '?');
 

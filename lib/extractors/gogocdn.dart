@@ -17,7 +17,7 @@ class GogoCDNExtractor {
 
   final OkHttpClient client;
 
-  Future<Video> extract(ContentDataLink link) async {
+  Future<Video> extract(MediaLink link) async {
     final Document document = await this
         .client
         .newCall(GET(link.data))

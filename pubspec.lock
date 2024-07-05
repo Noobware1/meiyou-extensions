@@ -288,7 +288,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "3680b16b3da390656ccb51f248a58af313a9e130"
+      resolved-ref: f009c90a486dfb351b2b4704331871a4902b8888
       url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"
@@ -313,7 +313,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "7cb946e569e8803a9c87b4f8f0d6c7e1cade54d0"
+      resolved-ref: a68a09d30bf31723077d4e5797d0f735a932a296
       url: "https://github.com/Noobware1/nice_dart.git"
     source: git
     version: "1.0.0"

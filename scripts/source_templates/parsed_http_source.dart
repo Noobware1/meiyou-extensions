@@ -27,93 +27,85 @@ class ${StringUtils.capitalize(sourceName)} extends ParsedHttpSource {
   ${StringUtils.capitalize(sourceName)}();
 
  @override
-  int get id => throw UnimplementedError();
-
-  @override
+  // TODO: implement baseUrl
   String get name => throw UnimplementedError();
 
   @override
+  // TODO: implement baseUrl
   String get baseUrl => throw UnimplementedError();
 
   @override
   List<HomePageRequest> homePageRequests() {
+    // TODO: implement homePageRequests
+    throw UnimplementedError();
+  }
+
+  @override
+  String? homeNextPageSelector(HomePageRequest request) {
+    // TODO: implement homeNextPageSelector
     throw UnimplementedError();
   }
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
+    // TODO: implement homePageRequest
     throw UnimplementedError();
   }
 
   @override
-  String homePageDataSelector(int page, HomePageRequest request) {
+  Future<MediaDetails> mediaDetailsFromDocument(Document document) {
+    // TODO: implement mediaDetailsFromDocument
     throw UnimplementedError();
   }
 
   @override
-  String? homePageNextPageSelector(int page, HomePageRequest request) {
+  MediaLink mediaLinkFromElement(Element element) {
+    // TODO: implement mediaLinkFromElement
     throw UnimplementedError();
   }
 
   @override
-  HomePageData homePageDataFromElement(
-      int page, HomePageRequest request, Element element) {
+  String mediaLinkSelector() {
+    // TODO: implement mediaLinkSelector
     throw UnimplementedError();
   }
 
   @override
-  Request infoPageRequest(ContentItem contentItem) {
+  Request mediaLinksRequest(String url) {
+    // TODO: implement mediaLinksRequest
     throw UnimplementedError();
   }
 
   @override
-  Future<InfoPage> infoPageFromDocument(Document document) {
+  MediaPreview searchItemFromElement(Element element) {
+    // TODO: implement searchItemFromElement
     throw UnimplementedError();
   }
 
   @override
-  FilterList getFilterList() {
+  String searchItemSelector() {
+    // TODO: implement searchItemSelector
+    throw UnimplementedError();
+  }
+
+  @override
+  String? searchNextPageSelector() {
+    // TODO: implement searchNextPageSelector
     throw UnimplementedError();
   }
 
   @override
   Request searchPageRequest(int page, String query, FilterList filters) {
+    // TODO: implement searchPageRequest
     throw UnimplementedError();
   }
 
+  
   @override
-  String searchPageItemSelector(int page, String query, FilterList filters) {
+  FilterList getFilterList() {
+    // TODO: implement getFilterList
     throw UnimplementedError();
   }
-
-  @override
-  String? searchPageNextPageSelector(
-      int page, String query, FilterList filters) {
-    throw UnimplementedError();
-  }
-
-  @override
-  ContentItem searchPageItemFromElement(
-      int page, String query, FilterList filters, Element element) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Request contentDataLinksRequest(String url) {
-    throw UnimplementedError();
-  }
-
-  @override
-  String contentDataLinkSelector(String url) {
-    throw UnimplementedError();
-  }
-
-  @override
-  ContentDataLink contentDataLinkFromElement(String url, Element element) {
-    throw UnimplementedError();
-  }
-
-
 }
 
 ''';

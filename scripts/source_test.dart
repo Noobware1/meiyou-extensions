@@ -65,9 +65,9 @@ void main(List<String> args) async {
     stdout.writeln('${command.key}: ${command.value}');
   }
 
-  final Set<ContentItem> items = {};
-  final Set<Content> contents = {};
-  final Set<ContentDataLink> contentDataLink = {};
+  final Set<MediaPreview> items = {};
+  final Set<MediaContent> contents = {};
+  final Set<MediaLink> contentDataLink = {};
 
   await runCommand(
     source: source,
@@ -81,9 +81,9 @@ void main(List<String> args) async {
 
 Future<void> runCommand({
   required CatalogueSource source,
-  required Set<ContentItem> items,
-  required Set<Content> contents,
-  required Set<ContentDataLink> contentDataLink,
+  required Set<MediaPreview> items,
+  required Set<MediaContent> contents,
+  required Set<MediaLink> contentDataLink,
 }) async {
   stdout.writeln('Enter Command: ');
   final command = stdin.readLineAndCheckForExit();
@@ -101,7 +101,7 @@ Future<void> runCommand({
       try {
         final res = await source.getHomePage(
             page, source.homePageRequests().elementAt(requestIndex));
-        items.addAll(IterableUtils.flatten(res.data.map((e) => e.items)));
+        items.addAll(IterableUtils.flatten(res.items.map((e) => e.list)));
         print(res);
       } catch (e) {
         print(e);
@@ -118,7 +118,7 @@ Future<void> runCommand({
       try {
         final res =
             await source.getSearchPage(page, query, source.getFilterList());
-        items.addAll(res.items);
+        items.addAll(res.list);
         print(res);
       } catch (e) {
         print(e);
@@ -134,14 +134,14 @@ Future<void> runCommand({
       if (index == 'b') break;
       final item = items.elementAt(int.parse(index));
       try {
-        final res = await source.getInfoPage(item.url);
-        if (res.content != null && !res.content!.isLazy) {
+        final res = await source.getMediaDetails(item.url);
+        if (res.content != null && res.content is! LazyMediaContent) {
           contents.add(res.content!);
         }
         print(res);
-        if (res.content?.isLazy ?? false) {
+        if (res.content is LazyMediaContent) {
           try {
-            final content = await (res.content as LazyContent).load();
+            final content = await (res.content as LazyMediaContent).call();
             contents.add(content);
             print(content);
           } catch (e) {
@@ -170,7 +170,7 @@ Future<void> runCommand({
       final url = callback(urlIndex);
 
       try {
-        final res = await source.getContentDataLinks(url);
+        final res = await source.getMediaLinks(url);
         contentDataLink.addAll(res);
         print(res);
       } catch (e) {
@@ -187,7 +187,7 @@ Future<void> runCommand({
       if (index == 'b') break;
       final link = contentDataLink.elementAt(int.parse(index));
       try {
-        final res = await source.getContentData(link);
+        final res = await source.getMedia(link);
         print(res);
       } catch (e) {
         print(e);
@@ -215,11 +215,10 @@ Future<void> runCommand({
   );
 }
 
-(String, String Function(int) callback) contentToString(Content content) {
+(String, String Function(int) callback) contentToString(MediaContent content) {
   final StringBuffer buffer = StringBuffer();
-  if (content.isAnime) {
-    content as Anime;
-    buffer.write('Anime: [');
+  if (content is EpisodicContent) {
+    buffer.write('EpisodicContent: [');
     for (var i = 0; i < content.episodes.length; i++) {
       buffer.write('$i: ${content.episodes[i].data}');
       if (i != content.episodes.length - 1) buffer.write(', ');
@@ -227,15 +226,13 @@ Future<void> runCommand({
     buffer.write(']');
 
     return (buffer.toString(), (index) => content.episodes[index].data);
-  } else if (content.isMovie) {
-    content as Movie;
-    buffer.write('Movie: ${content.url}');
-    return (buffer.toString(), (index) => content.url);
-  } else if (content.isSeries) {
-    content as Series;
+  } else if (content is Movie) {
+    buffer.write('Movie: ${content.playUrl}');
+    return (buffer.toString(), (index) => content.playUrl);
+  } else if (content is TvSeries) {
     buffer.write('Series: [');
-    for (var i = 0; i < content.data.length; i++) {
-      final season = content.data[i];
+    for (var i = 0; i < content.seasons.length; i++) {
+      final season = content.seasons[i];
 
       buffer.write('Season ${season.season.number ?? i}: [');
       for (var j = 0; j < season.episodes.length; j++) {
@@ -245,7 +242,7 @@ Future<void> runCommand({
 
     return (
       buffer.toString(),
-      (index) => IterableUtils.flatten(content.data.map((e) => e.episodes))
+      (index) => IterableUtils.flatten(content.seasons.map((e) => e.episodes))
           .elementAt(index)
           .data
     );

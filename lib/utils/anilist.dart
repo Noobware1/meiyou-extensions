@@ -1,6 +1,7 @@
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/okhttp_extensions.dart';
+import 'package:meiyou_extensions_lib/utils.dart';
 import 'package:okhttp/okhttp.dart';
 import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
@@ -28,10 +29,10 @@ class Anilist {
                   status
                 }
             }
-        """
-        .trim();
+        """;
 
-    final requestBody = FormBody.Builder().add("query", query).build();
+    final requestBody =
+        FormBody.Builder().add("query", StringUtils.trimIndent(query)).build();
 
     final status = await client
         .newCall(
@@ -47,12 +48,12 @@ class Anilist {
     });
 
     if (status == "FINISHED") {
-      return Status.Completed;
+      return Status.completed;
     }
     if (status == "RELEASING") {
-      return Status.Ongoing;
+      return Status.ongoing;
     } else {
-      return Status.Unknown;
+      return Status.unknown;
     }
   }
 }
