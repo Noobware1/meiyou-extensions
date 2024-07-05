@@ -29,7 +29,7 @@ abstract class Dopeflix extends ParsedHttpSource {
   @override
   String get baseUrl => this
       .preferences
-      .getString(Preferences.PREF_DOMAIN_KEY, this.defaultDomain)!;
+      .getString(DopeFlixPreferences.PREF_DOMAIN_KEY, this.defaultDomain)!;
 
   @override
   HeadersBuilder headersBuilder() =>
@@ -294,7 +294,7 @@ abstract class Dopeflix extends ParsedHttpSource {
 
   // List<ExtractorLink> sortLinks(List<ExtractorLink> links) {
   //   final server = this.preferences.getString(
-  //       Preferences.pref_server_key, Preferences.pref_server_default);
+  //       DopeFlixPreferences.Preferences.pref_server_key, DopeFlixPreferences.Preferences.pref_server_default);
 
   //   return links
   //     ..sort((a, b) {
@@ -327,7 +327,7 @@ abstract class Dopeflix extends ParsedHttpSource {
   List<VideoSource> sortVideoSources(List<VideoSource> sources) {
     // final qualityStr = this
     //     .preferences
-    //     .getString("pref_quality_key", Preferences.pref_quality_key)!;
+    //     .getString("pref_quality_key", DopeFlixPreferences.Preferences.pref_quality_key)!;
     // final quality = VideoQuality.getFromString(qualityStr);
     return sources;
     // ..sort((a, b) {
@@ -387,41 +387,41 @@ abstract class Dopeflix extends ParsedHttpSource {
   }
 }
 
-// ============================== Preferences ===================================
+// ============================== DopeFlixPreferences.Preferences ===================================
 
 @override
 List<PreferenceData> setupPreferences() {
   return [];
   // return [
   //   EditTextPreference(
-  //     key: Preferences.pref_domain_key,
-  //     title: Preferences.pref_domain_title,
-  //     value: Preferences.pref_domain_default,
-  //     dialogTitle: Preferences.pref_domain_title,
-  //     dialogMessage: Preferences.PREF_DOMAIN_DIALOG_MESSAGE,
-  //     summary: Preferences.pref_domain_summary,
+  //     key: DopeFlixPreferences.Preferences.pref_domain_key,
+  //     title: DopeFlixPreferences.Preferences.pref_domain_title,
+  //     value: DopeFlixPreferences.Preferences.pref_domain_default,
+  //     dialogTitle: DopeFlixPreferences.Preferences.pref_domain_title,
+  //     dialogMessage: DopeFlixPreferences.Preferences.PREF_DOMAIN_DIALOG_MESSAGE,
+  //     summary: DopeFlixPreferences.Preferences.pref_domain_summary,
   //   ),
   //   ListPreference(
-  //     key: Preferences.pref_quality_key,
-  //     title: Preferences.pref_quality_title,
-  //     entries: Preferences.pref_quality_entries,
-  //     entryValues: Preferences.pref_quality_values,
+  //     key: DopeFlixPreferences.Preferences.pref_quality_key,
+  //     title: DopeFlixPreferences.Preferences.pref_quality_title,
+  //     entries: DopeFlixPreferences.Preferences.pref_quality_entries,
+  //     entryValues: DopeFlixPreferences.Preferences.pref_quality_values,
   //     summary: '',
   //   ),
   //   ListPreference(
-  //     key: Preferences.pref_server_key,
-  //     title: Preferences.pref_server_title,
-  //     entries: Preferences.hosters,
-  //     entryValues: Preferences.hosters,
+  //     key: DopeFlixPreferences.Preferences.pref_server_key,
+  //     title: DopeFlixPreferences.Preferences.pref_server_title,
+  //     entries: DopeFlixPreferences.Preferences.hosters,
+  //     entryValues: DopeFlixPreferences.Preferences.hosters,
   //     summary: '',
   //   ),
   //   MultiSelectListPreference(
-  //     key: Preferences.pref_hoster_key,
-  //     title: Preferences.pref_hoster_title,
-  //     entries: Preferences.hosters,
-  //     entryValues: Preferences.hosters_names,
+  //     key: DopeFlixPreferences.Preferences.pref_hoster_key,
+  //     title: DopeFlixPreferences.Preferences.pref_hoster_title,
+  //     entries: DopeFlixPreferences.Preferences.hosters,
+  //     entryValues: DopeFlixPreferences.Preferences.hosters_names,
   //     summary: '',
-  //     defaultSelected: Preferences.pref_hoster_default,
+  //     defaultSelected: DopeFlixPreferences.Preferences.pref_hoster_default,
   //   )
   // ];
 }

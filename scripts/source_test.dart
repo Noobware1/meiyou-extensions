@@ -92,19 +92,18 @@ Future<void> runCommand({
     case 'gethome':
       stdout.writeln('Enter Page: ');
       final _page = stdin.readLineAndCheckForExit();
-      if (_page == 'b') break;
       final page = int.parse(_page);
       stdout.writeln('Enter Request Index: ');
       final _requestIndex = stdin.readLineAndCheckForExit();
-      if (_page == 'b') break;
       final requestIndex = int.parse(_requestIndex);
       try {
         final res = await source.getHomePage(
             page, source.homePageRequests().elementAt(requestIndex));
         items.addAll(IterableUtils.flatten(res.items.map((e) => e.list)));
         print(res);
-      } catch (e) {
+      } catch (e, s) {
         print(e);
+        print(s);
       }
       break;
     case 'getsearch':
@@ -120,8 +119,9 @@ Future<void> runCommand({
             await source.getSearchPage(page, query, source.getFilterList());
         items.addAll(res.list);
         print(res);
-      } catch (e) {
+      } catch (e, s) {
         print(e);
+        print(s);
       }
       break;
     case 'getinfo':
@@ -144,12 +144,14 @@ Future<void> runCommand({
             final content = await (res.content as LazyMediaContent).call();
             contents.add(content);
             print(content);
-          } catch (e) {
+          } catch (e, s) {
             print(e);
+            print(s);
           }
         }
-      } catch (e) {
+      } catch (e, s) {
         print(e);
+        print(s);
       }
       break;
     case 'getlinks':
@@ -173,8 +175,9 @@ Future<void> runCommand({
         final res = await source.getMediaLinks(url);
         contentDataLink.addAll(res);
         print(res);
-      } catch (e) {
+      } catch (e, s) {
         print(e);
+        print(s);
       }
       break;
     case 'getdata':
@@ -189,8 +192,9 @@ Future<void> runCommand({
       try {
         final res = await source.getMedia(link);
         print(res);
-      } catch (e) {
+      } catch (e, s) {
         print(e);
+        print(s);
       }
       break;
     case 'r':

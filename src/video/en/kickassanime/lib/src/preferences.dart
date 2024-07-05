@@ -11,7 +11,7 @@ class Preferences {
   static const String pref_use_english_title = "Use English titles";
   static const String pref_use_english_summary =
       "Show Titles in English instead of Romanji when possible.";
-  static const bool PREF_USE_ENGLISH_DEFAULT = false;
+  static const bool PREF_USE_ENGLISH_DEFAULT = true;
 
   static const String pref_quality_key = "preferred_quality";
   static const String pref_quality_title = "Preferred quality";

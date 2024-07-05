@@ -30,7 +30,8 @@ class GogoAnime extends ParsedHttpSource {
   String get baseUrl {
     final url = this.preferences.getString(
         Preferences.pref_domain_key, Preferences.pref_domain_default)!;
-    if (url.trim().isEmpty) {
+    print(url);
+    if (StringUtils.isBlank(url)) {
       return Preferences.pref_domain_default;
     }
     return url;
@@ -71,6 +72,7 @@ class GogoAnime extends ParsedHttpSource {
 
   @override
   String homePageItemSelector(HomePageRequest request) => searchItemSelector();
+
 
   @override
   MediaPreview homePageItemFromElement(

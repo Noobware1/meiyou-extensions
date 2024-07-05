@@ -1,4 +1,4 @@
-class Preferences {
+class DopeFlixPreferences {
   static const PREF_DOMAIN_KEY = "preferred_domain_new";
   static const PREF_DOMAIN_TITLE = "Preferred domain (requires app restart)";
   static const PREF_QUALITY_KEY = "preferred_quality";

@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_this, unnecessary_cast
+// ignore_for_file: unnecessary_cast
 
 import 'package:kickassanime/src/kickassanime_extractor.dart';
 import 'package:kickassanime/src/preferences.dart';
@@ -6,7 +6,6 @@ import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/okhttp_extensions.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
-
 import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
@@ -50,6 +49,7 @@ class KickAssAnime extends HttpSource {
       it.write(request.title == 'Popular' ? '?' : '&');
       it.write('page=$page');
     });
+
     return GET(url);
   }
 
@@ -112,7 +112,10 @@ class KickAssAnime extends HttpSource {
   @override
   Future<MediaDetails> mediaDetailsParse(Response response) async {
     return response.body.json((json) {
+      json as Map<String, dynamic>;
       final builder = MediaDetails.builder();
+
+      builder.url(response.request.url.toString());
 
       builder.title(json['title'] as String).startDate(
           DateTime.tryParse(StringUtils.valueToString(json['start_date'])));
@@ -130,8 +133,9 @@ class KickAssAnime extends HttpSource {
           .status(getStatus(json['status']))
           .format(getFormat(json['type']))
           .description(json['synopsis'] as String?)
-          .duration(
-              Duration(seconds: StringUtils.toInt(json['episode_duration'])))
+          .duration(json.containsKey('episode_duration')
+              ? Duration(seconds: json['episode_duration'])
+              : null)
           .addOtherTitle(json['title_original'] as String?)
           .genres(ListUtils.mapList(json['genres'], (it) => it.toString()))
           .content(LazyMediaContent(() {
@@ -152,9 +156,9 @@ class KickAssAnime extends HttpSource {
     return response.body.json((json) {
       final total = (json['pages'] as List).length;
       final episodes = ListUtils.mapList(json['result'] as List, (json) {
-        final int number = json['episode_number'];
+        final num number = json['episode_number'];
         return Episode(
-          number: number,
+          number: number.toInt(),
           name: json['title'],
           data: '$url/ep-$number-${json['slug'].toString()}',
           image: this.baseUrl + Poster.fromJson(json['thumbnail'])!.thumbnail,

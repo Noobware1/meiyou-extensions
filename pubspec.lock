@@ -288,7 +288,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: f009c90a486dfb351b2b4704331871a4902b8888
+      resolved-ref: d3b4f830be81e82ffdcf0543d00bd2f363acb4de
       url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"
