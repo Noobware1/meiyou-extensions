@@ -30,7 +30,6 @@ class GogoAnime extends ParsedHttpSource {
   String get baseUrl {
     final url = this.preferences.getString(
         Preferences.pref_domain_key, Preferences.pref_domain_default)!;
-    print(url);
     if (StringUtils.isBlank(url)) {
       return Preferences.pref_domain_default;
     }
@@ -73,7 +72,6 @@ class GogoAnime extends ParsedHttpSource {
   @override
   String homePageItemSelector(HomePageRequest request) => searchItemSelector();
 
-
   @override
   MediaPreview homePageItemFromElement(
       HomePageRequest request, Element element) {
@@ -88,50 +86,56 @@ class GogoAnime extends ParsedHttpSource {
   }
 
   @override
-  Request mediaDetailsRequest(String url) {
-    return GET('${this.baseUrl}/category${url}', headers: this.headers);
+  Request mediaDetailsRequest(MediaDetails mediaDetails) {
+    return GET('${this.baseUrl}/category${mediaDetails.url}',
+        headers: this.headers);
   }
 
   @override
-  Future<MediaDetails> mediaDetailsFromDocument(Document document) async {
-    final builder = MediaDetails.builder();
+  MediaDetails mediaDetailsFromDocument(Document document) {
+    final mediaDetails = MediaDetails();
 
     final Element body = document.selectFirst('div.anime_info_body_bg')!;
 
-    builder
-        .url(document.selectFirst('head > link[rel=canonical]')!.getHref!)
-        .poster(body.selectFirst('img')!.attr('src')!)
-        .title(body.selectFirst('h1')!.text);
+    mediaDetails.poster = body.selectFirst('img')!.attr('src')!;
 
     for (var e in body.select('p.type')) {
       final header = e.selectFirst('span')!.text.trim();
 
       if (header == 'Plot Summary:') {
-        builder.description(e.text.replaceFirst('Plot Summary:', '').trim());
+        mediaDetails.description =
+            e.text.replaceFirst('Plot Summary:', '').trim();
       } else if (header == 'Type:') {
-        builder.format(getFormat(e.selectFirst('a')!.attr('title')!));
+        mediaDetails.format = getFormat(e.selectFirst('a')!.attr('title')!);
       } else if (header == 'Genre:') {
-        builder.genres(ListUtils.mapList(e.select('a'), (e) {
+        mediaDetails.genres = ListUtils.mapList(e.select('a'), (e) {
           e as Element;
           return e.attr('title')!;
-        }));
-      } else if (header == 'Released:') {
-        builder.startDate(AppUtils.toDateTime(
-            StringUtils.toInt(e.text.replaceFirst('Released:', '').trim())));
+        });
       } else if (header == 'Status:') {
-        builder.status(getStatus(e.text.replaceFirst('Status:', '')));
+        mediaDetails.status = getStatus(e.text.replaceFirst('Status:', ''));
       } else if (header == 'Other name:') {
-        builder.otherTitles(
-            e.text.replaceFirst('Other name:', '').trim().split(';'));
+        mediaDetails.otherTitles =
+            e.text.replaceFirst('Other name:', '').trim().split(';');
       }
     }
 
-    builder.content(await getContent(document));
-
-    return builder.build();
+    return mediaDetails;
   }
 
-  Future<EpisodicContent> getContent(Document document) async {
+  @override
+  Request mediaContentRequest(MediaDetails mediaDetails) {
+    return mediaDetailsRequest(mediaDetails);
+  }
+
+  @override
+  MediaContent mediaContentParse(Response response) {
+    throw UnsupportedError('Not Used');
+  }
+
+  @override
+  Future<MediaContent> mediaContentParseAsync(Response response) {
+    final document = response.body.document;
     final id = document
         .selectFirst('.anime_info_episodes_next > #movie_id')!
         .attr('value')!;
@@ -139,13 +143,14 @@ class GogoAnime extends ParsedHttpSource {
     final epEnd = (document.select('ul#episode_page > li > a').last as Element)
         .attr('ep_end')!;
 
-    return this.client.newCall(animeRequest(epEnd, id)).execute().then(
-        (response) => EpisodicContent(
-            episodes:
-                episodeListFromDocument((response as Response).body.document)));
+    final request = animeRequest(epEnd, id);
+
+    return this.client.newCall(request).execute().then((response) =>
+        mediaContentFromDocument((response as Response).body.document));
   }
 
-  List<Episode> episodeListFromDocument(Document document) {
+  @override
+  MediaContent mediaContentFromDocument(Document document) {
     final List<Episode> episodes = [];
     final elements = document.select(episodeListSelector());
 
@@ -153,7 +158,7 @@ class GogoAnime extends ParsedHttpSource {
       episodes.add(episodeFromElement(elements[i]));
     }
 
-    return episodes;
+    return Anime(episodes: episodes);
   }
 
   Request animeRequest(String epEnd, String id) {
@@ -167,7 +172,7 @@ class GogoAnime extends ParsedHttpSource {
 
   Episode episodeFromElement(Element element) {
     return Episode(
-      data: element.attr('href')!.trim(),
+      data: AppUtils.getUrlWithoutDomain(element.attr('href')!.trim()),
       number: StringUtils.toInt(
           element.selectFirst('div.name')!.text.replaceFirst('EP ', '')),
     );
@@ -211,16 +216,15 @@ class GogoAnime extends ParsedHttpSource {
   @override
   Future<Media?> getMedia(MediaLink link) async {
     Video? video;
-    if (link.data.contains('/streaming.php?') ||
-        link.data.contains('/embedplus?')) {
+    if (link.name == 'Vidstreaming' || link.name == 'Gogo server') {
       video = await GogoCDNExtractor(this.client).extract(link);
     } else {
       video = null;
     }
 
-    if (video != null) {
-      video = video.copyWith(sources: sortVideoSources(video.sources));
-    }
+    // if (video != null) {
+    //   video = video.copyWith(sources: sortVideoSources(video.sources));
+    // }
 
     return video;
   }

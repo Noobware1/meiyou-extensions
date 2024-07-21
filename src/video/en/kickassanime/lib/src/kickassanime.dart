@@ -107,46 +107,65 @@ class KickAssAnime extends HttpSource {
   }
 
   @override
-  Request mediaDetailsRequest(String url) => GET('${this.apiUrl}/$url');
+  Request mediaDetailsRequest(MediaDetails mediaDetails) =>
+      GET('${this.apiUrl}/${mediaDetails.url}');
 
   @override
-  Future<MediaDetails> mediaDetailsParse(Response response) async {
+  MediaDetails mediaDetailsParse(Response response) {
     return response.body.json((json) {
       json as Map<String, dynamic>;
-      final builder = MediaDetails.builder();
+      final mediaDetails = MediaDetails();
 
-      builder.url(response.request.url.toString());
+      mediaDetails.url =
+          AppUtils.getUrlWithoutDomain(response.request.url.toString());
 
-      builder.title(json['title'] as String).startDate(
-          DateTime.tryParse(StringUtils.valueToString(json['start_date'])));
+      mediaDetails.title = (json['title'] as String);
 
       String? banner = Poster.fromJson(json["banner"])?.banner;
       if (banner != null) {
-        builder.banner(this.baseUrl + banner);
+        mediaDetails.banner = (this.baseUrl + banner);
       }
       String? poster = Poster.fromJson(json["poster"])?.poster;
       if (poster != null) {
-        builder.poster(this.baseUrl + poster);
+        mediaDetails.poster = (this.baseUrl + poster);
       }
 
-      builder
-          .status(getStatus(json['status']))
-          .format(getFormat(json['type']))
-          .description(json['synopsis'] as String?)
-          .duration(json.containsKey('episode_duration')
-              ? Duration(seconds: json['episode_duration'])
-              : null)
-          .addOtherTitle(json['title_original'] as String?)
-          .genres(ListUtils.mapList(json['genres'], (it) => it.toString()))
-          .content(LazyMediaContent(() {
-        final String slug = json['slug'];
-        final List<String> locales = json['locales'];
+      mediaDetails
+        ..status = getStatus(json['status'])
+        ..format = getFormat(json['type'])
+        ..description = json['synopsis']
+        ..addOtherTitle(json['title_original'] as String?)
+        ..genres = ListUtils.mapList(json['genres'], (it) => it.toString());
 
-        return getContent(slug, locales);
-      }));
-
-      return builder.build();
+      return mediaDetails;
     });
+  }
+
+  @override
+  Future<MediaContent> mediaContentParseAsync(Response response) async {
+    final json = response.body.json();
+    final String slug = json['slug'];
+    final List<String> locales = json['locales'];
+
+    final prefLang = this.preferences.getString(
+        Preferences.pref_audio_lang_key, Preferences.pref_audio_lang_default)!;
+    final lang = locales.firstWhere((element) => element == prefLang,
+        orElse: () => locales.first);
+
+    final List<Episode> episodes = [];
+    final first =
+        await getEpisodeRsponse(episodeListRequest(slug, 1, lang), slug);
+
+    episodes.addAll(first.episodes);
+
+    for (var i = 1; i < first.total; i++) {
+      final episodeResponse =
+          await getEpisodeRsponse(episodeListRequest(slug, i + 1, lang), slug);
+
+      episodes.addAll(episodeResponse.episodes);
+    }
+
+    return Anime(episodes: episodes);
   }
 
   Request episodeListRequest(String url, int page, String lang) =>
@@ -174,28 +193,6 @@ class KickAssAnime extends HttpSource {
     return this.client.newCall(episodeRequest).execute().then((response) {
       return episodeListParse(url, response);
     });
-  }
-
-  Future<EpisodicContent> getContent(String url, List<String> locales) async {
-    final prefLang = this.preferences.getString(
-        Preferences.pref_audio_lang_key, Preferences.pref_audio_lang_default)!;
-    final lang = locales.firstWhere((element) => element == prefLang,
-        orElse: () => locales.first);
-
-    final List<Episode> episodes = [];
-    final first =
-        await getEpisodeRsponse(episodeListRequest(url, 1, lang), url);
-
-    episodes.addAll(first.episodes);
-
-    for (var i = 1; i < first.total; i++) {
-      final episodeResponse =
-          await getEpisodeRsponse(episodeListRequest(url, i + 1, lang), url);
-
-      episodes.addAll(episodeResponse.episodes);
-    }
-
-    return EpisodicContent(episodes: episodes);
   }
 
   @override

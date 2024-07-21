@@ -3,18 +3,39 @@
 import 'dart:convert';
 
 import 'package:crypto_dart/crypto_dart.dart';
+import 'package:meiyou_extensions_lib/extensions_lib.dart';
 import 'package:meiyou_extensions_lib/models.dart';
 import 'package:meiyou_extensions_lib/network.dart';
 import 'package:meiyou_extensions_lib/okhttp_extensions.dart';
 import 'package:meiyou_extensions_lib/utils.dart';
 import 'package:okhttp/okhttp.dart';
 
+void main(List<String> args) {
+  final MediaLink link = MediaLink.fromJson(jsonDecode(r'''
+{
+  "name": "Vidcloud",
+  "data": "https://rabbitstream.net/v2/embed-4/EDUZMCvBvyxq?z=",
+  "headers": null,
+  "referer": null,
+  "extra": null
+}
+'''));
+
+  final client = ExtensionlibOverrides.networkHelper.client;
+
+  final extractor = DopeFlixExtractor(client);
+
+  extractor.extract(link).then((value) {
+    print(value);
+  });
+}
+
 class DopeFlixExtractor {
   final OkHttpClient client;
 
   DopeFlixExtractor(this.client);
 
-  static const sourcePath = "/ajax/embed-4/getSources?id=";
+  static const sourcePath = "/ajax/v2/embed-4/getSources?id=";
   static const scriptUrl =
       "https://rabbitstream.net/js/player/prod/e4-player.min.js";
 
@@ -22,16 +43,18 @@ class DopeFlixExtractor {
     final id = StringUtils.substringBefore(
         StringUtils.substringAfter(link.data, '/embed-4/'), '?');
 
-    final serverUrl = StringUtils.substringBefore(link.data, "/embed");
-
+    final uri = Uri.parse(link.data);
+    print("${uri.scheme}://${uri.host}$sourcePath$id");
     final response = await client
         .newCall(
           GET(
-            serverUrl + sourcePath + id,
+            "${uri.scheme}://${uri.host}$sourcePath$id",
             headers: Headers.fromMap({"x-requested-with": "XMLHttpRequest"}),
           ),
         )
         .execute();
+
+    print(response.body.string);
 
     final json = response.body.json() as Map;
 

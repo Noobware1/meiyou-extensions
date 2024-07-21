@@ -71,6 +71,7 @@ void _readLanguageFolder(
           lang: readResults.info.lang,
           isNsfw: readResults.info.isNsfw,
           isOnline: readResults.sources.any((source) => source is HttpSource),
+          repoUrl: readResults.info.repoUrl,
         ),
       );
 

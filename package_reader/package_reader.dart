@@ -61,7 +61,6 @@ class PackageReader {
     _addExtensionImports();
 
     final program = ExtensionComplier().compile(_packages);
-    
 
     final sources = getSources(
       _info!.pkgName,
@@ -123,7 +122,6 @@ class PackageReader {
       isNsfw: nsfw == 1,
       lang: lang,
       pluginName: '$pkg-v$version.plugin',
-      iconUrl: '$pkg.png',
       sources: List.empty(growable: true),
       repoUrl: '',
     );

@@ -1,4 +1,7 @@
 
+analyzer:
+  errors:
+    no_leading_underscores_for_local_identifiers: ignore
 include: package:lints/recommended.yaml
 
 linter:
