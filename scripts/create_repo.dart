@@ -56,7 +56,7 @@ void _readLanguageFolder(
       list.add(readResults.info);
 
       print('Copying icon for source: ${dir.name}');
-      File(p.join(iconDirectory.path, readResults.info.iconUrl))
+      File(p.join(iconDirectory.path, '${readResults.info.pkgName}.png'))
           .writeAsBytesSync(readResults.iconBytes);
 
       print('Creating plugin for source: ${dir.name}');
