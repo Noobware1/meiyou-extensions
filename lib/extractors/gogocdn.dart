@@ -1,5 +1,3 @@
-// ignore_for_file: unnecessary_this, unnecessary_cast
-
 import 'dart:convert';
 
 import 'package:crypto_dart/crypto_dart.dart';
@@ -17,13 +15,7 @@ class GogoCDNExtractor {
 
   final OkHttpClient client;
 
-  Future<Video> extract(MediaLink link) async {
-    final Document document = await this
-        .client
-        .newCall(GET(link.data))
-        .execute()
-        .then((response) => (response as Response).body.document);
-
+  Future<Video> extract(MediaLink link, Document document) async {
     final iv = StringUtils.substringAfter(
         document.selectFirst("div.wrapper")!.className, ' container-');
     final secretKey = StringUtils.substringAfter(
@@ -38,7 +30,7 @@ class GogoCDNExtractor {
       false,
     );
 
-    final httpUrl = Uri.parse(link.data);
+    final httpUrl = Uri.parse(link.url);
     final host = "https://${httpUrl.host}";
 
     final id = httpUrl.queryParameters["id"]!;
@@ -56,7 +48,7 @@ class GogoCDNExtractor {
           ),
         )
         .execute()
-        .then((res) => (res.body as ResponseBody).json((json) => json['data']));
+        .then((Response res) => res.body.json((json) => json['data']));
 
     final decrypted =
         json.decode(cryptoHandler(encryptedData, iv, decryptionKey, false));
@@ -95,7 +87,6 @@ class GogoCDNExtractor {
   }
 
   VideoSource toVideoSource(dynamic j, bool backup) {
-    print(j);
     final fileLabel = StringUtils.valueToString(j['label']).toLowerCase();
 
     final url = j['file'];

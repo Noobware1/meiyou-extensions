@@ -22,13 +22,13 @@ class KickAssAnimeExtractor {
     "vid": "e13d38099bf562e8b9851a652d2043d3",
   };
 
-  Future<Video> extract(MediaLink link) async {
+  Future<Video> extract(MediaLink link, Response response) async {
     final String shortName = (link.extra!['shortName'] as String).toLowerCase();
-    final uri = Uri.parse(link.data);
+    final uri = Uri.parse(link.url);
     final String key = keysMap[shortName]!;
     final source = await this
         .client
-        .newCall(GET(await getSourceUrl(shortName, uri, key)))
+        .newCall(GET(getSourceUrl(shortName, uri, key, response.body.string)))
         .execute()
         .then((response) {
       response as Response;
@@ -75,15 +75,11 @@ class KickAssAnimeExtractor {
         .build();
   }
 
-  Future<String> getSourceUrl(String shortName, Uri uri, String key) async {
+  String getSourceUrl(
+      String shortName, Uri uri, String key, String playerConfig) {
     final host = uri.host;
     final mid = (shortName == "duck") ? "mid" : "id";
     final query = uri.queryParameters[mid] ?? '';
-    final playerConfig = await this
-        .client
-        .newCall(GET(uri))
-        .execute()
-        .then((response) => (response as Response).body.string);
 
     final signature = getSignature(playerConfig, shortName, query, key);
 

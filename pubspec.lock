@@ -120,11 +120,11 @@ packages:
     source: hosted
     version: "1.0.0"
   dart_eval:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "."
-      ref: fixes
-      resolved-ref: "44093222c6a8d9d69e6a7817132da07ed8ac7d95"
+      ref: test
+      resolved-ref: af959a29b763dc6ce371bc4622ac5dcfa3ece064
       url: "https://github.com/Noobware1/dart_eval.git"
     source: git
     version: "0.7.9"
@@ -301,7 +301,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "3a2cca92bb6676d542ab06e8fb459ca4bfd33a51"
+      resolved-ref: e42d9ae8234cd53575cbd655e09dfc71f48f6632
       url: "https://github.com/Noobware1/meiyou_extensions_lib.git"
     source: git
     version: "1.0.0"

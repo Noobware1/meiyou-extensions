@@ -1,4 +1,7 @@
 
+analyzer:
+  errors:
+    unnecessary_cast: ignore
 include: package:lints/recommended.yaml
 
 linter:

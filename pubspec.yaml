@@ -22,10 +22,10 @@ dependencies:
     git:
       url: https://github.com/Noobware1/meiyou_extensions_lib.git
       ref: master
-  dart_eval:
-    git:
-      url: https://github.com/Noobware1/dart_eval.git
-      ref: fixes
+  # dart_eval:
+  #   git:
+  #     url: https://github.com/Noobware1/dart_eval.git
+  #     ref: test
   archive:
   html: ^0.15.4
   intl: ^0.19.0

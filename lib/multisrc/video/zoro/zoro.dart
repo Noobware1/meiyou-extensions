@@ -1,5 +1,7 @@
 // ignore_for_file: unnecessary_cast
 
+import 'dart:async';
+
 import 'package:html/dom.dart';
 import 'package:meiyou_extensions/multisrc/video/zoro/preferences.dart';
 import 'package:meiyou_extensions_lib/html_extensions.dart';
@@ -11,14 +13,18 @@ import 'package:okhttp/okhttp.dart';
 import 'package:okhttp/request.dart';
 import 'package:okhttp/response.dart';
 
-class Zoro extends ParsedHttpSource {
+abstract class Zoro extends ParsedHttpSource {
   Zoro({
+    required this.id,
     required this.baseUrl,
     required this.name,
     required this.lang,
     required this.hosterNames,
     required this.ajaxRoute,
   });
+
+  @override
+  final int id;
 
   @override
   final String baseUrl;
@@ -42,17 +48,18 @@ class Zoro extends ParsedHttpSource {
       .build();
 
   @override
-  List<HomePageRequest> homePageRequests() => [
-        HomePageRequest(title: 'Home', data: '/home'),
-        HomePageRequest(title: 'Most Popular', data: '/most-popular'),
-        HomePageRequest(title: 'Latest', data: '/top-airing'),
-        HomePageRequest(title: 'Most Favorite', data: '/most-favorite'),
-        HomePageRequest(title: 'Completed', data: '/completed'),
+  List<HomePageRequest> getHomePageRequestList() => [
+        HomePageRequest(title: 'Most Popular', url: '/most-popular'),
+        HomePageRequest(title: 'Latest', url: '/top-airing'),
+        HomePageRequest(title: 'Most Favorite', url: '/most-favorite'),
+        HomePageRequest(title: 'Completed', url: '/completed'),
       ];
+
+  // ============================== HomePage ===================================
 
   @override
   Request homePageRequest(int page, HomePageRequest request) {
-    String url = baseUrl + request.data;
+    String url = baseUrl + request.url;
     if (request.title != 'Home') {
       url += '?page=$page';
     }
@@ -60,62 +67,23 @@ class Zoro extends ParsedHttpSource {
   }
 
   @override
-  MediaPreview homePageItemFromElement(
-          HomePageRequest request, Element element) =>
-      request.title == 'Home'
-          ? bannerItemFromElement(element)
-          : searchItemFromElement(element);
-
-  MediaPreview bannerItemFromElement(Element element) {
-    final poster =
-        element.selectFirst('div.deslide-cover > div > img')!.attr('data-src')!;
-    final content = element.selectFirst('div.deslide-item-content')!;
-    final titleTag = content.select('div')[1];
-    final title = (useEnglish && titleTag.attr('title') != null)
-        ? titleTag.attr('title')!
-        : titleTag.attr('data-jname')!;
-
-    final url = content.select('.desi-buttons > a')[1].attr('href')!;
-
-    final description = content.selectFirst('.desi-description')?.text;
-
-    final format =
-        getFormat(content.select('div.sc-detail > div')[1].text.trim());
-
-    return MediaPreview(
-      title: title,
-      url: url,
-      poster: poster,
-      description: description,
-      format: format,
-    );
+  IMedia homeMediaFromElement(HomePageRequest request, Element element) {
+    return searchMediaFromElement(element);
   }
 
-  MediaFormat getFormat(String s) {
-    if (StringUtils.equals(s, 'movie', ignoreCase: true)) {
-      return MediaFormat.animeMovie;
-    } else if (StringUtils.equals(s, 'ova', ignoreCase: true)) {
-      return MediaFormat.ova;
-    } else if (StringUtils.equals(s, 'ona', ignoreCase: true)) {
-      return MediaFormat.ona;
-    } else {
-      return MediaFormat.anime;
-    }
-  }
-
-  String bannerSelector() => '.deslide-item';
+  @override
+  String? homeHasNextPageSelector(HomePageRequest request) =>
+      searchHasNextPageSelector();
 
   @override
-  String homePageItemSelector(HomePageRequest request) =>
-      request.title == 'Home' ? bannerSelector() : searchItemSelector();
+  String homeMediaListSelector(HomePageRequest request) =>
+      searchMediaListSelector();
+
+  // ============================== MediaDetails ===================================
 
   @override
-  String? homeNextPageSelector(HomePageRequest request) =>
-      searchNextPageSelector();
-
-  @override
-  MediaDetails mediaDetailsFromDocument(Document document) {
-    final MediaDetails mediaDetails = MediaDetails();
+  IMedia mediaDetailsFromDocument(Document document) {
+    final IMedia mediaDetails = IMedia();
     mediaDetails.format =
         getFormat(document.selectFirst('.tick > .item')!.text);
 
@@ -155,35 +123,26 @@ class Zoro extends ParsedHttpSource {
   }
 
   @override
-  Request mediaContentRequest(MediaDetails mediaDetails) {
-    final url = mediaDetails.url;
+  Request mediaContentListRequest(IMedia media) {
+    final url = media.url;
     final id = StringUtils.substringAfterLast(url, "-");
     return GET("$baseUrl/ajax$ajaxRoute/episode/list/$id",
         headers: _apiHeaders(baseUrl + url));
   }
 
   @override
-  MediaContent mediaContentParse(Response response) {
+  FutureOr<List<IMediaContent>> mediaContentListParse(Response response) {
     final document = Document.html(response.body.json((json) {
       return json['html'];
     }));
-    return mediaContentFromDocument(document);
+    return mediaContentListFromDocument(document);
   }
 
   @override
-  MediaContent mediaContentFromDocument(Document document) {
-    final episodes = document.select(episodeListSelector());
-    final episodeList =
-        ListUtils.mapList(episodes, (e) => episodeFromElemnt(e));
+  String mediaContentListSelector() => 'a.ep-item';
 
-    return Anime(
-      episodes: episodeList,
-    );
-  }
-
-  String episodeListSelector() => 'a.ep-item';
-
-  Episode episodeFromElemnt(Element element) {
+  @override
+  IMediaContent mediaContentFromElement(Element element) {
     final episodeNumber = int.parse(element.attr("data-number")!);
 
     final name = element.attr('title');
@@ -192,10 +151,10 @@ class Zoro extends ParsedHttpSource {
 
     final isFiller = element.attr('class')!.contains('ssl-item-filler');
 
-    return Episode(
+    return IMediaContent(
       number: episodeNumber,
       name: name,
-      data: url,
+      url: url,
       isFiller: isFiller,
     );
   }
@@ -211,17 +170,7 @@ class Zoro extends ParsedHttpSource {
   }
 
   @override
-  MediaLink mediaLinkFromElement(Element element) {
-    throw UnsupportedError('Not used');
-  }
-
-  @override
-  List<MediaLink> medialinksParse(Response response) {
-    throw UnsupportedError('Not used');
-  }
-
-  @override
-  Future<List<MediaLink>> medialinksParseAsync(Response response) async {
+  Future<List<MediaLink>> mediaLinkListParse(Response response) async {
     final episodeReferer = response.request.headers.get("referer")!;
     final typeSelection = _typeToggle;
     final hosterSelection = _hostToggle;
@@ -251,9 +200,8 @@ class Zoro extends ParsedHttpSource {
                 .then((value) => (value as Response)
                     .body
                     .jsonSafe((json) => json['link'] ?? ""));
-          
 
-            links.add(MediaLink(name: name, data: link));
+            links.add(MediaLink(name: name, url: link));
           }
         }
       }
@@ -263,19 +211,27 @@ class Zoro extends ParsedHttpSource {
   }
 
   @override
-  Request mediaLinksRequest(String data) {
-    final id = StringUtils.substringAfterLast(data, "?ep=");
+  Request mediaLinkListRequest(IMediaContent content) {
+    final url = content.url;
+    final id = StringUtils.substringAfterLast(url, "?ep=");
     return GET("$baseUrl/ajax$ajaxRoute/episode/servers?episodeId=$id",
-        headers: _apiHeaders(baseUrl + data));
+        headers: _apiHeaders(baseUrl + url));
   }
 
   @override
-  String mediaLinkSelector() {
-    throw UnsupportedError('Not used');
+  MediaLink mediaLinkFromElement(Element element) {
+    throw UnsupportedOperationException();
   }
 
   @override
-  MediaPreview searchItemFromElement(Element element) {
+  String mediaLinkListSelector() {
+    throw UnsupportedOperationException();
+  }
+
+  // ============================== Search ===================================
+
+  @override
+  IMedia searchMediaFromElement(Element element) {
     final poster =
         element.selectFirst('div.film-poster > img')!.attr('data-src')!;
     final details = element.selectFirst('div.film-detail')!;
@@ -286,7 +242,7 @@ class Zoro extends ParsedHttpSource {
 
     final url = atag.attr('href')!;
 
-    return MediaPreview(
+    return IMedia(
       title: title,
       url: url,
       poster: poster,
@@ -295,12 +251,10 @@ class Zoro extends ParsedHttpSource {
   }
 
   @override
-  String searchItemSelector() {
-    return '.film_list-wrap > .flw-item';
-  }
+  String searchMediaListSelector() => '.film_list-wrap > .flw-item';
 
   @override
-  String? searchNextPageSelector() => 'li.page-item a[title=Next]';
+  String? searchHasNextPageSelector() => 'li.page-item a[title=Next]';
 
   @override
   Request searchPageRequest(int page, String query, FilterList filters) {
@@ -330,6 +284,30 @@ class Zoro extends ParsedHttpSource {
   FilterList getFilterList() {
     return FilterList([]);
   }
+
+  // ============================== MediaAsset ===================================
+
+  @override
+  FutureOr<MediaAsset> mediaAssetFromDocument(
+      MediaLink link, Document document) {
+    throw UnsupportedOperationException();
+  }
+
+  // ============================== Utils ===============================
+
+  MediaFormat getFormat(String s) {
+    if (StringUtils.equals(s, 'movie', ignoreCase: true)) {
+      return MediaFormat.animeMovie;
+    } else if (StringUtils.equals(s, 'ova', ignoreCase: true)) {
+      return MediaFormat.ova;
+    } else if (StringUtils.equals(s, 'ona', ignoreCase: true)) {
+      return MediaFormat.ona;
+    } else {
+      return MediaFormat.anime;
+    }
+  }
+
+  // ============================== Preferences ===================================
 
   String get _getTitleLang => preferences.getString(
       ZoroPreferences.prefLangKey, ZoroPreferences.prefLangDefault)!;

@@ -107,7 +107,7 @@ class MegaCloud {
   }
 
   Future<Video> getVideoFromLink(MediaLink link) async {
-    final serverUrl = link.data;
+    final serverUrl = link.url;
 
     final type = (serverUrl.startsWith("https://megacloud.tv")) ? 0 : 1;
     final keyType = sourcesKeys[type];
