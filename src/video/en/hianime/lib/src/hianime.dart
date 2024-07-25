@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:html/dom.dart';
 import 'package:meiyou_extensions/extractors/mega_cloud.dart';
 import 'package:meiyou_extensions/multisrc/video/zoro/zoro.dart';
 import 'package:meiyou_extensions_lib/models.dart';
@@ -19,14 +18,14 @@ class HiAnime extends Zoro {
         );
 
   @override
-  Future<MediaAsset?> getMediaAsset(MediaLink link) async {
+  Future<MediaAsset?> getMediaAsset(MediaLink link) {
     if (link.name == "HD-1" || link.name == "HD-2") {
-      return await MegaCloud(
+      return MegaCloud(
         client: this.client,
         headers: this.headers,
         preferences: this.preferences,
       ).getVideoFromLink(link);
     }
-    return null;
+    return Future.value(null);
   }
 }

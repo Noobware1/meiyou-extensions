@@ -243,7 +243,7 @@ class KickAssAnime extends HttpSource {
       KickAssAnimeExtractor(this.client, this.headers);
 
   @override
-  FutureOr<MediaAsset> mediaAssetParse(MediaLink link, Response response) {
+  Future<MediaAsset> mediaAssetParse(MediaLink link, Response response) {
     return KickAssAnimeExtractor(this.client, this.headers)
         .extract(link, response);
   }
