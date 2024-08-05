@@ -75,16 +75,12 @@ class GogoAnime extends ParsedHttpSource {
   @override
   IMedia homeMediaFromElement(HomePageRequest request, Element element) {
     final media = searchMediaFromElement(element);
-    media.url = StringUtils.substringBeforeLast(media.url, '-episode');
+    media.url =
+        '/category${StringUtils.substringBeforeLast(media.url, '-episode')}';
     return media;
   }
 
   // ============================== MediaDetails ===================================
-
-  @override
-  Request mediaDetailsRequest(IMedia media) {
-    return GET('${this.baseUrl}/category${media.url}', headers: this.headers);
-  }
 
   @override
   IMedia mediaDetailsFromDocument(Document document) {

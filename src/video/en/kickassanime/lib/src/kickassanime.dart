@@ -1,6 +1,7 @@
 // ignore_for_file: unnecessary_cast
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:kickassanime/src/kickassanime_extractor.dart';
 import 'package:kickassanime/src/preferences.dart';
@@ -83,10 +84,6 @@ class KickAssAnime extends HttpSource {
         Preferences.PREF_USE_ENGLISH_DEFAULT)!;
     return ListUtils.mapList(json['result'] as List, (json) {
       json as Map<String, dynamic>;
-      List<String>? genres;
-      if (json.containsKey('genres')) {
-        genres = ListUtils.mapList(json['genres'], (it) => it.toString());
-      }
 
       final String title;
       final String? englishTitle =
@@ -100,10 +97,8 @@ class KickAssAnime extends HttpSource {
       return IMedia(
         title: title,
         url: '/${json['slug']}',
-        description: json['synopsis'],
-        poster: '${this.baseUrl}${Poster.fromJson(json['poster'])!.poster}',
+        poster: Poster.fromJson(json['poster'])?.getPoster(this.baseUrl),
         format: getFormat(json['type']),
-        genres: genres,
       );
     });
   }
@@ -122,14 +117,10 @@ class KickAssAnime extends HttpSource {
 
       mediaDetails.title = (json['title'] as String);
 
-      String? banner = Poster.fromJson(json["banner"])?.banner;
-      if (banner != null) {
-        mediaDetails.banner = (this.baseUrl + banner);
-      }
-      String? poster = Poster.fromJson(json["poster"])?.poster;
-      if (poster != null) {
-        mediaDetails.poster = (this.baseUrl + poster);
-      }
+      mediaDetails.banner =
+          Poster.fromJson(json["banner"])?.getBanner(this.baseUrl);
+
+      mediaDetails.poster = Poster.fromJson(json["poster"])?.getPoster(baseUrl);
 
       mediaDetails
         ..status = getStatus(json['status'])
@@ -146,13 +137,14 @@ class KickAssAnime extends HttpSource {
 
   @override
   Future<List<IMediaContent>> getMediaContentList(IMedia media) async {
-    print(this.apiUrl + media.url + '/language');
     final List<String> languages = await this
         .client
         .newCall(GET(this.apiUrl + media.url + '/language'))
         .execute()
-        .then((Response response) =>
-            response.body.json((json) => json['result']));
+        .then((Response response) {
+      return response.body.json((json) =>
+          ListUtils.mapList(json['result'] as List, (e) => e.toString()));
+    });
 
     final prefLang = this.preferences.getString(
         Preferences.pref_audio_lang_key, Preferences.pref_audio_lang_default)!;
@@ -165,7 +157,11 @@ class KickAssAnime extends HttpSource {
 
     episodes.addAll(first.episodes);
 
-    for (var i = 1; i < first.total; i++) {
+    if (first.total == 1) {
+      return episodes;
+    }
+
+    for (var i = 1; i < first.total + 1; i++) {
       final episodeResponse = await getEpisodeResponse(media, i, lang);
 
       episodes.addAll(episodeResponse.episodes);
@@ -188,13 +184,14 @@ class KickAssAnime extends HttpSource {
   EpisodeResponse episodeListParse(IMedia media, Response response) {
     return response.body.json((json) {
       final total = (json['pages'] as List).length;
+
       final episodes = ListUtils.mapList(json['result'] as List, (json) {
         final num number = json['episode_number'];
         return IMediaContent(
           number: number.toInt(),
           name: json['title'],
           url: '${media.url}/ep-$number-${json['slug'].toString()}',
-          image: this.baseUrl + Poster.fromJson(json['thumbnail'])!.thumbnail,
+          image: Poster.fromJson(json['thumbnail'])?.getThumbnail(baseUrl),
         );
       });
 
@@ -337,7 +334,15 @@ class Poster {
     }
   }
 
-  String get poster => '/image/poster/${hq ?? sm ?? ''}.$format';
-  String get banner => '/image/banner/${hq ?? sm ?? ''}.$format';
-  String get thumbnail => '/image/thumbnail/${sm ?? hq ?? ''}.$format';
+  String getThumbnail(String baseUrl) {
+    return '$baseUrl/image/thumbnail/${sm ?? hq ?? ''}.$format';
+  }
+
+  String getPoster(String baseUrl) {
+    return '$baseUrl/image/poster/${hq ?? sm ?? ''}.$format';
+  }
+
+  String getBanner(String baseUrl) {
+    return '$baseUrl/image/banner/${hq ?? sm ?? ''}.$format';
+  }
 }
