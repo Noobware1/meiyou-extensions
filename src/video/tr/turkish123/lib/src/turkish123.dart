@@ -37,28 +37,22 @@ class Turkish123 extends ParsedHttpSource {
   @override
   String? homeHasNextPageSelector(HomePageRequest request) {
     if (request.title == 'Latest') {
-      return 'ul.pagination li:last-child a:not(.page-larger)';
+      return searchHasNextPageSelector();
     }
     return null;
   }
 
   @override
   String homeMediaListSelector(HomePageRequest request) =>
-      '.movies-list.movies-list-full > div.ml-item > a';
+      searchMediaListSelector();
 
   @override
   IMedia homeMediaFromElement(HomePageRequest request, Element element) {
-    var url = AppUtils.getUrlWithoutDomain(element.attr('href')!);
+    final media = searchMediaFromElement(element);
 
     if (request.title == 'Latest') {
-      url = StringUtils.substringBeforeLast(url, '-episode');
+      media.url = StringUtils.substringBeforeLast(media.url, '-episode');
     }
-
-    final media = IMedia();
-
-    media.url = url;
-    media.title = element.selectFirst('span.mli-info')!.text.trim();
-    media.poster = element.selectFirst('img')!.attr('src')!;
 
     return media;
   }
@@ -215,26 +209,27 @@ class Turkish123 extends ParsedHttpSource {
 
   @override
   Request searchPageRequest(int page, String query, FilterList filters) {
-    return GET('${this.baseUrl}/search.html?keyword=$query',
-        headers: this.headers);
+    return GET('${this.baseUrl}/page/$page/?s=$query', headers: this.headers);
   }
 
   @override
-  String searchMediaListSelector() => "div > ul.items > li";
+  String searchMediaListSelector() =>
+      '.movies-list.movies-list-full > div.ml-item > a';
 
   @override
-  String? searchHasNextPageSelector() {
-    return null;
+  String searchHasNextPageSelector() {
+    return 'ul.pagination > li:last-child > a:not(.page.larger)';
   }
 
   @override
   IMedia searchMediaFromElement(Element element) {
-    return IMedia(
-      title: element.selectFirst('p.name > a')!.text,
-      url: element.selectFirst('div.img > a')!.attr('href')!,
-      poster: element.selectFirst('div.img > a > img')!.attr('src')!,
-      format: MediaFormat.anime,
-    );
+    final media = IMedia();
+
+    media.url = AppUtils.getUrlWithoutDomain(element.attr('href')!);
+    media.title = element.selectFirst('span.mli-info')!.text.trim();
+    media.poster = element.selectFirst('img')!.attr('src')!;
+
+    return media;
   }
 
   // ============================== Utils ===============================
