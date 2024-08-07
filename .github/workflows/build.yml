@@ -57,7 +57,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git checkout repo
+          git checkout -f repo
 
           rm -rf .dart_tool
           mv repo/* .
